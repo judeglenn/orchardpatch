@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getDeviceById, getAppById } from "@/lib/mockData";
 import { SearchBar } from "@/components/SearchBar";
 import { VersionBadge } from "@/components/VersionBadge";
-import { formatDate, formatRelativeDate, appInitials, appColorClass } from "@/lib/utils";
+import { formatDate, formatRelativeDate, appInitials, appColorClass, macOSName } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -72,7 +72,7 @@ export default function DeviceDetailPage({ params }: Props) {
           <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: "#6b7280" }}>
             <span className="flex items-center gap-1.5">
               <HardDrive className="h-3.5 w-3.5" />
-              macOS {device.osVersion}
+              macOS {macOSName(device.osVersion) ? `${macOSName(device.osVersion)} ` : ""}{device.osVersion}
             </span>
             <span className="flex items-center gap-1.5">
               <Package className="h-3.5 w-3.5" />
@@ -169,14 +169,7 @@ export default function DeviceDetailPage({ params }: Props) {
                       <TableCell>
                         <Link
                           href={`/apps/${appInst.appId}`}
-                          className="flex items-center gap-3 transition-colors"
-                          style={{ color: "#1a1a2e" }}
-                          onMouseEnter={(e) =>
-                            ((e.currentTarget as HTMLElement).style.color = "#0071BC")
-                          }
-                          onMouseLeave={(e) =>
-                            ((e.currentTarget as HTMLElement).style.color = "#1a1a2e")
-                          }
+                          className="flex items-center gap-3 transition-colors text-[#1a1a2e] hover:text-[#0071BC]"
                         >
                           <div
                             className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${colorClass}`}

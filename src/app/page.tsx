@@ -38,7 +38,7 @@ const lastSynced = apps.reduce(
 
 export default function HomePage() {
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<SortKey>("installs");
+  const [sortBy, setSortBy] = useState<SortKey>("name");
   const [conflictsOnly, setConflictsOnly] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(CATEGORY_ALL);
 

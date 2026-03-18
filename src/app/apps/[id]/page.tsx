@@ -1,3 +1,4 @@
+
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAppById, getAppInstallations } from "@/lib/mockData";
@@ -36,8 +37,6 @@ export default async function AppDetailPage({ params }: Props) {
           href="/"
           className="inline-flex items-center gap-1.5 text-sm transition-colors"
           style={{ color: "#6b7280" }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#1a1a2e")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#6b7280")}
         >
           <ChevronLeft className="h-4 w-4" />
           App Catalog
@@ -277,14 +276,7 @@ export default async function AppDetailPage({ params }: Props) {
                   <TableCell>
                     <Link
                       href={`/devices/${inst.deviceId}`}
-                      className="font-medium text-sm flex items-center gap-2 transition-colors"
-                      style={{ color: "#1a1a2e" }}
-                      onMouseEnter={(e) =>
-                        ((e.currentTarget as HTMLElement).style.color = "#0071BC")
-                      }
-                      onMouseLeave={(e) =>
-                        ((e.currentTarget as HTMLElement).style.color = "#1a1a2e")
-                      }
+                      className="font-medium text-sm flex items-center gap-2 transition-colors text-[#1a1a2e] hover:text-[#0071BC]"
                     >
                       <Monitor className="h-3.5 w-3.5 shrink-0" style={{ color: "#9ca3af" }} />
                       {inst.deviceName}

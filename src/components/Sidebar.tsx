@@ -27,7 +27,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="fixed inset-y-0 left-0 z-50 flex w-60 flex-col"
+      className="fixed inset-y-0 left-0 z-10 flex w-60 flex-col"
       style={{ background: "#1d2025" }}
     >
       {/* Logo */}
@@ -72,24 +72,14 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className="group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150"
+              className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                active
+                  ? "text-white"
+                  : "text-[#a0aab4] hover:text-white hover:bg-white/5"
+              }`}
               style={{
-                color: active ? "#ffffff" : "#a0aab4",
-                background: active ? "rgba(0,113,188,0.18)" : "transparent",
+                background: active ? "rgba(0,113,188,0.18)" : undefined,
                 borderLeft: active ? "2px solid #0071BC" : "2px solid transparent",
-              }}
-              onMouseEnter={(e) => {
-                if (!active) {
-                  (e.currentTarget as HTMLElement).style.color = "#ffffff";
-                  (e.currentTarget as HTMLElement).style.background =
-                    "rgba(255,255,255,0.05)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!active) {
-                  (e.currentTarget as HTMLElement).style.color = "#a0aab4";
-                  (e.currentTarget as HTMLElement).style.background = "transparent";
-                }
               }}
             >
               <item.icon className="h-4 w-4 shrink-0" />
@@ -111,14 +101,7 @@ export function Sidebar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded p-1 transition-colors"
-              style={{ color: "#a0aab4" }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "#ffffff")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "#a0aab4")
-              }
+              className="rounded p-1 transition-colors text-[#a0aab4] hover:text-white"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? (

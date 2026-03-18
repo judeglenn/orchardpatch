@@ -49,6 +49,20 @@ export function appColorClass(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+const OS_NAMES: Record<string, string> = {
+  "26": "Tahoe",
+  "15": "Sequoia",
+  "14": "Sonoma",
+  "13": "Ventura",
+  "12": "Monterey",
+  "11": "Big Sur",
+};
+
+export function macOSName(version: string): string {
+  const major = version.split(".")[0];
+  return OS_NAMES[major] ?? "";
+}
+
 export function appInitials(name: string): string {
   const words = name.trim().split(/\s+/);
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
