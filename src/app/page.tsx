@@ -152,7 +152,7 @@ export default function HomePage() {
             className="h-9 gap-1.5 text-sm"
             style={
               conflictsOnly
-                ? { background: "#0071BC", color: "white", borderColor: "#0071BC" }
+                ? { background: "#2d5016", color: "white", borderColor: "#2d5016" }
                 : { background: "white" }
             }
             onClick={() => setConflictsOnly((v) => !v)}
@@ -166,10 +166,10 @@ export default function HomePage() {
       {/* Stats bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
-          icon={<Package className="h-5 w-5" style={{ color: "#0071BC" }} />}
+          icon={<Package className="h-5 w-5" style={{ color: "#2d5016" }} />}
           label="Total Apps"
           value={stats.totalApps.toLocaleString()}
-          iconBg="#e8f4fd"
+          iconBg="#f0f7e8"
         />
         <StatCard
           icon={<Monitor className="h-5 w-5" style={{ color: "#4caf50" }} />}

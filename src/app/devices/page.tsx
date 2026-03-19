@@ -4,7 +4,7 @@ import { Laptop } from "lucide-react";
 import { macOSName } from "@/lib/utils";
 
 export const metadata = {
-  title: "Devices — Jamf App Inventory",
+  title: "Devices — OrchardPatch",
 };
 
 export default function DevicesPage() {

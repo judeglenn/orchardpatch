@@ -12,7 +12,7 @@ interface VersionChartProps {
   versions: { version: string; deviceCount: number }[];
 }
 
-const COLORS = ["#0071BC", "#ff9800", "#4caf50", "#64b5f6", "#f44336", "#90caf9", "#ab47bc", "#26a69a"];
+const COLORS = ["#2d5016", "#ff9800", "#4caf50", "#64b5f6", "#f44336", "#90caf9", "#ab47bc", "#26a69a"];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomTooltip({ active, payload }: any) {

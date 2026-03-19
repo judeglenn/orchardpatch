@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LayoutGrid, Laptop, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 const NAV_ITEMS = [
   { href: "/", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
@@ -28,30 +29,17 @@ export function Sidebar() {
   return (
     <aside
       className="fixed inset-y-0 left-0 z-10 flex w-60 flex-col"
-      style={{ background: "#1d2025" }}
+      style={{ background: "#1a2e0d" }}
     >
       {/* Logo */}
       <div
         className="flex items-center gap-3 px-5 py-[18px]"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded"
-          style={{ background: "#0071BC" }}
-        >
-          <LayoutGrid className="h-4 w-4 text-white" />
-        </div>
+        <Image src="/orchardpatch-logo.png" alt="OrchardPatch" width={32} height={32} style={{ objectFit: "contain" }} />
         <div className="leading-none">
           <div className="text-sm font-bold text-white tracking-tight">
-            jamf
-            <span style={{ color: "#a0aab4" }} className="font-normal">
-              {" "}
-              |{" "}
-            </span>
-            <span className="font-semibold text-white">App Inventory</span>
-          </div>
-          <div className="mt-0.5 text-[11px]" style={{ color: "#a0aab4" }}>
-            Fleet software catalog
+            OrchardPatch
           </div>
         </div>
       </div>
@@ -78,8 +66,8 @@ export function Sidebar() {
                   : "text-[#a0aab4] hover:text-white hover:bg-white/5"
               }`}
               style={{
-                background: active ? "rgba(0,113,188,0.18)" : undefined,
-                borderLeft: active ? "2px solid #0071BC" : "2px solid transparent",
+                background: active ? "rgba(45,80,22,0.35)" : undefined,
+                borderLeft: active ? "2px solid #4a7c1f" : "2px solid transparent",
               }}
             >
               <item.icon className="h-4 w-4 shrink-0" />
@@ -96,7 +84,7 @@ export function Sidebar() {
       >
         <div className="flex items-center justify-between">
           <span className="text-[11px]" style={{ color: "#a0aab4" }}>
-            v1.0.0 · Mock Data
+            v0.1.0 · OrchardPatch
           </span>
           {mounted && (
             <button

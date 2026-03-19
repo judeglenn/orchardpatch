@@ -26,7 +26,7 @@ export function Header() {
             </div>
             <div className="flex flex-col leading-none">
               <span className="text-sm font-semibold text-foreground tracking-tight">
-                Jamf App Inventory
+                OrchardPatch
               </span>
               <span className="text-[11px] text-muted-foreground">
                 Fleet software catalog

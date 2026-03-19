@@ -15,7 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, Cpu, HardDrive, Clock, Package } from "lucide-react";
+import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -58,7 +59,7 @@ export default function DeviceDetailPage({ params }: Props) {
       >
         <div
           className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-white shadow-sm"
-          style={{ background: "#0071BC" }}
+          style={{ background: "#2d5016" }}
         >
           <Cpu className="h-7 w-7" />
         </div>
@@ -111,12 +112,33 @@ export default function DeviceDetailPage({ params }: Props) {
                 : `${filteredApps.length} of ${device.apps.length} apps`}
             </p>
           </div>
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-            placeholder="Filter apps…"
-            className="sm:w-64"
-          />
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="h-8 gap-1.5 text-xs font-semibold"
+              style={{ background: "#2d5016", color: "white", borderColor: "#2d5016" }}
+              onClick={() => {
+                const outdated = filteredApps.filter((a) => {
+                  const meta = getAppById(a.appId);
+                  return meta && a.version !== meta.mostCommonVersion;
+                });
+                if (outdated.length === 0) {
+                  alert("All apps are up to date!");
+                } else {
+                  alert(`Patching ${outdated.length} outdated app${outdated.length !== 1 ? "s" : ""}... (coming soon)`);
+                }
+              }}
+            >
+              <Zap className="h-3.5 w-3.5" />
+              Patch All Outdated
+            </Button>
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Filter apps…"
+              className="sm:w-64"
+            />
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -147,6 +169,12 @@ export default function DeviceDetailPage({ params }: Props) {
                 >
                   Status
                 </TableHead>
+                <TableHead
+                  className="text-[11px] font-semibold uppercase tracking-[0.08em] text-right"
+                  style={{ color: "#6b7280", background: "#fafafa" }}
+                >
+                  Patch
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -169,7 +197,7 @@ export default function DeviceDetailPage({ params }: Props) {
                       <TableCell>
                         <Link
                           href={`/apps/${appInst.appId}`}
-                          className="flex items-center gap-3 transition-colors text-[#1a1a2e] hover:text-[#0071BC]"
+                          className="flex items-center gap-3 transition-colors text-[#1a1a2e] hover:text-[#2d5016]"
                         >
                           <div
                             className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${colorClass}`}
@@ -205,13 +233,31 @@ export default function DeviceDetailPage({ params }: Props) {
                           />
                         )}
                       </TableCell>
+                      <TableCell className="text-right">
+                        {isOutdated ? (
+                          <button
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors"
+                            style={{ background: "#2d5016", color: "white" }}
+                            onClick={() => alert(`Patching ${appInst.appName}... (coming soon)`)}
+                          >
+                            Patch →
+                          </button>
+                        ) : (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                            style={{ background: "#eef0f2", color: "#9ca3af" }}
+                          >
+                            Up to date
+                          </span>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="text-center py-12 text-sm"
                     style={{ color: "#6b7280" }}
                   >

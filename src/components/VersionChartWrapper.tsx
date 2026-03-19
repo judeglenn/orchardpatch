@@ -6,7 +6,7 @@ const VersionChart = dynamic(() => import("@/components/VersionChart").then(m =>
   ssr: false,
   loading: () => (
     <div className="h-[220px] flex items-center justify-center">
-      <div className="h-8 w-8 rounded-full border-2 border-[#0071BC] border-t-transparent animate-spin" />
+      <div className="h-8 w-8 rounded-full border-2 border-[#2d5016] border-t-transparent animate-spin" />
     </div>
   ),
 });

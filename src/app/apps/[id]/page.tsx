@@ -18,7 +18,7 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-const COLORS = ["#0071BC", "#ff9800", "#4caf50", "#64b5f6", "#f44336", "#90caf9", "#ab47bc", "#26a69a"];
+const COLORS = ["#2d5016", "#ff9800", "#4caf50", "#64b5f6", "#f44336", "#90caf9", "#ab47bc", "#26a69a"];
 
 export default async function AppDetailPage({ params }: Props) {
   const { id } = await params;
@@ -60,7 +60,7 @@ export default async function AppDetailPage({ params }: Props) {
             </h1>
             <span
               className="text-xs font-medium px-2 py-0.5 rounded-full"
-              style={{ background: "#e8f4fd", color: "#0071BC" }}
+              style={{ background: "#f0f7e8", color: "#2d5016" }}
             >
               {app.category}
             </span>
@@ -189,7 +189,7 @@ export default async function AppDetailPage({ params }: Props) {
                         {i === 0 && (
                           <span
                             className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                            style={{ background: "#e8f4fd", color: "#0071BC" }}
+                            style={{ background: "#f0f7e8", color: "#2d5016" }}
                           >
                             Most common
                           </span>
@@ -276,7 +276,7 @@ export default async function AppDetailPage({ params }: Props) {
                   <TableCell>
                     <Link
                       href={`/devices/${inst.deviceId}`}
-                      className="font-medium text-sm flex items-center gap-2 transition-colors text-[#1a1a2e] hover:text-[#0071BC]"
+                      className="font-medium text-sm flex items-center gap-2 transition-colors text-[#1a1a2e] hover:text-[#2d5016]"
                     >
                       <Monitor className="h-3.5 w-3.5 shrink-0" style={{ color: "#9ca3af" }} />
                       {inst.deviceName}

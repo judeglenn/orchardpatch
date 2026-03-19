@@ -36,7 +36,7 @@ export function AppCard({ app, totalDevices }: AppCardProps) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 mb-1">
           <span
-            className="text-sm font-semibold truncate transition-colors duration-150 group-hover:text-[#0071BC]"
+            className="text-sm font-semibold truncate transition-colors duration-150 group-hover:text-[#2d5016]"
             style={{ color: "#1a1a2e" }}
           >
             {app.name}

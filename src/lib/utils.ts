@@ -27,7 +27,7 @@ export function formatDate(isoDate: string): string {
 }
 
 const AVATAR_COLORS = [
-  "bg-[#0071BC]",
+  "bg-[#2d5016]",
   "bg-[#1976D2]",
   "bg-[#0288D1]",
   "bg-[#0097A7]",

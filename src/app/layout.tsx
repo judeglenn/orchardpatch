@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Jamf App Inventory",
-  description: "Fleet-wide software catalog powered by Jamf Pro",
+  title: "OrchardPatch",
+  description: "Complete macOS fleet app visibility and smart patching",
 };
 
 export default function RootLayout({
