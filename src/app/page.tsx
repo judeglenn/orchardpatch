@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { AppCard } from "@/components/AppCard";
 import { SearchBar } from "@/components/SearchBar";
 import { apps, stats } from "@/lib/mockData";
+import type { App } from "@/lib/mockData";
 import {
   Package,
   Monitor,
@@ -11,6 +12,7 @@ import {
   ChevronDown,
   Filter,
   RefreshCw,
+  Sprout,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -41,6 +43,25 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [conflictsOnly, setConflictsOnly] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(CATEGORY_ALL);
+
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showModal, setShowModal] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  }, []);
+
+  const toggleApp = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   const categories = useMemo(() => {
     const cats = Array.from(new Set(apps.map((a) => a.category))).sort();
@@ -83,6 +104,50 @@ export default function HomePage() {
     return result;
   }, [search, sortBy, conflictsOnly, selectedCategory]);
 
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id));
+  const someFilteredSelected =
+    !allFilteredSelected && filtered.some((a) => selectedIds.has(a.id));
+
+  const toggleAll = useCallback(() => {
+    if (allFilteredSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        filtered.forEach((a) => next.delete(a.id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        filtered.forEach((a) => next.add(a.id));
+        return next;
+      });
+    }
+  }, [allFilteredSelected, filtered]);
+
+  const patchAllOutdated = useCallback(() => {
+    const outdated = apps.filter((a) => a.hasVersionConflict);
+    setSelectedIds(new Set(outdated.map((a) => a.id)));
+    setShowModal(true);
+  }, []);
+
+  const selectedApps = useMemo(
+    () => apps.filter((a) => selectedIds.has(a.id)),
+    [selectedIds]
+  );
+
+  const totalDevicesAffected = useMemo(
+    () => selectedApps.reduce((sum, a) => sum + a.totalInstalls, 0),
+    [selectedApps]
+  );
+
+  const handleConfirmPatch = useCallback(() => {
+    const count = selectedIds.size;
+    setShowModal(false);
+    setSelectedIds(new Set());
+    showToast(`Patching queued for ${count} app${count !== 1 ? "s" : ""} (coming soon)`);
+  }, [selectedIds.size, showToast]);
+
   return (
     <div className="px-6 py-6">
       {/* Top bar */}
@@ -96,6 +161,16 @@ export default function HomePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1.5 text-sm font-semibold"
+            style={{ background: "#f0f7e8", color: "#2d5016", borderColor: "#b8d99a" }}
+            onClick={patchAllOutdated}
+          >
+            <Sprout className="h-3.5 w-3.5" />
+            Patch All Outdated
+          </Button>
           <SearchBar
             value={search}
             onChange={setSearch}
@@ -195,21 +270,46 @@ export default function HomePage() {
         />
       </div>
 
-      {/* Section label + result count */}
+      {/* Section label + result count + select all */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "#6b7280" }}>
-          Applications
-          {filtered.length !== apps.length && (
-            <span className="ml-2 normal-case tracking-normal font-normal">
-              — {filtered.length} of {apps.length}
-            </span>
-          )}
-          {filtered.length === apps.length && (
-            <span className="ml-2 normal-case tracking-normal font-normal">
-              — {apps.length}
-            </span>
-          )}
-        </span>
+        <div className="flex items-center gap-3">
+          {/* Select All checkbox */}
+          <button
+            className="flex items-center gap-2 group"
+            onClick={toggleAll}
+            aria-label="Select all apps"
+          >
+            <div
+              className="h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-150 flex-shrink-0"
+              style={{
+                borderColor: allFilteredSelected ? "#2d5016" : someFilteredSelected ? "#2d5016" : "#9ca3af",
+                background: allFilteredSelected ? "#2d5016" : "white",
+              }}
+            >
+              {allFilteredSelected && (
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                  <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+              {someFilteredSelected && !allFilteredSelected && (
+                <div className="h-0.5 w-2 rounded-full" style={{ background: "#2d5016" }} />
+              )}
+            </div>
+          </button>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "#6b7280" }}>
+            Applications
+            {filtered.length !== apps.length && (
+              <span className="ml-2 normal-case tracking-normal font-normal">
+                — {filtered.length} of {apps.length}
+              </span>
+            )}
+            {filtered.length === apps.length && (
+              <span className="ml-2 normal-case tracking-normal font-normal">
+                — {apps.length}
+              </span>
+            )}
+          </span>
+        </div>
         {(search || conflictsOnly || selectedCategory !== CATEGORY_ALL) && (
           <Button
             variant="ghost"
@@ -231,7 +331,13 @@ export default function HomePage() {
       {filtered.length > 0 ? (
         <div className="flex flex-col gap-2">
           {filtered.map((app) => (
-            <AppCard key={app.id} app={app} totalDevices={stats.totalDevices} />
+            <AppCard
+              key={app.id}
+              app={app}
+              totalDevices={stats.totalDevices}
+              selected={selectedIds.has(app.id)}
+              onToggle={toggleApp}
+            />
           ))}
         </div>
       ) : (
@@ -245,6 +351,160 @@ export default function HomePage() {
           </p>
         </div>
       )}
+
+      {/* Floating action bar */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-center pb-6 pt-4 pointer-events-none"
+        style={{
+          transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+          opacity: selectedIds.size > 0 ? 1 : 0,
+          transform: selectedIds.size > 0 ? "translateY(0)" : "translateY(120%)",
+        }}
+      >
+        <div
+          className="pointer-events-auto flex items-center gap-4 rounded-2xl px-6 py-4"
+          style={{
+            background: "#1a2e0d",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)",
+            color: "white",
+          }}
+        >
+          <span className="text-sm font-medium" style={{ color: "#a8d878" }}>
+            {selectedIds.size} app{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <div className="h-4 w-px" style={{ background: "#3a5a1a" }} />
+          <button
+            className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-150 active:scale-95"
+            style={{ background: "#2d5016", color: "white" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#3a6b1e")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#2d5016")}
+            onClick={() => setShowModal(true)}
+          >
+            Patch by the Bushel 🧺
+          </button>
+          <button
+            className="text-xs transition-colors duration-150"
+            style={{ color: "#7aab52" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#a8d878")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#7aab52")}
+            onClick={() => setSelectedIds(new Set())}
+          >
+            Clear selection
+          </button>
+        </div>
+      </div>
+
+      {/* Confirmation modal */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md"
+            style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
+          >
+            {/* Modal header */}
+            <div className="px-6 pt-6 pb-4 border-b" style={{ borderColor: "#e2e4e7" }}>
+              <div className="flex items-center gap-3 mb-1">
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
+                  style={{ background: "#f0f7e8" }}
+                >
+                  🧺
+                </div>
+                <h2 className="text-lg font-bold" style={{ color: "#1a1a2e" }}>
+                  Patch by the Bushel
+                </h2>
+              </div>
+              <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
+                Review the apps queued for patching
+              </p>
+            </div>
+
+            {/* App list */}
+            <div className="px-6 py-4 max-h-60 overflow-y-auto">
+              <div className="flex flex-col gap-2">
+                {selectedApps.map((app) => (
+                  <div key={app.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {app.hasVersionConflict && (
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" style={{ color: "#ff9800" }} />
+                      )}
+                      <span className="text-sm font-medium truncate" style={{ color: "#1a1a2e" }}>
+                        {app.name}
+                      </span>
+                    </div>
+                    <span className="text-xs shrink-0 ml-3" style={{ color: "#6b7280" }}>
+                      {app.totalInstalls.toLocaleString()} device{app.totalInstalls !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Total */}
+            <div
+              className="mx-6 mb-4 rounded-xl px-4 py-3"
+              style={{ background: "#f0f7e8" }}
+            >
+              <p className="text-sm font-semibold" style={{ color: "#2d5016" }}>
+                {selectedIds.size} app{selectedIds.size !== 1 ? "s" : ""} across {totalDevicesAffected.toLocaleString()} devices
+              </p>
+            </div>
+
+            {/* Warning */}
+            <div
+              className="mx-6 mb-5 flex items-start gap-2 rounded-xl px-4 py-3"
+              style={{ background: "#fff8e8", border: "1px solid #ffe0a0" }}
+            >
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#d97706" }} />
+              <p className="text-xs leading-relaxed" style={{ color: "#92400e" }}>
+                This will deploy patches to all affected devices. No MDM changes required.
+              </p>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 px-6 pb-6">
+              <button
+                className="flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-95"
+                style={{ borderColor: "#e2e4e7", color: "#6b7280", background: "white" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f6f7")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 active:scale-95"
+                style={{ background: "#2d5016", color: "white" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#3a6b1e")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#2d5016")}
+                onClick={handleConfirmPatch}
+              >
+                Start Patching 🌳
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success toast */}
+      <div
+        className="fixed top-4 right-4 z-[60] flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg"
+        style={{
+          background: "#2d5016",
+          boxShadow: "0 8px 24px rgba(45,80,22,0.4)",
+          transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+          opacity: toastMsg ? 1 : 0,
+          transform: toastMsg ? "translateY(0)" : "translateY(-120%)",
+          pointerEvents: toastMsg ? "auto" : "none",
+        }}
+      >
+        <span>🌳</span>
+        {toastMsg}
+      </div>
     </div>
   );
 }
