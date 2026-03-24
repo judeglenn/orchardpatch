@@ -138,13 +138,15 @@ export function normalizeAgentInventory(agentData: {
 
   const appList = Array.from(appMap.values());
 
+  const conflictCount = appList.filter(a => a.hasVersionConflict).length;
+
   return {
     apps: appList,
     devices: [deviceRecord],
     stats: {
       totalApps: appList.length,
       totalDevices: 1,
-      appsWithVersionConflicts: 0,
+      appsWithVersionConflicts: conflictCount,
     },
     source: "agent" as const,
   };

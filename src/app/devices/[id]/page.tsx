@@ -4,7 +4,7 @@ import { use, useState, useMemo } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDeviceById, getAppById } from "@/lib/mockData";
-import { getAgentDevice } from "@/lib/agentStore";
+import { getAgentDevice, getAgentApp } from "@/lib/agentStore";
 import { SearchBar } from "@/components/SearchBar";
 import { VersionBadge } from "@/components/VersionBadge";
 import { formatDate, formatRelativeDate, appInitials, appColorClass, macOSName } from "@/lib/utils";
@@ -190,10 +190,10 @@ export default function DeviceDetailPage({ params }: Props) {
             <TableBody>
               {filteredApps.length > 0 ? (
                 filteredApps.map((appInst, idx) => {
-                  const appMeta = getAppById(appInst.appId);
+                  const appMeta = getAppById(appInst.appId) ?? getAgentApp(appInst.appId);
                   const initials = appInitials(appInst.appName);
                   const colorClass = appColorClass(appInst.appName);
-                  const isOutdated = appMeta && appInst.version !== appMeta.mostCommonVersion;
+                  const isOutdated = appMeta?.hasVersionConflict ?? false;
 
                   return (
                     <TableRow

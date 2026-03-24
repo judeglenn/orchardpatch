@@ -57,6 +57,7 @@ export default function HomePageInner() {
   const [agentApps, setAgentApps] = useState<App[] | null>(null);
   const [agentStats, setAgentStats] = useState<typeof mockStats | null>(null);
   const [dataSource, setDataSource] = useState<"mock" | "agent">("mock");
+  const [agentSyncTime, setAgentSyncTime] = useState<string | null>(null);
   useEffect(() => {
     console.log("[OrchardPatch] Checking agent...");
     checkAgent().then(async ({ connected }) => {
@@ -70,6 +71,7 @@ export default function HomePageInner() {
         setAgentApps(normalized.apps as App[]);
         setAgentStats(normalized.stats);
         setDataSource("agent");
+        setAgentSyncTime(new Date().toISOString());
         setAgentData(
           normalized.apps as App[],
           normalized.devices as Device[],
@@ -300,7 +302,7 @@ export default function HomePageInner() {
         <StatCard
           icon={<RefreshCw className="h-5 w-5" style={{ color: "#6b7280" }} />}
           label="Last Synced"
-          value={formatRelativeDate(lastSynced)}
+          value={formatRelativeDate(agentSyncTime ?? lastSynced)}
           iconBg="#eef0f2"
           isText
         />
