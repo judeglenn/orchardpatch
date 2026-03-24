@@ -36,25 +36,58 @@ export default function JamfSettingsPage() {
     setStatus("testing");
     setStatusMessage("");
 
+    const base = serverUrl.replace(/\/$/, "");
+
     try {
-      const res = await fetch("/api/jamf/test", {
+      // Step 1: Get bearer token directly from browser (avoids Vercel → Jamf network restrictions)
+      const tokenRes = await fetch(`${base}/api/oauth/token`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serverUrl, clientId, clientSecret }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "client_credentials",
+          client_id: clientId,
+          client_secret: clientSecret,
+        }),
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        setStatus("success");
-        setStatusMessage(`Connected to ${data.instanceName || serverUrl} · ${data.deviceCount} devices found`);
-      } else {
+      if (!tokenRes.ok) {
         setStatus("error");
-        setStatusMessage(data.error || "Connection failed. Check your credentials.");
+        setStatusMessage("Authentication failed. Check your Client ID and Secret.");
+        return;
       }
-    } catch {
+
+      const { access_token } = await tokenRes.json();
+
+      // Step 2: Fetch inventory count
+      const inventoryRes = await fetch(
+        `${base}/api/v1/computers-inventory?page=0&page-size=1&section=GENERAL`,
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!inventoryRes.ok) {
+        setStatus("error");
+        setStatusMessage("Connected but could not fetch inventory. Check API role permissions.");
+        return;
+      }
+
+      const inventory = await inventoryRes.json();
+      const deviceCount = inventory.totalCount ?? 0;
+
+      // Store token for later use
+      localStorage.setItem("jamf-token", access_token);
+      localStorage.setItem("jamf-token-ts", Date.now().toString());
+
+      setStatus("success");
+      setStatusMessage(`Connected to ${base.replace("https://", "")} · ${deviceCount} device${deviceCount !== 1 ? "s" : ""} found`);
+    } catch (err) {
+      console.error(err);
       setStatus("error");
-      setStatusMessage("Could not reach the server. Check the URL.");
+      setStatusMessage("Could not reach Jamf Pro. Check the server URL and that you're on the same network.");
     }
   }
 
