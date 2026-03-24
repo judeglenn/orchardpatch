@@ -56,8 +56,10 @@ export default function HomePage() {
   const [agentApps, setAgentApps] = useState<App[] | null>(null);
   const [agentStats, setAgentStats] = useState<typeof mockStats | null>(null);
   const [dataSource, setDataSource] = useState<"mock" | "agent">("mock");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     checkAgent().then(async ({ connected }) => {
       if (!connected) return;
       try {
@@ -72,8 +74,9 @@ export default function HomePage() {
     });
   }, []);
 
-  const apps = agentApps ?? mockApps;
-  const stats = agentStats ?? mockStats;
+  // Use mock data until mounted to avoid hydration mismatch
+  const apps = mounted ? (agentApps ?? mockApps) : mockApps;
+  const stats = mounted ? (agentStats ?? mockStats) : mockStats;
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
