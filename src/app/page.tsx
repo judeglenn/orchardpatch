@@ -13,6 +13,9 @@ import {
   Filter,
   RefreshCw,
   Sprout,
+  BellOff,
+  Bell,
+  MessageSquare,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -48,6 +51,7 @@ export default function HomePage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [patchMode, setPatchMode] = useState<"silent" | "managed" | "prompted">("managed");
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
@@ -154,7 +158,7 @@ export default function HomePage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold" style={{ color: "#1a1a2e" }}>
-            App Catalog
+            App Inventory
           </h1>
           <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>
             Software inventory across your entire device fleet
@@ -454,6 +458,38 @@ export default function HomePage() {
               </p>
             </div>
 
+            {/* Patch mode selector */}
+            <div className="px-6 mb-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "#6b7280" }}>
+                Patch Mode
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts" },
+                  { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
+                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when" },
+                ].map(({ key, icon, label, sub, recommended }) => (
+                  <button
+                    key={key}
+                    onClick={() => setPatchMode(key)}
+                    className="flex flex-col items-start gap-1 rounded-xl border px-3 py-2.5 text-left transition-all duration-150"
+                    style={{
+                      borderColor: patchMode === key ? "#2d5016" : "#e2e4e7",
+                      background: patchMode === key ? "#f0f7e8" : "white",
+                      boxShadow: patchMode === key ? "0 0 0 1px #2d5016" : "none",
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5" style={{ color: patchMode === key ? "#2d5016" : "#6b7280" }}>
+                      {icon}
+                      <span className="text-xs font-semibold">{label}</span>
+                      {recommended && <span className="text-[9px] px-1 py-0.5 rounded font-medium" style={{ background: "#d4edda", color: "#2d5016" }}>✓</span>}
+                    </div>
+                    <span className="text-[10px]" style={{ color: "#9ca3af" }}>{sub}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Warning */}
             <div
               className="mx-6 mb-5 flex items-start gap-2 rounded-xl px-4 py-3"
@@ -461,7 +497,7 @@ export default function HomePage() {
             >
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#d97706" }} />
               <p className="text-xs leading-relaxed" style={{ color: "#92400e" }}>
-                This will deploy patches to all affected devices. No MDM changes required.
+                This will deploy patches to all affected devices via Installomator. No MDM changes required.
               </p>
             </div>
 

@@ -29,7 +29,7 @@ export function Header() {
                 OrchardPatch
               </span>
               <span className="text-[11px] text-muted-foreground">
-                Fleet software catalog
+                Fleet software inventory
               </span>
             </div>
           </Link>

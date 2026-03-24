@@ -15,7 +15,7 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
   const colorClass = appColorClass(app.name);
 
   const majorityCount = app.versions[0]?.deviceCount ?? app.totalInstalls;
-  const majorityPct = app.totalInstalls > 0 ? (majorityCount / app.totalInstalls) * 100 : 100;
+  const majorityPct = app.totalInstalls > 0 ? Math.round((majorityCount / app.totalInstalls) * 100) : 100;
   const otherPct = 100 - majorityPct;
 
   return (

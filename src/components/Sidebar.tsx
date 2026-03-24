@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Laptop, Moon, Sun } from "lucide-react";
+import { LayoutGrid, Laptop, Moon, Sun, TreeDeciduous, BarChart3, Bell, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -10,6 +10,16 @@ import Image from "next/image";
 const NAV_ITEMS = [
   { href: "/", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
   { href: "/devices", icon: Laptop, label: "Devices", matchPrefix: "/devices" },
+];
+
+const COMING_SOON_ITEMS = [
+  { href: "/orchard", icon: TreeDeciduous, label: "Patch by the Orchard", matchPrefix: "/orchard" },
+  { href: "/reports", icon: BarChart3, label: "Reports", matchPrefix: "/reports" },
+  { href: "/alerts", icon: Bell, label: "Alerts", matchPrefix: "/alerts" },
+];
+
+const SETTINGS_ITEMS = [
+  { href: "/settings", icon: Settings, label: "Settings", matchPrefix: "/settings" },
 ];
 
 export function Sidebar() {
@@ -32,8 +42,9 @@ export function Sidebar() {
       style={{ background: "#1a2e0d" }}
     >
       {/* Logo */}
-      <div
-        className="flex items-center gap-3 px-5 py-[18px]"
+      <Link
+        href="/"
+        className="flex items-center gap-3 px-5 py-[18px] transition-opacity hover:opacity-80"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
         <Image src="/orchardpatch-logo.png" alt="OrchardPatch" width={32} height={32} style={{ objectFit: "contain" }} />
@@ -42,7 +53,7 @@ export function Sidebar() {
             OrchardPatch
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-5">
@@ -51,7 +62,7 @@ export function Sidebar() {
             className="text-[10px] font-semibold uppercase tracking-[0.12em]"
             style={{ color: "#a0aab4" }}
           >
-            Catalog
+            Inventory
           </span>
         </div>
         {NAV_ITEMS.map((item) => {
@@ -64,6 +75,66 @@ export function Sidebar() {
                 active
                   ? "text-white"
                   : "text-[#a0aab4] hover:text-white hover:bg-white/5"
+              }`}
+              style={{
+                background: active ? "rgba(45,80,22,0.35)" : undefined,
+                borderLeft: active ? "2px solid #4a7c1f" : "2px solid transparent",
+              }}
+            >
+              <item.icon className="h-4 w-4 shrink-0" />
+              {item.label}
+            </Link>
+          );
+        })}
+
+        {/* Coming Soon section */}
+        <div className="mt-6 mb-2 px-3">
+          <span
+            className="text-[10px] font-semibold uppercase tracking-[0.12em]"
+            style={{ color: "#a0aab4" }}
+          >
+            Enterprise
+          </span>
+        </div>
+        {COMING_SOON_ITEMS.map((item) => {
+          const active = pathname.startsWith(item.matchPrefix);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                active ? "text-white" : "text-[#a0aab4] hover:text-white hover:bg-white/5"
+              }`}
+              style={{
+                background: active ? "rgba(45,80,22,0.35)" : undefined,
+                borderLeft: active ? "2px solid #4a7c1f" : "2px solid transparent",
+              }}
+            >
+              <item.icon className="h-4 w-4 shrink-0" />
+              <span className="flex-1 truncate">{item.label}</span>
+              <span
+                className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
+                style={{ background: "rgba(255,255,255,0.08)", color: "#a0aab4" }}
+              >
+                Soon
+              </span>
+            </Link>
+          );
+        })}
+        {/* Settings section */}
+        <div className="mt-6 mb-2 px-3">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em]" style={{ color: "#a0aab4" }}>
+            Configuration
+          </span>
+        </div>
+        {SETTINGS_ITEMS.map((item) => {
+          const active = pathname.startsWith(item.matchPrefix);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                active ? "text-white" : "text-[#a0aab4] hover:text-white hover:bg-white/5"
               }`}
               style={{
                 background: active ? "rgba(45,80,22,0.35)" : undefined,

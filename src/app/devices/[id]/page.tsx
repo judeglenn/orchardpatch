@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap } from "lucide-react";
+import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap, BellOff, Bell, MessageSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -28,6 +28,15 @@ export default function DeviceDetailPage({ params }: Props) {
   if (!device) notFound();
 
   const [search, setSearch] = useState("");
+  const [patchTarget, setPatchTarget] = useState<{ appId: string; appName: string } | null>(null);
+  const [patchMode, setPatchMode] = useState<"silent" | "managed" | "prompted">("managed");
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  }
+
 
   const filteredApps = useMemo(() => {
     if (!search.trim()) return device.apps;
@@ -48,7 +57,7 @@ export default function DeviceDetailPage({ params }: Props) {
           style={{ color: "#6b7280" }}
         >
           <ChevronLeft className="h-4 w-4" />
-          App Catalog
+          App Inventory
         </Link>
       </div>
 
@@ -130,7 +139,7 @@ export default function DeviceDetailPage({ params }: Props) {
               }}
             >
               <Zap className="h-3.5 w-3.5" />
-              Patch All Outdated
+              Patch All Outdated 🍎
             </Button>
             <SearchBar
               value={search}
@@ -236,11 +245,11 @@ export default function DeviceDetailPage({ params }: Props) {
                       <TableCell className="text-right">
                         {isOutdated ? (
                           <button
-                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors"
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all hover:opacity-80 active:scale-95"
                             style={{ background: "#2d5016", color: "white" }}
-                            onClick={() => alert(`Patching ${appInst.appName}... (coming soon)`)}
+                            onClick={() => setPatchTarget({ appId: appInst.appId, appName: appInst.appName })}
                           >
-                            Patch →
+                            🍎 Patch
                           </button>
                         ) : (
                           <span
@@ -268,6 +277,96 @@ export default function DeviceDetailPage({ params }: Props) {
             </TableBody>
           </Table>
         </div>
+      </div>
+      {/* Patch by the Fruit modal */}
+      {patchTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setPatchTarget(null); }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" style={{ boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <div className="px-6 pt-6 pb-4 border-b flex items-start justify-between" style={{ borderColor: "#e2e4e7" }}>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🍎</span>
+                  <h2 className="text-base font-bold" style={{ color: "#1a1a2e" }}>Patch by the Fruit</h2>
+                </div>
+                <p className="text-sm font-medium" style={{ color: "#2d5016" }}>{patchTarget.appName}</p>
+                <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>on {device.name}</p>
+              </div>
+              <button onClick={() => setPatchTarget(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="px-6 py-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "#6b7280" }}>Patch Mode</p>
+              <div className="flex flex-col gap-2">
+                {[
+                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts" },
+                  { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
+                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when" },
+                ].map(({ key, icon, label, sub, recommended }) => (
+                  <button
+                    key={key}
+                    onClick={() => setPatchMode(key)}
+                    className="flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all"
+                    style={{
+                      borderColor: patchMode === key ? "#2d5016" : "#e2e4e7",
+                      background: patchMode === key ? "#f0f7e8" : "white",
+                      boxShadow: patchMode === key ? "0 0 0 1px #2d5016" : "none",
+                    }}
+                  >
+                    <div style={{ color: patchMode === key ? "#2d5016" : "#6b7280" }}>{icon}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-semibold" style={{ color: "#1a1a2e" }}>{label}</span>
+                        {recommended && <span className="text-[9px] px-1 py-0.5 rounded font-medium" style={{ background: "#d4edda", color: "#2d5016" }}>✓ Recommended</span>}
+                      </div>
+                      <span className="text-[10px]" style={{ color: "#9ca3af" }}>{sub}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 px-6 pb-6">
+              <button
+                className="flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-95"
+                style={{ borderColor: "#e2e4e7", color: "#6b7280" }}
+                onClick={() => setPatchTarget(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95"
+                style={{ background: "#2d5016", color: "white" }}
+                onClick={() => {
+                  setPatchTarget(null);
+                  showToast(`${patchTarget.appName} queued for patching (coming soon)`);
+                }}
+              >
+                Patch Now 🍎
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      <div
+        className="fixed top-4 right-4 z-[60] flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg"
+        style={{
+          background: "#2d5016",
+          transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+          opacity: toastMsg ? 1 : 0,
+          transform: toastMsg ? "translateY(0)" : "translateY(-120%)",
+          pointerEvents: toastMsg ? "auto" : "none",
+        }}
+      >
+        <span>🍎</span>
+        {toastMsg}
       </div>
     </div>
   );

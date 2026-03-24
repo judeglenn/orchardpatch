@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, AlertTriangle, Monitor, CheckCircle2, Clock } from "lucide-react";
+import { ChevronLeft, AlertTriangle, Monitor, CheckCircle2, Clock, Zap, BellOff, Bell, MessageSquare } from "lucide-react";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -39,7 +39,7 @@ export default async function AppDetailPage({ params }: Props) {
           style={{ color: "#6b7280" }}
         >
           <ChevronLeft className="h-4 w-4" />
-          App Catalog
+          App Inventory
         </Link>
       </div>
 
@@ -137,6 +137,89 @@ export default async function AppDetailPage({ params }: Props) {
           </div>
         </div>
       )}
+
+      {/* Patch This App */}
+      <div
+        className="mb-6 rounded-lg border bg-white overflow-hidden"
+        style={{ borderColor: "#e2e4e7", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
+      >
+        <div className="px-5 py-4" style={{ borderBottom: "1px solid #e2e4e7" }}>
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4" style={{ color: "#2d5016" }} />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "#6b7280" }}>
+              Patch This App
+            </p>
+          </div>
+          <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>
+            Deploy updates to your fleet via Installomator. Choose how aggressive the patch should be.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x" style={{ borderColor: "#e2e4e7" }}>
+          {/* Silent */}
+          <div className="p-5 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <BellOff className="h-4 w-4" style={{ color: "#6b7280" }} />
+              <span className="text-sm font-semibold" style={{ color: "#1a1a2e" }}>Silent</span>
+            </div>
+            <p className="text-xs" style={{ color: "#6b7280" }}>
+              No notifications. App is force-quit if open and updated in the background. Best for overnight or unattended deployments.
+            </p>
+            <div className="text-[10px] font-mono rounded px-2 py-1" style={{ background: "#f3f4f6", color: "#6b7280" }}>
+              NOTIFY=silent · BLOCKING=kill
+            </div>
+            <button
+              className="mt-auto w-full text-xs font-semibold py-2 rounded-md transition-colors cursor-not-allowed"
+              style={{ background: "#f3f4f6", color: "#9ca3af", border: "1px solid #e2e4e7" }}
+              disabled
+            >
+              Deploy Silent — Coming Soon
+            </button>
+          </div>
+
+          {/* Managed */}
+          <div className="p-5 flex flex-col gap-3" style={{ background: "#fafffe" }}>
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4" style={{ color: "#2d5016" }} />
+              <span className="text-sm font-semibold" style={{ color: "#1a1a2e" }}>Managed</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: "#f0f7e8", color: "#2d5016" }}>Recommended</span>
+            </div>
+            <p className="text-xs" style={{ color: "#6b7280" }}>
+              Notifies the user the app must quit to update. User is shown a prompt but must comply. Balanced for most enterprise use cases.
+            </p>
+            <div className="text-[10px] font-mono rounded px-2 py-1" style={{ background: "#f3f4f6", color: "#6b7280" }}>
+              NOTIFY=success · BLOCKING=tell_user
+            </div>
+            <button
+              className="mt-auto w-full text-xs font-semibold py-2 rounded-md transition-colors cursor-not-allowed"
+              style={{ background: "#f0f7e8", color: "#9ca3af", border: "1px solid #c5e1a5" }}
+              disabled
+            >
+              Deploy Managed — Coming Soon
+            </button>
+          </div>
+
+          {/* User Prompted */}
+          <div className="p-5 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" style={{ color: "#6b7280" }} />
+              <span className="text-sm font-semibold" style={{ color: "#1a1a2e" }}>User Prompted</span>
+            </div>
+            <p className="text-xs" style={{ color: "#6b7280" }}>
+              User sees a "Quit and Update" or "Not Now" dialog. They control when the update happens. Best for non-critical updates.
+            </p>
+            <div className="text-[10px] font-mono rounded px-2 py-1" style={{ background: "#f3f4f6", color: "#6b7280" }}>
+              NOTIFY=all · BLOCKING=prompt_user
+            </div>
+            <button
+              className="mt-auto w-full text-xs font-semibold py-2 rounded-md transition-colors cursor-not-allowed"
+              style={{ background: "#f3f4f6", color: "#9ca3af", border: "1px solid #e2e4e7" }}
+              disabled
+            >
+              Deploy User Prompted — Coming Soon
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Version distribution — two-column */}
       {app.versions.length > 0 && (
