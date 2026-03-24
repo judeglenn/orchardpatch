@@ -212,9 +212,10 @@ export default function JamfSettingsPage() {
         <ol className="flex flex-col gap-2">
           {[
             "In Jamf Pro, go to Settings → System → API roles and clients",
-            "Create a new API Role with Read Computers permission",
-            "Create a new API Client and assign it the role above",
-            "Copy the Client ID and generate a Client Secret",
+            "Create a new API Role — name it 'OrchardPatch Read-Only', add Read Computer Inventory Collection permission",
+            "Create a new API Client — name it 'OrchardPatch', assign the role above, set Access Token Lifetime to 30 minutes",
+            "Toggle Enable API Client to ON, then click Save",
+            "Copy the Client ID shown, then click Generate Secret and copy it immediately (shown only once)",
             "Paste both above and click Test Connection",
           ].map((step, i) => (
             <li key={i} className="flex items-start gap-2.5 text-xs" style={{ color: "#6b7280" }}>
