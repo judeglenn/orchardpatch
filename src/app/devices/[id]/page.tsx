@@ -165,7 +165,13 @@ export default function DeviceDetailPage({ params }: Props) {
                   className="text-[11px] font-semibold uppercase tracking-[0.08em]"
                   style={{ color: "#6b7280", background: "#fafafa" }}
                 >
-                  Version
+                  Installed
+                </TableHead>
+                <TableHead
+                  className="hidden sm:table-cell text-[11px] font-semibold uppercase tracking-[0.08em]"
+                  style={{ color: "#6b7280", background: "#fafafa" }}
+                >
+                  Latest
                 </TableHead>
                 <TableHead
                   className="hidden sm:table-cell text-[11px] font-semibold uppercase tracking-[0.08em]"
@@ -228,6 +234,15 @@ export default function DeviceDetailPage({ params }: Props) {
                         >
                           {appInst.version}
                         </span>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {(appMeta as any)?.latestVersion ? (
+                          <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: "#f0f7e8", color: "#2d5016" }}>
+                            {(appMeta as any).latestVersion}
+                          </span>
+                        ) : (
+                          <span className="text-xs" style={{ color: "#d1d5db" }}>—</span>
+                        )}
                       </TableCell>
                       <TableCell
                         className="hidden sm:table-cell text-xs"
