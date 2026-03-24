@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Sidebar } from "@/components/Sidebar";
+import { AgentBanner } from "@/components/AgentBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,6 +33,7 @@ export default function RootLayout({
           <div className="flex min-h-screen">
             <Sidebar />
             <main className="flex-1 min-h-screen" style={{ marginLeft: "240px", background: "#f5f6f7" }}>
+              <AgentBanner />
               {children}
             </main>
           </div>
