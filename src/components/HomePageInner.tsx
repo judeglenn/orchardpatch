@@ -138,7 +138,7 @@ export default function HomePageInner() {
     }
 
     return result;
-  }, [search, sortBy, conflictsOnly, selectedCategory]);
+  }, [search, sortBy, conflictsOnly, selectedCategory, apps]);
 
   const allFilteredSelected =
     filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id));
