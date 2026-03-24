@@ -3,8 +3,9 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { AppCard } from "@/components/AppCard";
 import { SearchBar } from "@/components/SearchBar";
-import { apps, stats } from "@/lib/mockData";
+import { apps as mockApps, stats as mockStats } from "@/lib/mockData";
 import type { App } from "@/lib/mockData";
+import { checkAgent, fetchLocalInventory, normalizeAgentInventory } from "@/lib/agent";
 import {
   Package,
   Monitor,
@@ -36,7 +37,7 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 const CATEGORY_ALL = "All Categories";
 
-const lastSynced = apps.reduce(
+const lastSynced = mockApps.reduce(
   (latest, app) => (app.lastSeen > latest ? app.lastSeen : latest),
   ""
 );
@@ -52,6 +53,27 @@ export default function HomePage() {
   const [showModal, setShowModal] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [patchMode, setPatchMode] = useState<"silent" | "managed" | "prompted">("managed");
+  const [agentApps, setAgentApps] = useState<App[] | null>(null);
+  const [agentStats, setAgentStats] = useState<typeof mockStats | null>(null);
+  const [dataSource, setDataSource] = useState<"mock" | "agent">("mock");
+
+  useEffect(() => {
+    checkAgent().then(async ({ connected }) => {
+      if (!connected) return;
+      try {
+        const raw = await fetchLocalInventory();
+        const normalized = normalizeAgentInventory(raw);
+        setAgentApps(normalized.apps as App[]);
+        setAgentStats(normalized.stats);
+        setDataSource("agent");
+      } catch {
+        // silently fall back to mock
+      }
+    });
+  }, []);
+
+  const apps = agentApps ?? mockApps;
+  const stats = agentStats ?? mockStats;
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
