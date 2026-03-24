@@ -4,7 +4,7 @@
  * Falls back to mock data gracefully when agent is not running.
  */
 
-export const AGENT_URL = "http://127.0.0.1:47652";
+export const AGENT_URL = "http://localhost:47652";
 export const AGENT_TIMEOUT = 2000; // 2s timeout — fast fail if not running
 
 export type AgentStatus = "connected" | "disconnected" | "checking";
