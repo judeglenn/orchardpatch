@@ -57,12 +57,14 @@ export default function HomePage() {
   const [agentApps, setAgentApps] = useState<App[] | null>(null);
   const [agentStats, setAgentStats] = useState<typeof mockStats | null>(null);
   const [dataSource, setDataSource] = useState<"mock" | "agent">("mock");
-  const [mounted, setMounted] = useState(false);
+  const [agentChecked, setAgentChecked] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     checkAgent().then(async ({ connected }) => {
-      if (!connected) return;
+      if (!connected) {
+        setAgentChecked(true);
+        return;
+      }
       try {
         const raw = await fetchLocalInventory();
         const normalized = normalizeAgentInventory(raw);
@@ -76,13 +78,14 @@ export default function HomePage() {
         );
       } catch {
         // silently fall back to mock
+      } finally {
+        setAgentChecked(true);
       }
     });
   }, []);
 
-  // Use mock data until mounted to avoid hydration mismatch
-  const apps = mounted ? (agentApps ?? mockApps) : mockApps;
-  const stats = mounted ? (agentStats ?? mockStats) : mockStats;
+  const apps = agentApps ?? mockApps;
+  const stats = agentStats ?? mockStats;
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
@@ -184,7 +187,7 @@ export default function HomePage() {
   }, [selectedIds.size, showToast]);
 
   return (
-    <div className="px-6 py-6">
+    <div className="px-6 py-6" suppressHydrationWarning>
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
         <div>
