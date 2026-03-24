@@ -4,6 +4,7 @@ import { use, useState, useMemo } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDeviceById, getAppById } from "@/lib/mockData";
+import { getAgentDevice } from "@/lib/agentStore";
 import { SearchBar } from "@/components/SearchBar";
 import { VersionBadge } from "@/components/VersionBadge";
 import { formatDate, formatRelativeDate, appInitials, appColorClass, macOSName } from "@/lib/utils";
@@ -24,7 +25,7 @@ interface Props {
 
 export default function DeviceDetailPage({ params }: Props) {
   const { id } = use(params);
-  const device = getDeviceById(id);
+  const device = getDeviceById(id) ?? getAgentDevice(id);
   if (!device) notFound();
 
   const [search, setSearch] = useState("");

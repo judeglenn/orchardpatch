@@ -4,8 +4,9 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { AppCard } from "@/components/AppCard";
 import { SearchBar } from "@/components/SearchBar";
 import { apps as mockApps, stats as mockStats } from "@/lib/mockData";
-import type { App } from "@/lib/mockData";
+import type { App, Device } from "@/lib/mockData";
 import { checkAgent, fetchLocalInventory, normalizeAgentInventory } from "@/lib/agent";
+import { setAgentData } from "@/lib/agentStore";
 import {
   Package,
   Monitor,
@@ -68,6 +69,11 @@ export default function HomePage() {
         setAgentApps(normalized.apps as App[]);
         setAgentStats(normalized.stats);
         setDataSource("agent");
+        setAgentData(
+          normalized.apps as App[],
+          normalized.devices as Device[],
+          new Date().toISOString()
+        );
       } catch {
         // silently fall back to mock
       }
