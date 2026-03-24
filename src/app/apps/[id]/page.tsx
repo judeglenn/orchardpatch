@@ -128,7 +128,7 @@ export default async function AppDetailPage({ params }: Props) {
           <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#43a047" }} />
           <div>
             <p className="text-sm font-semibold" style={{ color: "#2e7d32" }}>
-              Version consistent
+              No version conflicts
             </p>
             <p className="text-xs mt-0.5" style={{ color: "#388e3c" }}>
               All {app.totalInstalls} devices are running{" "}
