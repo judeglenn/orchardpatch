@@ -58,11 +58,15 @@ export default function HomePageInner() {
   const [agentStats, setAgentStats] = useState<typeof mockStats | null>(null);
   const [dataSource, setDataSource] = useState<"mock" | "agent">("mock");
   useEffect(() => {
+    console.log("[OrchardPatch] Checking agent...");
     checkAgent().then(async ({ connected }) => {
+      console.log("[OrchardPatch] Agent connected:", connected);
       if (!connected) return;
       try {
         const raw = await fetchLocalInventory();
+        console.log("[OrchardPatch] Raw inventory apps:", raw?.apps?.length);
         const normalized = normalizeAgentInventory(raw);
+        console.log("[OrchardPatch] Normalized apps:", normalized.apps.length);
         setAgentApps(normalized.apps as App[]);
         setAgentStats(normalized.stats);
         setDataSource("agent");
@@ -71,8 +75,9 @@ export default function HomePageInner() {
           normalized.devices as Device[],
           new Date().toISOString()
         );
-      } catch {
-        // silently fall back to mock
+        console.log("[OrchardPatch] State updated with agent data");
+      } catch (err) {
+        console.error("[OrchardPatch] Error loading agent data:", err);
       }
     });
   }, []);
