@@ -103,7 +103,17 @@ export function normalizeAgentInventory(agentData: {
 
   for (const app of apps) {
     const id = app.bundleId.replace(/\./g, "-");
-    if (!appMap.has(id)) {
+    if (appMap.has(id)) {
+      // Multiple installs of same app — add version if different
+      const existing = appMap.get(id)!;
+      const existingVersion = existing.versions.find(v => v.version === app.version);
+      if (existingVersion) {
+        existingVersion.deviceCount++;
+      } else {
+        existing.versions.push({ version: app.version, deviceCount: 1 });
+      }
+      existing.totalInstalls++;
+    } else {
       appMap.set(id, {
         id,
         name: app.name,
@@ -116,6 +126,13 @@ export function normalizeAgentInventory(agentData: {
         lastSeen: agentData.collectedAt ?? new Date().toISOString(),
       });
     }
+  }
+
+  // Post-process: sort versions, find most common, detect conflicts
+  for (const app of appMap.values()) {
+    app.versions.sort((a, b) => b.deviceCount - a.deviceCount);
+    app.mostCommonVersion = app.versions[0].version;
+    app.hasVersionConflict = app.versions.length > 1;
   }
 
   const appList = Array.from(appMap.values());
