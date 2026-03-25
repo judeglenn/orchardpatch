@@ -53,6 +53,12 @@ export default function AppDetailPage({ params }: Props) {
     }
   }, [id]);
 
+  // All hooks must be before any conditional returns
+  const [showPatchModal, setShowPatchModal] = useState(false);
+  const [patchMode, setPatchMode] = useState<PatchMode>("managed");
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [patchDeviceId, setPatchDeviceId] = useState<string | null>(null);
+
   const app = getAppById(id) ?? getAgentApp(id);
   const safeApp = app;
 
@@ -70,6 +76,18 @@ export default function AppDetailPage({ params }: Props) {
             lastInventory: d.lastInventory,
           }))
       );
+
+  function showToast(msg: string) {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  }
+
+  function handleConfirmPatch() {
+    setShowPatchModal(false);
+    const target = patchDeviceId ? `1 device` : `all ${installations.length} device${installations.length !== 1 ? "s" : ""}`;
+    showToast(`${safeApp?.name} queued for ${patchMode} patch on ${target} (coming soon)`);
+    setPatchDeviceId(null);
+  }
 
   if (!agentLoaded) {
     return (
@@ -95,23 +113,6 @@ export default function AppDetailPage({ params }: Props) {
 
   const initials = appInitials(safeApp.name);
   const colorClass = appColorClass(safeApp.name);
-
-  const [showPatchModal, setShowPatchModal] = useState(false);
-  const [patchMode, setPatchMode] = useState<PatchMode>("managed");
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [patchDeviceId, setPatchDeviceId] = useState<string | null>(null);
-
-  function showToast(msg: string) {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
-  }
-
-  function handleConfirmPatch() {
-    setShowPatchModal(false);
-    const target = patchDeviceId ? `1 device` : `all ${installations.length} device${installations.length !== 1 ? "s" : ""}`;
-    showToast(`${safeApp?.name} queued for ${patchMode} patch on ${target} (coming soon)`);
-    setPatchDeviceId(null);
-  }
 
   return (
     <div className="px-6 py-6">
