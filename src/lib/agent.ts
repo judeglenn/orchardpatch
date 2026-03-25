@@ -123,9 +123,10 @@ export function normalizeAgentInventory(agentData: {
         versions: [{ version: app.version, deviceCount: 1 }],
         totalInstalls: 1,
         mostCommonVersion: app.version,
-        hasVersionConflict: app.isOutdated === true, // outdated = version conflict with latest
+        hasVersionConflict: app.isOutdated === true,
         lastSeen: agentData.collectedAt ?? new Date().toISOString(),
-      });
+        latestVersion: app.latestVersion ?? null,
+      } as any);
     }
   }
 

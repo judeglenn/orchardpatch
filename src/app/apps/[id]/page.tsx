@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAppById, getAppInstallations } from "@/lib/mockData";
@@ -27,10 +27,34 @@ type PatchMode = "silent" | "managed" | "prompted";
 
 export default function AppDetailPage({ params }: Props) {
   const { id } = use(params);
+
+  const [agentLoaded, setAgentLoaded] = useState(false);
+  const [agentFetched, setAgentFetched] = useState(false);
+
+  // If not in mock data, try loading from agent
+  useEffect(() => {
+    if (!getAppById(id) && !getAgentApp(id) && !agentFetched) {
+      setAgentFetched(true);
+      import("@/lib/agent").then(({ checkAgent, fetchLocalInventory, normalizeAgentInventory }) => {
+        checkAgent().then(async ({ connected }) => {
+          if (!connected) { setAgentLoaded(true); return; }
+          try {
+            const raw = await fetchLocalInventory();
+            const normalized = normalizeAgentInventory(raw);
+            import("@/lib/agentStore").then(({ setAgentData }) => {
+              setAgentData(normalized.apps as any, normalized.devices as any, new Date().toISOString());
+              setAgentLoaded(true);
+            });
+          } catch { setAgentLoaded(true); }
+        });
+      });
+    } else {
+      setAgentLoaded(true);
+    }
+  }, [id]);
+
   const app = getAppById(id) ?? getAgentApp(id);
-  if (!app) notFound();
-  // TypeScript narrowing after notFound()
-  const safeApp = app!;
+  const safeApp = app;
 
   // For agent apps, build installations from agent device store
   const agentStore = getAgentStore();
@@ -47,8 +71,30 @@ export default function AppDetailPage({ params }: Props) {
           }))
       );
 
-  const initials = appInitials(app.name);
-  const colorClass = appColorClass(app.name);
+  if (!agentLoaded) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="h-8 w-8 rounded-full border-2 border-[#2d5016] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!safeApp) {
+    return (
+      <div className="px-6 py-6">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-sm mb-5" style={{ color: "#6b7280" }}>
+          <ChevronLeft className="h-4 w-4" /> App Inventory
+        </Link>
+        <div className="text-center py-20">
+          <p className="text-lg font-semibold" style={{ color: "#1a1a2e" }}>App not found</p>
+          <p className="text-sm mt-1" style={{ color: "#6b7280" }}>This app may not be in the current inventory.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const initials = appInitials(safeApp.name);
+  const colorClass = appColorClass(safeApp.name);
 
   const [showPatchModal, setShowPatchModal] = useState(false);
   const [patchMode, setPatchMode] = useState<PatchMode>("managed");
@@ -63,7 +109,7 @@ export default function AppDetailPage({ params }: Props) {
   function handleConfirmPatch() {
     setShowPatchModal(false);
     const target = patchDeviceId ? `1 device` : `all ${installations.length} device${installations.length !== 1 ? "s" : ""}`;
-    showToast(`${safeApp.name} queued for ${patchMode} patch on ${target} (coming soon)`);
+    showToast(`${safeApp?.name} queued for ${patchMode} patch on ${target} (coming soon)`);
     setPatchDeviceId(null);
   }
 

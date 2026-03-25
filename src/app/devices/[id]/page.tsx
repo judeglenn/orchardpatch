@@ -4,7 +4,7 @@ import { use, useState, useMemo } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDeviceById, getAppById } from "@/lib/mockData";
-import { getAgentDevice, getAgentApp } from "@/lib/agentStore";
+import { getAgentDevice, getAgentApp, getLatestVersion } from "@/lib/agentStore";
 import { SearchBar } from "@/components/SearchBar";
 import { VersionBadge } from "@/components/VersionBadge";
 import { formatDate, formatRelativeDate, appInitials, appColorClass, macOSName } from "@/lib/utils";
@@ -236,13 +236,16 @@ export default function DeviceDetailPage({ params }: Props) {
                         </span>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {(appMeta as any)?.latestVersion ? (
-                          <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: "#f0f7e8", color: "#2d5016" }}>
-                            {(appMeta as any).latestVersion}
-                          </span>
-                        ) : (
-                          <span className="text-xs" style={{ color: "#d1d5db" }}>—</span>
-                        )}
+                        {(() => {
+                          const latest = (appMeta as any)?.latestVersion ?? getLatestVersion(appInst.appId.replace(/-/g, "."));
+                          return latest ? (
+                            <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: "#f0f7e8", color: "#2d5016" }}>
+                              {latest}
+                            </span>
+                          ) : (
+                            <span className="text-xs" style={{ color: "#d1d5db" }}>—</span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell
                         className="hidden sm:table-cell text-xs"
