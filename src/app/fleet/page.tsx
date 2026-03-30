@@ -39,7 +39,7 @@ export default function FleetPage() {
   const [devices, setDevices] = useState<FleetDevice[]>([]);
   const [stats, setStats] = useState<FleetStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   async function fetchData() {
     setLoading(true);
@@ -52,7 +52,7 @@ export default function FleetPage() {
       const devicesData = await devicesRes.json();
       setStats(statsData);
       setDevices(devicesData.devices || []);
-      setLastRefresh(new Date());
+      setLastRefresh(prev => new Date());
     } catch (err) {
       console.error("Fleet fetch failed:", err);
     } finally {
@@ -70,7 +70,7 @@ export default function FleetPage() {
           <h1 className="text-xl font-bold mb-1" style={{ color: "#f0f8ec" }}>Fleet</h1>
           <p className="text-sm flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
             <Wifi className="h-3.5 w-3.5" style={{ color: "#7dd94a" }} />
-            orchardpatch-server.fly.dev · last refresh {lastRefresh.toLocaleTimeString()}
+            orchardpatch-server.fly.dev{lastRefresh ? ` · last refresh ${lastRefresh.toLocaleTimeString()}` : ""}
           </p>
         </div>
         <button onClick={fetchData} disabled={loading}
