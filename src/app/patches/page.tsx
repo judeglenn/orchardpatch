@@ -280,7 +280,7 @@ export default function PatchesPage() {
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:47652/patches", {
+      const res = await fetch("http://localhost:47652/patch", {
         signal: AbortSignal.timeout(4000),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
