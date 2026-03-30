@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGrid, Laptop, TreeDeciduous, BarChart3, Bell, Settings, ClipboardList } from "lucide-react";
-import Image from "next/image";
+
 
 const NAV_ITEMS = [
   { href: "/", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
@@ -47,10 +47,9 @@ export function Sidebar() {
         className="flex items-center gap-3 px-5 py-[18px] transition-opacity hover:opacity-80"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
-        <Image src="/orchardpatch-logo.png" alt="OrchardPatch" width={32} height={32} style={{ objectFit: "contain" }} />
         <div className="leading-none">
-          <div className="text-sm font-bold tracking-tight" style={{ color: "#f0f8ec" }}>
-            OrchardPatch
+          <div className="text-base font-bold tracking-tight" style={{ color: "#f0f8ec", letterSpacing: "-0.02em" }}>
+            Orchard<span style={{ color: "#7dd94a" }}>Patch</span>
           </div>
         </div>
       </Link>
