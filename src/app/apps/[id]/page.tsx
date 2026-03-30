@@ -26,25 +26,79 @@ const COLORS = ["#7dd94a", "#ff9800", "#4caf50", "#64b5f6", "#f44336", "#90caf9"
 type PatchMode = "silent" | "managed" | "prompted";
 
 const INSTALLOMATOR_LABELS: Record<string, string> = {
-  "org.mozilla.firefox": "firefox",
+  // Browsers
+  "org.mozilla.firefox": "firefoxpkg",
+  "org.mozilla.firefoxpkg": "firefoxpkg",
   "com.google.Chrome": "googlechromepkg",
   "com.microsoft.edgemac": "microsoftedge",
+  "com.brave.Browser": "brave",
+  "com.operasoftware.Opera": "opera",
+  "com.apple.Safari": "safari", // via softwareupdate
+
+  // Communication
   "us.zoom.xos": "zoom",
   "com.tinyspeck.slackmacgap": "slack",
   "com.microsoft.teams2": "microsoftteams",
+  "com.cisco.webex.meetings": "webex",
+  "com.discord.Discord": "discord",
+  "com.hnc.Discord": "discord",
+  "com.skype.skype": "skype",
+  "ru.keepcoder.Telegram": "telegram",
+  "com.loom.desktop": "loom",
+
+  // Microsoft Office
   "com.microsoft.Word": "microsoftword",
   "com.microsoft.Excel": "microsoftexcel",
   "com.microsoft.Powerpoint": "microsoftpowerpoint",
   "com.microsoft.Outlook": "microsoftoutlook",
   "com.microsoft.onenote.mac": "microsoftonenote",
+  "com.microsoft.OneDrive": "onedrive",
+  "com.microsoft.rdc.macos": "microsoftremotedesktop",
+
+  // Development
   "com.microsoft.VSCode": "visualstudiocode",
+  "com.todesktop.230313mzl4w4u92": "cursor",
   "com.docker.docker": "docker",
+  "com.github.GitHubClient": "githubdesktop",
+  "com.jetbrains.intellij": "intellijidea",
+  "com.jetbrains.WebStorm": "webstorm",
+  "com.jetbrains.pycharm": "pycharm",
+  "com.sublimetext.4": "sublimetext4",
+  "com.googlecode.iterm2": "iterm2",
+  "com.postmanlabs.mac": "postman",
+  "com.tinyapp.TablePlus": "tableplus",
+  "com.useinsomnia.insomnia": "insomnia",
+
+  // Productivity
   "com.figma.Desktop": "figma",
   "notion.id": "notion",
   "com.agilebits.onepassword7": "1password7",
   "com.agilebits.onepassword8": "1password8",
   "com.dropbox.client2": "dropbox",
   "com.google.GoogleDrive": "googledrive",
+  "com.obsidian.md": "obsidian",
+  "md.obsidian": "obsidian",
+  "com.grammarly.ProjectLlama": "grammarly",
+  "com.mango.sketch": "sketch",
+  "com.bohemiancoding.sketch3": "sketch",
+  "com.adobe.CreativeCloud": "adobecreativeclouddesktop",
+  "com.readdle.smartemail": "spark",
+  "com.culturedcode.ThingsMac": "things3",
+  "com.flexibits.fantastical2.mac": "fantastical",
+  "com.tunnelbear.TunnelBear": "tunnelbear",
+
+  // Utilities
+  "com.knollsoft.Rectangle": "rectangle",
+  "com.runningwithcrayons.Alfred": "alfred",
+  "com.hegenberg.BetterTouchTool": "bettertouchtool",
+  "com.macpaw.CleanMyMac4": "cleanmymacx",
+  "com.malwarebytes.antimalware": "malwarebytes",
+  "org.videolan.vlc": "vlc",
+  "com.spotify.client": "spotify",
+  "com.apple.dt.Xcode": "xcode",
+  "com.prefs.BackgroundMusic": "backgroundmusic",
+  "org.whispersystems.signal-desktop": "signal",
+  "com.microsoft.autoupdate2": "microsoftautoupdate",
 };
 
 function getInstallomatorLabel(bundleId: string): string | null {
