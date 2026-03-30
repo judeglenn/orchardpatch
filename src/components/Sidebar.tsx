@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Laptop, TreeDeciduous, BarChart3, Bell, Settings } from "lucide-react";
+import { LayoutGrid, Laptop, TreeDeciduous, BarChart3, Bell, Settings, ClipboardList } from "lucide-react";
 import Image from "next/image";
 
 const NAV_ITEMS = [
   { href: "/", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
   { href: "/devices", icon: Laptop, label: "Devices", matchPrefix: "/devices" },
+  { href: "/patches", icon: ClipboardList, label: "Patch History", matchPrefix: "/patches" },
 ];
 
 const COMING_SOON_ITEMS = [
