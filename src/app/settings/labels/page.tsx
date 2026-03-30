@@ -206,7 +206,12 @@ export default function LabelOverridesPage() {
             </div>
           ))}
         </div>
-        <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.25)" }}>Click any row to pre-fill the form above.</p>
+        <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.25)" }}>
+          Click any row to pre-fill the form above. Full label list available at{" "}
+          <a href="https://github.com/Installomator/Installomator/blob/main/Labels.txt" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(125,217,74,0.7)" }} className="hover:underline">
+            Installomator/Labels.txt
+          </a>
+        </p>
       </div>
 
       {/* Toast */}
