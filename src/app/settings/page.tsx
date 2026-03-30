@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link2, Bell, Shield, RefreshCw, Database, Key, Sliders, Webhook, Users, FileText } from "lucide-react";
+import { Link2, Bell, Shield, RefreshCw, Database, Key, Sliders, Webhook, Users, FileText, Tag } from "lucide-react";
 import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 
@@ -46,6 +46,14 @@ const SETTINGS = [
   {
     category: "Patching",
     items: [
+      {
+        icon: <Tag className="h-5 w-5" style={{ color: "#7dd94a" }} />,
+        bg: "rgba(125,217,74,0.12)",
+        title: "Label Overrides",
+        description: "Map bundle IDs to specific Installomator labels. Override auto-detection for apps like Microsoft Teams.",
+        href: "/settings/labels",
+        status: "Live",
+      },
       {
         icon: <Sliders className="h-5 w-5" style={{ color: "#2d5016" }} />,
         bg: "#f0f7e8",
