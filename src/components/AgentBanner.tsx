@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { checkAgent, AgentStatus } from "@/lib/agent";
-import { Wifi, WifiOff, Loader2, X } from "lucide-react";
+import { WifiOff, X } from "lucide-react";
 
 export function AgentBanner() {
   const [status, setStatus] = useState<AgentStatus>("checking");
@@ -22,15 +22,20 @@ export function AgentBanner() {
     return (
       <div
         className="flex items-center justify-between px-4 py-2 text-xs font-medium"
-        style={{ background: "#f0f7e8", borderBottom: "1px solid #c5e1a5" }}
+        style={{
+          background: "rgba(125,217,74,0.08)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(125,217,74,0.2)",
+        }}
       >
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full animate-pulse" style={{ background: "#4caf50" }} />
-          <span style={{ color: "#2d5016" }}>
+          <div className="h-2 w-2 rounded-full animate-pulse" style={{ background: "#7dd94a" }} />
+          <span style={{ color: "#9fe066" }}>
             OrchardPatch Agent connected · <strong>{hostname}</strong> · Live inventory
           </span>
         </div>
-        <button onClick={() => setDismissed(true)} style={{ color: "#2d5016" }}>
+        <button onClick={() => setDismissed(true)} style={{ color: "rgba(255,255,255,0.4)" }}>
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -40,18 +45,23 @@ export function AgentBanner() {
   return (
     <div
       className="flex items-center justify-between px-4 py-2 text-xs font-medium"
-      style={{ background: "#f3f4f6", borderBottom: "1px solid #e2e4e7" }}
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+      }}
     >
       <div className="flex items-center gap-2">
-        <WifiOff className="h-3.5 w-3.5" style={{ color: "#9ca3af" }} />
-        <span style={{ color: "#6b7280" }}>
+        <WifiOff className="h-3.5 w-3.5" style={{ color: "rgba(255,255,255,0.35)" }} />
+        <span style={{ color: "rgba(255,255,255,0.55)" }}>
           Agent not detected · Showing demo data ·{" "}
-          <a href="/settings/jamf" className="underline hover:text-[#2d5016]">
+          <a href="/settings/jamf" className="underline" style={{ color: "#7dd94a" }}>
             Connect your fleet
           </a>
         </span>
       </div>
-      <button onClick={() => setDismissed(true)} style={{ color: "#9ca3af" }}>
+      <button onClick={() => setDismissed(true)} style={{ color: "rgba(255,255,255,0.35)" }}>
         <X className="h-3.5 w-3.5" />
       </button>
     </div>

@@ -22,13 +22,15 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
     <div className="relative">
       <Link
         href={`/apps/${app.id}`}
-        className="group flex items-center gap-4 rounded-lg border bg-white transition-all duration-150 hover:shadow-md"
+        className="group flex items-center gap-4 rounded-2xl transition-all duration-150"
         style={{
-          borderColor: selected ? "#2d5016" : "#e2e4e7",
+          background: selected ? "rgba(125,217,74,0.1)" : "rgba(255,255,255,0.06)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: selected ? "1px solid rgba(125,217,74,0.35)" : "1px solid rgba(255,255,255,0.12)",
           boxShadow: selected
-            ? "0 0 0 1px #2d501640, 0 1px 3px rgba(0,0,0,0.06)"
-            : "0 1px 2px rgba(0,0,0,0.04)",
-          background: selected ? "#f6faf0" : "white",
+            ? "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(125,217,74,0.2)"
+            : "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
           paddingLeft: onToggle ? "2.75rem" : "1rem",
           paddingRight: "1rem",
           paddingTop: "0.875rem",
@@ -46,14 +48,14 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
             <span
-              className="text-sm font-semibold truncate transition-colors duration-150 group-hover:text-[#2d5016]"
-              style={{ color: "#1a1a2e" }}
+              className="text-sm font-semibold truncate transition-colors duration-150"
+              style={{ color: "#f0f8ec" }}
             >
               {app.name}
             </span>
             <span
               className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
-              style={{ background: "#eef0f2", color: "#6b7280" }}
+              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)" }}
             >
               {app.category}
             </span>
@@ -63,7 +65,7 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
           <div className="flex items-center gap-2">
             <div
               className="h-1.5 w-24 rounded-full overflow-hidden"
-              style={{ background: "#eef0f2" }}
+              style={{ background: "rgba(255,255,255,0.1)" }}
             >
               {app.hasVersionConflict ? (
                 <div className="h-full flex">
@@ -77,10 +79,10 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
                   />
                 </div>
               ) : (
-                <div className="h-full rounded-full w-full" style={{ background: "#4caf50" }} />
+                <div className="h-full rounded-full w-full" style={{ background: "#7dd94a" }} />
               )}
             </div>
-            <span className="text-[11px]" style={{ color: "#6b7280" }}>
+            <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
               {app.hasVersionConflict
                 ? `${app.versions.length} versions`
                 : app.mostCommonVersion}
@@ -91,15 +93,15 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
         {/* Right side: installs + conflict badge */}
         <div className="shrink-0 flex flex-col items-end gap-1.5">
           <div className="flex items-center gap-1.5">
-            <Monitor className="h-3.5 w-3.5" style={{ color: "#6b7280" }} />
-            <span className="text-sm font-semibold" style={{ color: "#1a1a2e" }}>
-              {app.totalInstalls.toLocaleString()}<span className="font-normal text-xs" style={{ color: "#6b7280" }}> / {totalDevices.toLocaleString()}</span>
+            <Monitor className="h-3.5 w-3.5" style={{ color: "rgba(255,255,255,0.35)" }} />
+            <span className="text-sm font-semibold" style={{ color: "#f0f8ec" }}>
+              {app.totalInstalls.toLocaleString()}<span className="font-normal text-xs" style={{ color: "rgba(255,255,255,0.55)" }}> / {totalDevices.toLocaleString()}</span>
             </span>
           </div>
           {app.hasVersionConflict ? (
             <span
               className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-              style={{ background: "#fff3e0", color: "#e65100" }}
+              style={{ background: "rgba(255,160,0,0.12)", border: "1px solid rgba(255,160,0,0.35)", color: "#ffb74d" }}
             >
               <AlertTriangle className="h-2.5 w-2.5" />
               Conflict
@@ -107,7 +109,7 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
           ) : (
             <span
               className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-              style={{ background: "#e8f5e9", color: "#2e7d32" }}
+              style={{ background: "rgba(125,217,74,0.12)", border: "1px solid rgba(125,217,74,0.35)", color: "#9fe066" }}
             >
               <CheckCircle2 className="h-2.5 w-2.5" />
               Consistent
@@ -119,15 +121,15 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
       {/* Checkbox — sits outside Link so clicks don't navigate */}
       {onToggle && (
         <button
-          className="absolute left-0 top-0 bottom-0 w-11 flex items-center justify-center z-10 rounded-l-lg"
+          className="absolute left-0 top-0 bottom-0 w-11 flex items-center justify-center z-10 rounded-l-2xl"
           onClick={() => onToggle(app.id)}
           aria-label={selected ? `Deselect ${app.name}` : `Select ${app.name}`}
         >
           <div
             className="h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-150 flex-shrink-0"
             style={{
-              borderColor: selected ? "#2d5016" : "#9ca3af",
-              background: selected ? "#2d5016" : "white",
+              borderColor: selected ? "#7dd94a" : "rgba(255,255,255,0.3)",
+              background: selected ? "#5aaa28" : "rgba(255,255,255,0.05)",
             }}
           >
             {selected && (

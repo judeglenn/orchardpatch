@@ -23,6 +23,36 @@ interface Props {
 
 const COLORS = ["#2d5016", "#ff9800", "#4caf50", "#64b5f6", "#f44336", "#90caf9", "#ab47bc", "#26a69a"];
 
+// Installomator label map — bundle ID → Installomator label
+const INSTALLOMATOR_LABELS: Record<string, string> = {
+  "org.mozilla.firefox": "firefox",
+  "com.google.Chrome": "googlechromepkg",
+  "com.microsoft.edgemac": "microsoftedge",
+  "us.zoom.xos": "zoom",
+  "com.tinyspeck.slackmacgap": "slack",
+  "com.microsoft.teams2": "microsoftteams",
+  "com.microsoft.Word": "microsoftword",
+  "com.microsoft.Excel": "microsoftexcel",
+  "com.microsoft.Powerpoint": "microsoftpowerpoint",
+  "com.microsoft.Outlook": "microsoftoutlook",
+  "com.microsoft.onenote.mac": "microsoftonenote",
+  "com.microsoft.VSCode": "visualstudiocode",
+  "com.docker.docker": "docker",
+  "com.figma.Desktop": "figma",
+  "notion.id": "notion",
+  "com.agilebits.onepassword7": "1password7",
+  "com.agilebits.onepassword8": "1password8",
+  "com.apple.dt.Xcode": "xcode",
+  "com.github.GitHubClient": "github",
+  "com.dropbox.client2": "dropbox",
+  "com.google.GoogleDrive": "googledrive",
+  "com.adobe.creativecloud": "adobecreativeclouddesktop",
+};
+
+function getInstallomatorLabel(bundleId: string): string | null {
+  return INSTALLOMATOR_LABELS[bundleId] ?? null;
+}
+
 type PatchMode = "silent" | "managed" | "prompted";
 
 export default function AppDetailPage({ params }: Props) {
@@ -58,6 +88,7 @@ export default function AppDetailPage({ params }: Props) {
   const [patchMode, setPatchMode] = useState<PatchMode>("managed");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [patchDeviceId, setPatchDeviceId] = useState<string | null>(null);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
   const app = getAppById(id) ?? getAgentApp(id);
   const safeApp = app;
@@ -82,11 +113,74 @@ export default function AppDetailPage({ params }: Props) {
     setTimeout(() => setToastMsg(null), 3500);
   }
 
-  function handleConfirmPatch() {
+  async function handleConfirmPatch() {
     setShowPatchModal(false);
+    if (!safeApp) return;
+
+    // Look up the Installomator label from the bundle ID
+    const label = getInstallomatorLabel(safeApp.bundleId);
+    if (!label) {
+      showToast(`⚠️ No Installomator label found for ${safeApp.name}`);
+      return;
+    }
+
     const target = patchDeviceId ? `1 device` : `all ${installations.length} device${installations.length !== 1 ? "s" : ""}`;
-    showToast(`${safeApp?.name} queued for ${patchMode} patch on ${target} (coming soon)`);
+    showToast(`🌳 Queuing ${patchMode} patch for ${safeApp.name}...`);
+
+    try {
+      const res = await fetch("/api/patch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bundleId: safeApp.bundleId,
+          label,
+          appName: safeApp.name,
+          mode: patchMode,
+          deviceId: patchDeviceId || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(`❌ ${data.error || "Patch failed to queue"}`);
+        return;
+      }
+
+      setActiveJobId(data.jobId);
+      showToast(`✅ Patch job queued (${target}) — monitoring...`);
+      pollJobStatus(data.jobId);
+    } catch (err: any) {
+      showToast(`❌ Agent not reachable — is it running?`);
+    }
+
     setPatchDeviceId(null);
+  }
+
+  function pollJobStatus(jobId: string) {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/patch/${jobId}`);
+        const job = await res.json();
+
+        if (job.status === "success") {
+          clearInterval(interval);
+          setActiveJobId(null);
+          showToast(`✅ ${safeApp?.name} patched successfully!`);
+        } else if (job.status === "failed") {
+          clearInterval(interval);
+          setActiveJobId(null);
+          showToast(`❌ Patch failed: ${job.error || "unknown error"}`);
+        }
+        // still running — keep polling
+      } catch {
+        clearInterval(interval);
+        setActiveJobId(null);
+      }
+    }, 2500);
+
+    // Stop polling after 5 minutes regardless
+    setTimeout(() => clearInterval(interval), 5 * 60 * 1000);
   }
 
   if (!agentLoaded) {
@@ -254,7 +348,7 @@ export default function AppDetailPage({ params }: Props) {
                     border: "none",
                   }}
                 >
-                  Deploy {label} 🍎
+                  {activeJobId ? "⏳ Patching..." : `Deploy ${label} 🍎`}
                 </button>
               ) : (
                 <button
