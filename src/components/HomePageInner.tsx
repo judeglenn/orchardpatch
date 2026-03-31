@@ -7,6 +7,7 @@ import { apps as mockApps, stats as mockStats } from "@/lib/mockData";
 import type { App, Device } from "@/lib/mockData";
 import { checkAgent, fetchLocalInventory, normalizeAgentInventory } from "@/lib/agent";
 import { setAgentData } from "@/lib/agentStore";
+import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import {
   Package,
   Monitor,
@@ -59,15 +60,64 @@ export default function HomePageInner() {
   const [dataSource, setDataSource] = useState<"mock" | "agent">("mock");
   const [agentSyncTime, setAgentSyncTime] = useState<string | null>(null);
   useEffect(() => {
-    console.log("[OrchardPatch] Checking agent...");
-    checkAgent().then(async ({ connected }) => {
-      console.log("[OrchardPatch] Agent connected:", connected);
+    // Try fleet server first (multi-Mac) — fall back to local agent
+    async function loadData() {
+      try {
+        const [statsRes, appsRes] = await Promise.all([
+          fetch(`${FLEET_SERVER_URL}/stats`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }),
+          fetch(`${FLEET_SERVER_URL}/apps`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }),
+        ]);
+        if (statsRes.ok && appsRes.ok) {
+          const statsData = await statsRes.json();
+          const appsData = await appsRes.json();
+
+          // Normalize fleet apps into the App format
+          const fleetApps = Object.values(
+            (appsData.apps as any[]).reduce((acc: Record<string, any>, a: any) => {
+              const id = a.bundle_id.replace(/\./g, "-");
+              if (!acc[id]) {
+                acc[id] = {
+                  id,
+                  name: a.name,
+                  bundleId: a.bundle_id,
+                  category: "Utilities",
+                  versions: [{ version: a.version || "unknown", deviceCount: 1 }],
+                  totalInstalls: 1,
+                  mostCommonVersion: a.version || "unknown",
+                  hasVersionConflict: a.is_outdated === 1,
+                  lastSeen: a.last_seen,
+                  latestVersion: a.latest_version,
+                };
+              } else {
+                acc[id].totalInstalls++;
+                const existing = acc[id].versions.find((v: any) => v.version === a.version);
+                if (existing) existing.deviceCount++;
+                else acc[id].versions.push({ version: a.version || "unknown", deviceCount: 1 });
+                if (a.is_outdated === 1) acc[id].hasVersionConflict = true;
+              }
+              return acc;
+            }, {})
+          ) as App[];
+
+          setAgentApps(fleetApps);
+          setAgentStats({
+            totalApps: statsData.totalApps,
+            totalDevices: statsData.totalDevices,
+            appsWithVersionConflicts: statsData.outdatedApps,
+          });
+          setDataSource("agent");
+          setAgentSyncTime(statsData.lastCheckin);
+          return;
+        }
+      } catch { /* fall through to local agent */ }
+
+      // Fall back to local agent
+      console.log("[OrchardPatch] Fleet server unavailable, checking local agent...");
+      const { connected } = await checkAgent();
       if (!connected) return;
       try {
         const raw = await fetchLocalInventory();
-        console.log("[OrchardPatch] Raw inventory apps:", raw?.apps?.length);
         const normalized = normalizeAgentInventory(raw);
-        console.log("[OrchardPatch] Normalized apps:", normalized.apps.length);
         setAgentApps(normalized.apps as App[]);
         setAgentStats(normalized.stats);
         setDataSource("agent");
@@ -77,11 +127,11 @@ export default function HomePageInner() {
           normalized.devices as Device[],
           new Date().toISOString()
         );
-        console.log("[OrchardPatch] State updated with agent data");
       } catch (err) {
         console.error("[OrchardPatch] Error loading agent data:", err);
       }
-    });
+    }
+    loadData();
   }, []);
 
   const apps = agentApps ?? mockApps;
