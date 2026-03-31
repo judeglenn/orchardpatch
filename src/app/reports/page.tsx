@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BarChart3, ShieldCheck, AlertTriangle, CheckCircle2, Loader2, WifiOff } from "lucide-react";
 import { getAgentStore } from "@/lib/agentStore";
+import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import { appInitials, appColorClass } from "@/lib/utils";
 
 type PatchJob = {
@@ -34,7 +35,28 @@ export default function ReportsPage() {
     async function load() {
       setPatchLoading(true);
       try {
-        const res = await fetch("http://localhost:47652/patches", {
+        // Try fleet server first
+        const fleetRes = await fetch(`${FLEET_SERVER_URL}/patch-jobs`, {
+          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+          signal: AbortSignal.timeout(6000),
+        }).catch(() => null);
+
+        if (fleetRes?.ok) {
+          const data = await fleetRes.json();
+          const jobs = (data.jobs || []).map((j: any) => ({
+            jobId: j.id,
+            appName: j.app_name,
+            status: j.status,
+            startedAt: j.started_at || j.created_at,
+            deviceName: j.device_name,
+          }));
+          setPatchJobs(jobs);
+          setAgentOffline(false);
+          return;
+        }
+
+        // Fall back to local agent
+        const res = await fetch("http://localhost:47652/patch", {
           signal: AbortSignal.timeout(4000),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

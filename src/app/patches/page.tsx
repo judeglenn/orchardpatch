@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import {
   RefreshCw,
   ClipboardList,
@@ -280,6 +281,33 @@ export default function PatchesPage() {
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
+      // Try fleet server first, fall back to local agent
+      const fleetRes = await fetch(`${FLEET_SERVER_URL}/patch-jobs`, {
+        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+      }).catch(() => null);
+
+      if (fleetRes?.ok) {
+        const data = await fleetRes.json();
+        // Normalize fleet patch jobs to local format
+        const jobs = (data.jobs || []).map((j: any) => ({
+          id: j.id,
+          appName: j.app_name,
+          label: j.label,
+          mode: j.mode,
+          status: j.status,
+          deviceId: j.device_name || j.device_id,
+          createdAt: j.created_at,
+          startedAt: j.started_at,
+          completedAt: j.completed_at,
+          exitCode: j.exit_code,
+          error: j.error,
+          log: j.log ? j.log.split("\n") : [],
+        }));
+        setJobs(jobs);
+        setAgentOffline(false);
+        return;
+      }
+
       const res = await fetch("http://localhost:47652/patch", {
         signal: AbortSignal.timeout(4000),
       });
