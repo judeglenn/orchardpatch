@@ -95,10 +95,17 @@ export default function EnrollmentPage() {
       >
         <div className="flex items-center gap-2 mb-2">
           <Terminal className="h-4 w-4" style={{ color: "#6b7280" }} />
-          <p className="text-sm font-semibold" style={{ color: "#1a1a2e" }}>Deploy via MDM</p>
+          <p className="text-sm font-semibold" style={{ color: "#1a1a2e" }}>Deploy via Jamf Pro</p>
         </div>
-        <p className="text-xs leading-relaxed" style={{ color: "#6b7280" }}>
-          The PKG is fully silent and MDM-compatible. Upload to Jamf Pro, Kandji, Mosyle, or any MDM as a managed package and scope it to your fleet. No user interaction required.
+        <p className="text-xs leading-relaxed mb-3" style={{ color: "#6b7280" }}>
+          Upload the PKG to Jamf Pro and attach the OrchardPatch enrollment script to the same policy. Set your org token as <span className="font-mono" style={{ color: "#374151" }}>Parameter 4</span> — each device enrolls automatically with no user interaction.
+        </p>
+        <div className="rounded-lg px-3 py-2 font-mono text-xs" style={{ background: "#f4f6f8", color: "#374151" }}>
+          <span style={{ color: "#9ca3af" }}>Parameter 4:</span> your-org-token<br />
+          <span style={{ color: "#9ca3af" }}>Parameter 5:</span> https://orchardpatch-server.fly.dev
+        </div>
+        <p className="mt-3 text-xs" style={{ color: "#9ca3af" }}>
+          Compatible with Jamf Pro, Kandji, Mosyle, and any MDM that supports PKG deployment with script parameters.
         </p>
       </div>
     </div>
