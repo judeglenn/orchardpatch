@@ -1,11 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { Link2, Bell, Shield, RefreshCw, Database, Key, Sliders, Webhook, Users, FileText, Tag } from "lucide-react";
+import { Link2, Bell, Shield, RefreshCw, Database, Key, Sliders, Webhook, Users, FileText, Tag, Building2, CreditCard, Download } from "lucide-react";
 import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 
 const SETTINGS = [
+  {
+    category: "Organization",
+    items: [
+      {
+        icon: <Building2 className="h-5 w-5" style={{ color: "#2d5016" }} />,
+        bg: "#f0f7e8",
+        title: "Organization Profile",
+        description: "Your org name, customer ID, and enrollment token. Share with your team to onboard new devices.",
+        href: "/settings/organization",
+        status: "Live",
+      },
+      {
+        icon: <Download className="h-5 w-5" style={{ color: "#1565c0" }} />,
+        bg: "#e3f2fd",
+        title: "Agent Enrollment",
+        description: "Download the OrchardPatch Agent PKG pre-configured for your organization. Install on any Mac to enroll it.",
+        href: "/settings/enrollment",
+        status: "Live",
+      },
+      {
+        icon: <CreditCard className="h-5 w-5" style={{ color: "#6a1b9a" }} />,
+        bg: "#f3e5f5",
+        title: "Billing & Plan",
+        description: "Manage your subscription, view usage, and update payment details.",
+        href: "/settings/billing",
+        status: "Planned",
+      },
+    ],
+  },
   {
     category: "Connections",
     items: [
@@ -125,6 +154,7 @@ const SETTINGS = [
 ];
 
 const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  "Live": { bg: "rgba(125,217,74,0.15)", color: "#4a9e1a" },
   "In Development": { bg: "#e8f5e9", color: "#2e7d32" },
   "Planned": { bg: "#eef0f2", color: "#9ca3af" },
 };
