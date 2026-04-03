@@ -102,7 +102,7 @@ export default function EnrollmentPage() {
         </p>
         <div className="rounded-lg px-3 py-2 font-mono text-xs" style={{ background: "#f4f6f8", color: "#374151" }}>
           <span style={{ color: "#9ca3af" }}>Parameter 4:</span> your-org-token<br />
-          <span style={{ color: "#9ca3af" }}>Parameter 5:</span> https://orchardpatch-server.fly.dev
+          <span style={{ color: "#9ca3af" }}>Parameter 5:</span> https://orchardpatch-server-production.up.railway.app
         </div>
         <p className="mt-3 text-xs" style={{ color: "#9ca3af" }}>
           Compatible with Jamf Pro, Kandji, Mosyle, and any MDM that supports PKG deployment with script parameters.

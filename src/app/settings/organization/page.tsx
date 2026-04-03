@@ -7,7 +7,7 @@ const ORG = {
   name: "Queer Mountaineers",
   customerId: "org_qm_2026_demo",
   enrollmentToken: "orchardpatch-fleet-2026",
-  serverUrl: "https://orchardpatch-server.fly.dev",
+  serverUrl: "https://orchardpatch-server-production.up.railway.app",
   plan: "Early Access",
   devices: 2,
   maxDevices: 25,
