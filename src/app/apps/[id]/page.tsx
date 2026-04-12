@@ -149,8 +149,6 @@ export default function AppDetailPage({ params }: Props) {
     const { apps: mockApps } = require("@/lib/mockData");
     app = mockApps.find((a: any) => a.bundleId.toLowerCase() === bundleIdPattern.toLowerCase());
   }
-  const safeApp = app;
-
   // For agent apps, build installations from agent device store
   const agentStore = getAgentStore();
   const installations = getAppInstallations(id).length > 0
@@ -173,25 +171,25 @@ export default function AppDetailPage({ params }: Props) {
 
   async function handleConfirmPatch() {
     setShowPatchModal(false);
-    if (!safeApp) return;
+    if (!app) return;
 
-    const label = getInstallomatorLabel(safeApp.bundleId);
+    const label = getInstallomatorLabel(app.bundleId);
     if (!label) {
-      showToast(`⚠️ No Installomator label found for ${safeApp.name}`);
+      showToast(`⚠️ No Installomator label found for ${app.name}`);
       return;
     }
 
     const target = patchDeviceId ? `1 device` : `all ${installations.length} device${installations.length !== 1 ? "s" : ""}`;
-    showToast(`🌳 Queuing ${patchMode} patch for ${safeApp.name}...`);
+    showToast(`🌳 Queuing ${patchMode} patch for ${app.name}...`);
 
     try {
       const res = await fetch("/api/patch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          bundleId: safeApp.bundleId,
+          bundleId: app.bundleId,
           label,
-          appName: safeApp.name,
+          appName: app.name,
           mode: patchMode,
           deviceId: patchDeviceId || undefined,
         }),
@@ -222,7 +220,7 @@ export default function AppDetailPage({ params }: Props) {
         if (job.status === "success") {
           clearInterval(interval);
           setActiveJobId(null);
-          showToast(`✅ ${safeApp?.name} patched successfully!`);
+          showToast(`✅ ${app?.name} patched successfully!`);
         } else if (job.status === "failed") {
           clearInterval(interval);
           setActiveJobId(null);
@@ -252,7 +250,7 @@ export default function AppDetailPage({ params }: Props) {
     );
   }
 
-  if (!safeApp) {
+  if (!app) {
     return (
       <div className="px-6 py-6">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
@@ -266,8 +264,8 @@ export default function AppDetailPage({ params }: Props) {
     );
   }
 
-  const initials = appInitials(safeApp.name);
-  const colorClass = appColorClass(safeApp.name);
+  const initials = appInitials(app.name);
+  const colorClass = appColorClass(app.name);
 
   return (
     <div className="px-6 py-6">
