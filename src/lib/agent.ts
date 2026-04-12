@@ -11,8 +11,14 @@ export type AgentStatus = "connected" | "disconnected" | "checking";
 
 /**
  * Check if the local agent is running
+ * Skips check on production (non-localhost) to avoid CORS errors
  */
 export async function checkAgent(): Promise<{ connected: boolean; hostname?: string; version?: string }> {
+  // Skip agent check if not running on localhost (production/Vercel)
+  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
+    return { connected: false };
+  }
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), AGENT_TIMEOUT);
