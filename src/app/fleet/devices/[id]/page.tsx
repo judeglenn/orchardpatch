@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { Monitor, AlertTriangle, CheckCircle2, ChevronLeft, Package, Clock } from "lucide-react";
 import { formatRelativeDate } from "@/lib/utils";
@@ -39,7 +39,8 @@ const glass = {
   boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
 } as React.CSSProperties;
 
-export default function DeviceDetailPage({ params }: { params: { id: string } }) {
+export default function DeviceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const [device, setDevice] = useState<DeviceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export default function DeviceDetailPage({ params }: { params: { id: string } })
   useEffect(() => {
     async function fetchDevice() {
       try {
-        const res = await fetch(`/api/fleet/devices/${encodeURIComponent(params.id)}`);
+        const res = await fetch(`/api/fleet/devices/${encodeURIComponent(id)}`);
         if (res.ok) {
           const data = await res.json();
           setDevice(data);
@@ -58,7 +59,7 @@ export default function DeviceDetailPage({ params }: { params: { id: string } })
         console.error("Device fetch failed:", err);
       }
       // Fall back to mock data
-      const mockDevice = getDeviceById(params.id);
+      const mockDevice = getDeviceById(id);
       if (mockDevice) {
         setDevice({
           id: mockDevice.id,
@@ -82,7 +83,7 @@ export default function DeviceDetailPage({ params }: { params: { id: string } })
       setLoading(false);
     }
     fetchDevice();
-  }, [params.id]);
+  }, [id]);
 
   const outdatedApps = device?.apps.filter(a => a.is_outdated === 1) || [];
   const upToDateApps = device?.apps.filter(a => a.is_outdated === 0) || [];
