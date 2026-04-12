@@ -15,7 +15,13 @@ export type AgentStatus = "connected" | "disconnected" | "checking";
  */
 export async function checkAgent(): Promise<{ connected: boolean; hostname?: string; version?: string }> {
   // Skip agent check if not running on localhost (production/Vercel)
-  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
+  // Only check agent in browser context on localhost
+  if (typeof window === 'undefined') {
+    // Server-side: skip agent check
+    return { connected: false };
+  }
+  if (!window.location.hostname.includes('localhost')) {
+    // Production: skip agent check
     return { connected: false };
   }
 
