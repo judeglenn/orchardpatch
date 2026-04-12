@@ -112,7 +112,7 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
               style={{ background: "rgba(125,217,74,0.12)", border: "1px solid rgba(125,217,74,0.35)", color: "#9fe066" }}
             >
               <CheckCircle2 className="h-2.5 w-2.5" />
-              All Same Version
+              Current
             </span>
           )}
         </div>
