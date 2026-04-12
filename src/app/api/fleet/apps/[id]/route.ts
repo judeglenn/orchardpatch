@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { categorizeApp } from "@/lib/agent";
 
 const FLEET_SERVER_URL = process.env.NEXT_PUBLIC_FLEET_SERVER_URL || "https://orchardpatch-server-production.up.railway.app";
 const FLEET_SERVER_TOKEN = process.env.NEXT_PUBLIC_FLEET_SERVER_TOKEN || "orchardpatch-fleet-2026";
@@ -83,7 +84,7 @@ export async function GET(_req: Request, { params }: Context) {
       id,
       name: first.name,
       bundleId: first.bundle_id,
-      category: "Utilities",
+      category: first.category || categorizeApp(first.bundle_id || "", first.name || ""),
       versions,
       totalInstalls: matching.length,
       mostCommonVersion: versions[0]?.version || "unknown",

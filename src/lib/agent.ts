@@ -168,7 +168,7 @@ export function normalizeAgentInventory(agentData: {
 /**
  * Simple category inference from bundle ID / name
  */
-function categorizeApp(bundleId: string, name: string): string {
+export function categorizeApp(bundleId: string, name: string): string {
   const b = bundleId.toLowerCase();
   const n = name.toLowerCase();
 
