@@ -172,12 +172,106 @@ function categorizeApp(bundleId: string, name: string): string {
   const b = bundleId.toLowerCase();
   const n = name.toLowerCase();
 
-  if (b.includes("microsoft") || n.includes("word") || n.includes("excel") || n.includes("powerpoint") || n.includes("outlook")) return "Productivity";
-  if (b.includes("google.chrome") || b.includes("firefox") || b.includes("safari") || n.includes("browser")) return "Browser";
-  if (b.includes("slack") || b.includes("zoom") || b.includes("discord") || b.includes("telegram") || b.includes("whatsapp")) return "Communication";
-  if (b.includes("xcode") || b.includes("vscode") || b.includes("iterm") || b.includes("docker") || b.includes("github") || b.includes("postman")) return "Development";
-  if (b.includes("figma") || b.includes("sketch") || b.includes("adobe") || b.includes("affinity")) return "Design";
-  if (b.includes("apple")) return "System";
-  if (b.includes("1password") || b.includes("security") || b.includes("vpn")) return "Security";
+  // Browsers
+  if (
+    b.includes("google.chrome") || b.includes("org.mozilla.firefox") ||
+    b.includes("com.apple.safari") || b.includes("com.microsoft.edgemac") ||
+    b.includes("com.operasoftware") || b.includes("com.brave.browser") ||
+    b.includes("com.arc-browser") || b.includes("company.thebrowser") ||
+    n === "safari" || n === "firefox" || n === "chrome" || n === "opera" ||
+    n.includes("browser") || n === "brave" || n === "arc"
+  ) return "Browsers";
+
+  // Communication
+  if (
+    b.includes("com.tinyspeck.slackmacgap") || b.includes("com.slack") ||
+    b.includes("us.zoom.xos") || b.includes("com.zoom") ||
+    b.includes("com.hnc.discord") || b.includes("com.discord") ||
+    b.includes("com.telegram") || b.includes("org.telegram") ||
+    b.includes("net.whatsapp") || b.includes("com.microsoft.teams") ||
+    b.includes("com.apple.facetime") || b.includes("com.apple.messages") ||
+    b.includes("com.skype") || b.includes("com.readdle.smartemail") ||
+    n.includes("slack") || n.includes("zoom") || n.includes("discord") ||
+    n.includes("telegram") || n.includes("whatsapp") || n.includes("teams") ||
+    n.includes("skype") || n === "messages" || n === "facetime" || n === "mail"
+  ) return "Communication";
+
+  // Development
+  if (
+    b.includes("com.microsoft.vscode") || b.includes("com.apple.dt.xcode") ||
+    b.includes("com.docker") || b.includes("com.github.atom") ||
+    b.includes("com.jetbrains") || b.includes("com.sublimetext") ||
+    b.includes("com.postmanlabs") || b.includes("com.torusknot.sourcetreeformac") ||
+    b.includes("com.github.githubnativeapp") || b.includes("com.googlecode.iterm2") ||
+    b.includes("com.apple.terminal") || b.includes("io.cursor") ||
+    b.includes("com.anthropic") || b.includes("dev.warp") ||
+    n.includes("xcode") || n.includes("vscode") || n === "visual studio code" ||
+    n.includes("docker") || n.includes("iterm") || n.includes("terminal") ||
+    n.includes("postman") || n.includes("sourcetree") || n.includes("github desktop") ||
+    n.includes("intellij") || n.includes("pycharm") || n.includes("webstorm") ||
+    n.includes("cursor") || n === "warp" || n.includes("simulator")
+  ) return "Development";
+
+  // Design
+  if (
+    b.includes("com.figma") || b.includes("com.bohemiancoding.sketch") ||
+    b.includes("com.adobe") || b.includes("com.affinity") ||
+    b.includes("com.pixelmator") || b.includes("com.canva") ||
+    b.includes("com.zeplin") || b.includes("com.invisionapp") ||
+    n.includes("figma") || n.includes("sketch") || n.includes("photoshop") ||
+    n.includes("illustrator") || n.includes("indesign") || n.includes("affinity") ||
+    n.includes("pixelmator") || n.includes("canva") || n.includes("zeplin")
+  ) return "Design";
+
+  // Media
+  if (
+    b.includes("com.spotify") || b.includes("com.apple.music") ||
+    b.includes("org.videolan.vlc") || b.includes("com.apple.quicktimeplayer") ||
+    b.includes("com.apple.podcasts") || b.includes("com.apple.tv") ||
+    b.includes("com.plex") || b.includes("com.netflix") ||
+    b.includes("com.loom") || b.includes("com.apple.photos") ||
+    n.includes("spotify") || n === "vlc" || n.includes("music") ||
+    n.includes("quicktime") || n.includes("podcasts") || n === "tv" ||
+    n.includes("plex") || n.includes("netflix") || n === "loom" || n === "photos"
+  ) return "Media";
+
+  // Security
+  if (
+    b.includes("com.agilebits.onepassword") || b.includes("com.1password") ||
+    b.includes("com.bitwarden") || b.includes("com.lastpass") ||
+    b.includes("com.nordvpn") || b.includes("com.expressvpn") ||
+    b.includes("com.malwarebytes") || b.includes("com.sentinelone") ||
+    b.includes("com.crowdstrike") || b.includes("com.jamf") ||
+    n.includes("1password") || n.includes("bitwarden") || n.includes("lastpass") ||
+    n.includes("vpn") || n.includes("keychain") || n.includes("antivirus") ||
+    n.includes("malwarebytes") || n.includes("security")
+  ) return "Security";
+
+  // Productivity
+  if (
+    b.includes("com.microsoft.word") || b.includes("com.microsoft.excel") ||
+    b.includes("com.microsoft.powerpoint") || b.includes("com.microsoft.outlook") ||
+    b.includes("com.microsoft.office") || b.includes("com.apple.iwork") ||
+    b.includes("com.apple.keynote") || b.includes("com.apple.pages") ||
+    b.includes("com.apple.numbers") || b.includes("com.apple.reminders") ||
+    b.includes("com.apple.notes") || b.includes("com.apple.calendar") ||
+    b.includes("com.notion") || b.includes("com.airtable") ||
+    b.includes("com.evernote") || b.includes("com.todoist") ||
+    b.includes("com.omnigroup") || b.includes("md.obsidian") ||
+    n.includes("word") || n.includes("excel") || n.includes("powerpoint") ||
+    n.includes("outlook") || n.includes("keynote") || n.includes("pages") ||
+    n.includes("numbers") || n === "notes" || n === "reminders" || n === "calendar" ||
+    n.includes("notion") || n.includes("evernote") || n.includes("todoist") ||
+    n.includes("obsidian") || n.includes("office")
+  ) return "Productivity";
+
+  // System (Apple system apps)
+  if (
+    b.startsWith("com.apple.") ||
+    n === "finder" || n === "system preferences" || n === "system settings" ||
+    n === "activity monitor" || n === "disk utility" || n === "console" ||
+    n === "migration assistant" || n === "airdrop" || n.includes("app store")
+  ) return "System";
+
   return "Utilities";
 }

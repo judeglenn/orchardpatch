@@ -16,7 +16,7 @@ export function VersionBadge({ hasConflict, versionCount, className }: VersionBa
           className
         )}
       >
-        Consistent
+        All Same Version
       </span>
     );
   }
