@@ -71,11 +71,26 @@ export default function HomePageInner() {
           const statsData = await statsRes.json();
           const appsData = await appsRes.json();
 
-          // Normalize fleet apps into the App format
+          // Normalize fleet apps into the App format, deduplicating by bundle_id
+          // then by canonical name (case-insensitive) to merge apps from different
+          // install paths (e.g. /Applications vs ~/Applications).
+          const bundleToKey: Record<string, string> = {};
+          const nameToKey: Record<string, string> = {};
           const fleetApps = Object.values(
             (appsData.apps as any[]).reduce((acc: Record<string, any>, a: any) => {
-              const id = a.bundle_id.replace(/\./g, "-");
-              if (!acc[id]) {
+              const bundleLower = (a.bundle_id || "").toLowerCase().trim();
+              const nameLower = (a.name || "").toLowerCase().trim();
+
+              // Find existing entry by bundle_id first (if not empty), then canonical name
+              const existingKey =
+                (bundleLower && bundleToKey[bundleLower]) ||
+                (nameLower && nameToKey[nameLower]) ||
+                null;
+
+              if (!existingKey) {
+                const id = a.bundle_id
+                  ? a.bundle_id.replace(/\./g, "-")
+                  : nameLower.replace(/\s+/g, "-") || `app-${Object.keys(acc).length}`;
                 acc[id] = {
                   id,
                   name: a.name,
@@ -88,12 +103,18 @@ export default function HomePageInner() {
                   lastSeen: a.last_seen,
                   latestVersion: a.latest_version,
                 };
+                if (bundleLower) bundleToKey[bundleLower] = id;
+                if (nameLower) nameToKey[nameLower] = id;
               } else {
-                acc[id].totalInstalls++;
-                const existing = acc[id].versions.find((v: any) => v.version === a.version);
+                acc[existingKey].totalInstalls++;
+                const existing = acc[existingKey].versions.find((v: any) => v.version === a.version);
                 if (existing) existing.deviceCount++;
-                else acc[id].versions.push({ version: a.version || "unknown", deviceCount: 1 });
-                if (a.is_outdated === 1) acc[id].hasVersionConflict = true;
+                else acc[existingKey].versions.push({ version: a.version || "unknown", deviceCount: 1 });
+                if (a.is_outdated === 1) acc[existingKey].hasVersionConflict = true;
+                // Keep the most recent lastSeen
+                if (a.last_seen && a.last_seen > acc[existingKey].lastSeen) {
+                  acc[existingKey].lastSeen = a.last_seen;
+                }
               }
               return acc;
             }, {})

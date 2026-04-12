@@ -118,7 +118,7 @@ export default function FleetPage() {
         ) : (
           <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
             {devices.map((device) => (
-              <div key={device.id} className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors">
+              <Link key={device.id} href={`/fleet/devices/${encodeURIComponent(device.id)}`} className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors cursor-pointer">
                 {/* Icon */}
                 <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center"
                   style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -157,7 +157,7 @@ export default function FleetPage() {
                     agent {device.agent_version || "unknown"}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
