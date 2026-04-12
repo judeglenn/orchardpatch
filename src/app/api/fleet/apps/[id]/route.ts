@@ -40,7 +40,6 @@ export async function GET(_req: Request, { params }: Context) {
     for (const a of matching) {
       const v = a.version || "unknown";
       versionMap[v] = (versionMap[v] || 0) + 1;
-      if (a.is_outdated === 1) hasVersionConflict = true;
       if (a.latest_version && !latestVersion) latestVersion = a.latest_version;
       if (a.last_seen && a.last_seen > lastSeen) lastSeen = a.last_seen;
       installations.push({
@@ -54,6 +53,30 @@ export async function GET(_req: Request, { params }: Context) {
     const versions = Object.entries(versionMap)
       .map(([version, deviceCount]) => ({ version, deviceCount }))
       .sort((a, b) => b.deviceCount - a.deviceCount);
+
+    // Detect version conflicts: more than one distinct version installed
+    hasVersionConflict = versions.length > 1;
+
+    // Compute latest version via semver-style comparison if not provided by server
+    if (!latestVersion && versions.length > 0) {
+      latestVersion = versions
+        .map((v) => v.version)
+        .filter((v) => v !== "unknown")
+        .sort((a, b) => {
+          const pa = a.split(".").map((n) => parseInt(n, 10) || 0);
+          const pb = b.split(".").map((n) => parseInt(n, 10) || 0);
+          for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+            const diff = (pb[i] || 0) - (pa[i] || 0);
+            if (diff !== 0) return diff;
+          }
+          return 0;
+        })[0] || null;
+    }
+
+    const installationsWithOutdated = installations.map((inst) => ({
+      ...inst,
+      isOutdated: latestVersion !== null && inst.version !== latestVersion,
+    }));
 
     const first = matching[0];
     const app = {
@@ -69,7 +92,7 @@ export async function GET(_req: Request, { params }: Context) {
       latestVersion,
     };
 
-    return NextResponse.json({ app, installations });
+    return NextResponse.json({ app, installations: installationsWithOutdated });
   } catch (error) {
     console.error("[GET /api/fleet/apps/[id]]", error);
     return NextResponse.json({ error: "Failed to fetch app" }, { status: 500 });
