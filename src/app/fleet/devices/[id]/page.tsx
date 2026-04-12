@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Monitor, AlertTriangle, CheckCircle2, ChevronLeft, Package, Clock } from "lucide-react";
-import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import { formatRelativeDate } from "@/lib/utils";
-import { getDeviceById, devices as mockDevices } from "@/lib/mockData";
+import { getDeviceById } from "@/lib/mockData";
 
 interface DeviceApp {
   bundle_id: string;
@@ -48,65 +47,39 @@ export default function DeviceDetailPage({ params }: { params: { id: string } })
   useEffect(() => {
     async function fetchDevice() {
       try {
-        const res = await fetch(`${FLEET_SERVER_URL}/devices/${params.id}`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
-        });
-        if (!res.ok) {
-          // Fall back to mock data if server fetch fails
-          const mockDevice = getDeviceById(params.id);
-          if (mockDevice) {
-            // Convert mock device format to DeviceDetail format
-            setDevice({
-              id: mockDevice.id,
-              hostname: mockDevice.name,
-              model: mockDevice.model,
-              os_version: mockDevice.osVersion,
-              agent_version: "demo",
-              last_seen: mockDevice.lastInventory,
-              apps: mockDevice.apps.map(a => ({
-                bundle_id: a.appId,
-                name: a.appName,
-                version: a.version,
-                is_outdated: 0,
-                path: "/Applications",
-                last_seen: mockDevice.lastInventory,
-              })),
-            } as DeviceDetail);
-          } else {
-            setError("Device not found");
-          }
+        const res = await fetch(`/api/fleet/devices/${encodeURIComponent(params.id)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setDevice(data);
           setLoading(false);
           return;
         }
-        const data = await res.json();
-        setDevice(data);
       } catch (err) {
         console.error("Device fetch failed:", err);
-        // Fall back to mock data on network error
-        const mockDevice = getDeviceById(params.id);
-        if (mockDevice) {
-          setDevice({
-            id: mockDevice.id,
-            hostname: mockDevice.name,
-            model: mockDevice.model,
-            os_version: mockDevice.osVersion,
-            agent_version: "demo",
-            last_seen: mockDevice.lastInventory,
-            apps: mockDevice.apps.map(a => ({
-              bundle_id: a.appId,
-              name: a.appName,
-              version: a.version,
-              is_outdated: 0,
-              path: "/Applications",
-              last_seen: mockDevice.lastInventory,
-            })),
-          } as DeviceDetail);
-        } else {
-          setError("Failed to connect to fleet server");
-        }
-      } finally {
-        setLoading(false);
       }
+      // Fall back to mock data
+      const mockDevice = getDeviceById(params.id);
+      if (mockDevice) {
+        setDevice({
+          id: mockDevice.id,
+          hostname: mockDevice.name,
+          model: mockDevice.model,
+          os_version: mockDevice.osVersion,
+          agent_version: "demo",
+          last_seen: mockDevice.lastInventory,
+          apps: mockDevice.apps.map(a => ({
+            bundle_id: a.appId,
+            name: a.appName,
+            version: a.version,
+            is_outdated: 0,
+            path: "/Applications",
+            last_seen: mockDevice.lastInventory,
+          })),
+        } as DeviceDetail);
+      } else {
+        setError("Device not found");
+      }
+      setLoading(false);
     }
     fetchDevice();
   }, [params.id]);
