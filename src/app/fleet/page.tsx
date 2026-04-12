@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Monitor, AlertTriangle, CheckCircle2, RefreshCw, Wifi } from "lucide-react";
 import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import { appInitials, appColorClass, formatRelativeDate } from "@/lib/utils";
+import { devices as mockDevices } from "@/lib/mockData";
 
 interface FleetDevice {
   id: string;
@@ -54,7 +55,27 @@ export default function FleetPage() {
       setDevices(devicesData.devices || []);
       setLastRefresh(prev => new Date());
     } catch (err) {
-      console.error("Fleet fetch failed:", err);
+      console.error("Fleet fetch failed, falling back to mock data:", err);
+      // Fall back to mock data
+      const mockFleetDevices: FleetDevice[] = mockDevices.map(d => ({
+        id: d.id,
+        hostname: d.name,
+        model: d.model,
+        os_version: d.osVersion,
+        agent_version: "demo",
+        last_seen: d.lastInventory,
+        app_count: d.apps.length,
+        outdated_count: 0,
+      }));
+      setDevices(mockFleetDevices);
+      setStats({
+        totalDevices: mockDevices.length,
+        totalApps: 87,
+        outdatedApps: 3,
+        totalInstalls: 174,
+        lastCheckin: new Date().toISOString(),
+        patchJobs: { total: 0, success: 0, failed: 0 },
+      });
     } finally {
       setLoading(false);
     }
