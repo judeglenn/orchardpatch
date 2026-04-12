@@ -140,7 +140,15 @@ export default function AppDetailPage({ params }: Props) {
   const [patchDeviceId, setPatchDeviceId] = useState<string | null>(null);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
-  const app = getAppById(id) ?? getAgentApp(id);
+  // Try to find app by ID, then by bundle ID pattern match as fallback for demo mode
+  let app = getAppById(id) ?? getAgentApp(id);
+  if (!app && id.includes("-")) {
+    // ID might be a bundle ID with dots replaced (e.g. "ru-keepcoder-Telegram")
+    // Try to find by searching mock apps for matching bundle ID
+    const bundleIdPattern = id.replace(/-/g, ".");
+    const { apps: mockApps } = require("@/lib/mockData");
+    app = mockApps.find((a: any) => a.bundleId.toLowerCase() === bundleIdPattern.toLowerCase());
+  }
   const safeApp = app;
 
   // For agent apps, build installations from agent device store
