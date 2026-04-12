@@ -262,8 +262,9 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
 }
 
 function AppRow({ app }: { app: DeviceApp }) {
-  return (
-    <div className="flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors">
+  const appId = app.bundle_id ? app.bundle_id.replace(/\./g, "-") : null;
+  const inner = (
+    <>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold truncate" style={{ color: "#f0f8ec" }}>
           {app.name}
@@ -286,6 +287,23 @@ function AppRow({ app }: { app: DeviceApp }) {
           Outdated
         </span>
       )}
+    </>
+  );
+
+  if (appId) {
+    return (
+      <Link
+        href={`/apps/${appId}`}
+        className="flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors"
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between px-5 py-3">
+      {inner}
     </div>
   );
 }

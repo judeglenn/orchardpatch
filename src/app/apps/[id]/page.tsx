@@ -108,10 +108,27 @@ function getInstallomatorLabel(bundleId: string): string | null {
 export default function AppDetailPage({ params }: Props) {
   const { id } = use(params);
 
+  const [fleetApp, setFleetApp] = useState<any>(null);
+  const [fleetInstallations, setFleetInstallations] = useState<any[] | null>(null);
+  const [fleetLoaded, setFleetLoaded] = useState(false);
   const [agentLoaded, setAgentLoaded] = useState(false);
   const [agentFetched, setAgentFetched] = useState(false);
 
-  // If not in mock data, try loading from agent
+  // Try fleet server first
+  useEffect(() => {
+    fetch(`/api/fleet/apps/${encodeURIComponent(id)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.app) {
+          setFleetApp(data.app);
+          setFleetInstallations(data.installations || []);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setFleetLoaded(true));
+  }, [id]);
+
+  // If not in mock data, try loading from agent (fallback)
   useEffect(() => {
     if (!getAppById(id) && !getAgentApp(id) && !agentFetched) {
       setAgentFetched(true);
@@ -140,8 +157,8 @@ export default function AppDetailPage({ params }: Props) {
   const [patchDeviceId, setPatchDeviceId] = useState<string | null>(null);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
-  // Try to find app by ID, then by bundle ID pattern match as fallback for demo mode
-  let app = getAppById(id) ?? getAgentApp(id);
+  // Fleet data takes priority, then mock/agent fallback
+  let app = fleetApp ?? getAppById(id) ?? getAgentApp(id);
   if (!app && id.includes("-")) {
     // ID might be a bundle ID with dots replaced (e.g. "ru-keepcoder-Telegram")
     // Try to find by searching mock apps for matching bundle ID
@@ -149,20 +166,23 @@ export default function AppDetailPage({ params }: Props) {
     const { apps: mockApps } = require("@/lib/mockData");
     app = mockApps.find((a: any) => a.bundleId.toLowerCase() === bundleIdPattern.toLowerCase());
   }
-  // For agent apps, build installations from agent device store
+
+  // Fleet installations take priority over mock/agent data
   const agentStore = getAgentStore();
-  const installations = getAppInstallations(id).length > 0
-    ? getAppInstallations(id)
-    : (agentStore.devices ?? []).flatMap(d =>
-        d.apps
-          .filter(a => a.appId === id)
-          .map(a => ({
-            deviceId: d.id,
-            deviceName: d.name,
-            version: a.version,
-            lastInventory: d.lastInventory,
-          }))
-      );
+  const installations = fleetInstallations ?? (
+    getAppInstallations(id).length > 0
+      ? getAppInstallations(id)
+      : (agentStore.devices ?? []).flatMap(d =>
+          d.apps
+            .filter(a => a.appId === id)
+            .map(a => ({
+              deviceId: d.id,
+              deviceName: d.name,
+              version: a.version,
+              lastInventory: d.lastInventory,
+            }))
+        )
+  );
 
   function showToast(msg: string) {
     setToastMsg(msg);
@@ -242,7 +262,7 @@ export default function AppDetailPage({ params }: Props) {
     boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
   };
 
-  if (!agentLoaded) {
+  if (!fleetLoaded && !agentLoaded) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="h-8 w-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#7dd94a", borderTopColor: "transparent" }} />
@@ -439,7 +459,7 @@ export default function AppDetailPage({ params }: Props) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "rgba(255,255,255,0.55)" }}>Version Breakdown</p>
             <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.35)" }}>{app.versions.length} version{app.versions.length !== 1 ? "s" : ""} detected</p>
             <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              {app.versions.map((v, i) => {
+              {app.versions.map((v: { version: string; deviceCount: number }, i: number) => {
                 const pct = Math.round((v.deviceCount / app.totalInstalls) * 100);
                 return (
                   <div key={v.version} className="flex items-center gap-3 py-2.5">
@@ -486,7 +506,11 @@ export default function AppDetailPage({ params }: Props) {
               {installations.map((inst, idx) => (
                 <TableRow key={inst.deviceId} className="group" style={{ background: idx % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent", borderColor: "rgba(255,255,255,0.06)" }}>
                   <TableCell>
-                    <Link href={`/devices/${inst.deviceId}`} className="font-medium text-sm flex items-center gap-2 transition-colors" style={{ color: "#f0f8ec" }}>
+                    <Link
+                      href={fleetInstallations ? `/fleet/devices/${inst.deviceId}` : `/devices/${inst.deviceId}`}
+                      className="font-medium text-sm flex items-center gap-2 transition-colors"
+                      style={{ color: "#f0f8ec" }}
+                    >
                       <Monitor className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(255,255,255,0.35)" }} />
                       {inst.deviceName}
                     </Link>
