@@ -1,12 +1,12 @@
 "use client";
 
-import { use, useState, useMemo } from "react";
+import { use, useState, useMemo, useEffect } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDeviceById, getAppById } from "@/lib/mockData";
-import { getAgentDevice, getAgentApp, getLatestVersion } from "@/lib/agentStore";
+import { getAgentDevice, getAgentApp } from "@/lib/agentStore";
 import { SearchBar } from "@/components/SearchBar";
-import { VersionBadge } from "@/components/VersionBadge";
+import { PatchStatusBadge, type PatchStatus } from "@/components/PatchStatusBadge";
 import { formatDate, formatRelativeDate, appInitials, appColorClass, macOSName } from "@/lib/utils";
 import {
   Table,
@@ -18,6 +18,13 @@ import {
 } from "@/components/ui/table";
 import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap, BellOff, Bell, MessageSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
+
+type AppStatusRow = {
+  bundle_id: string;
+  status: PatchStatus;
+  latest_version: string | null;
+};
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -27,6 +34,34 @@ export default function DeviceDetailPage({ params }: Props) {
   const { id } = use(params);
   const device = getDeviceById(id) ?? getAgentDevice(id);
   if (!device) notFound();
+
+  // Fetch real patch status for this device's apps
+  const [appStatusMap, setAppStatusMap] = useState<Record<string, AppStatusRow>>({});
+  useEffect(() => {
+    async function loadStatus() {
+      try {
+        const res = await fetch(
+          `${FLEET_SERVER_URL}/apps/status`,
+          { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        // Filter to this device, keyed by bundle_id
+        const map: Record<string, AppStatusRow> = {};
+        for (const row of data.apps as any[]) {
+          if (row.device_id !== id) continue;
+          const bid = (row.bundle_id || "").toLowerCase();
+          if (!bid) continue;
+          // Worst-case wins for dupes
+          if (!map[bid] || row.patch_status === "outdated") {
+            map[bid] = { bundle_id: bid, status: row.patch_status, latest_version: row.latest_version ?? null };
+          }
+        }
+        setAppStatusMap(map);
+      } catch { /* non-fatal */ }
+    }
+    loadStatus();
+  }, [id]);
 
   const [search, setSearch] = useState("");
   const [patchTarget, setPatchTarget] = useState<{ appId: string; appName: string } | null>(null);
@@ -207,7 +242,12 @@ export default function DeviceDetailPage({ params }: Props) {
                   const appMeta = getAppById(appInst.appId) ?? getAgentApp(appInst.appId);
                   const initials = appInitials(appInst.appName);
                   const colorClass = appColorClass(appInst.appName);
-                  const isOutdated = appMeta?.hasVersionConflict ?? false;
+                  // Use real patch status from fleet server; fall back to mock conflict flag
+                  const bundleLower = (appInst as any).bundleId?.toLowerCase() ?? "";
+                  const realStatus = appStatusMap[bundleLower];
+                  const patchStatus: PatchStatus = realStatus?.status ?? (appMeta?.hasVersionConflict ? "outdated" : "unknown");
+                  const latestVersion = realStatus?.latest_version ?? (appMeta as any)?.latestVersion ?? null;
+                  const isOutdated = patchStatus === "outdated";
 
                   return (
                     <TableRow
@@ -237,7 +277,7 @@ export default function DeviceDetailPage({ params }: Props) {
                           className="font-mono text-xs px-2 py-0.5 rounded"
                           style={
                             isOutdated
-                              ? { background: "rgba(255,160,0,0.12)", color: "#ffb74d", border: "1px solid rgba(255,160,0,0.3)" }
+                              ? { background: "rgba(239,83,80,0.12)", color: "#ef5350", border: "1px solid rgba(239,83,80,0.3)" }
                               : { color: "rgba(255,255,255,0.55)" }
                           }
                         >
@@ -245,16 +285,13 @@ export default function DeviceDetailPage({ params }: Props) {
                         </span>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {(() => {
-                          const latest = (appMeta as any)?.latestVersion ?? getLatestVersion(appInst.appId.replace(/-/g, "."));
-                          return latest ? (
-                            <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066", border: "1px solid rgba(125,217,74,0.3)" }}>
-                              {latest}
-                            </span>
-                          ) : (
-                            <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>—</span>
-                          );
-                        })()}
+                        {latestVersion ? (
+                          <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066", border: "1px solid rgba(125,217,74,0.3)" }}>
+                            {latestVersion}
+                          </span>
+                        ) : (
+                          <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>—</span>
+                        )}
                       </TableCell>
                       <TableCell
                         className="hidden sm:table-cell text-xs"
@@ -263,12 +300,7 @@ export default function DeviceDetailPage({ params }: Props) {
                         {appMeta?.category ?? "—"}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {appMeta && (
-                          <VersionBadge
-                            hasConflict={isOutdated ?? false}
-                            className="text-[10px]"
-                          />
-                        )}
+                        <PatchStatusBadge status={patchStatus} latestVersion={latestVersion} />
                       </TableCell>
                       <TableCell className="text-right">
                         {isOutdated ? (

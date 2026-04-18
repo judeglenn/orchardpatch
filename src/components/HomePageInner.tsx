@@ -8,6 +8,7 @@ import type { App, Device } from "@/lib/mockData";
 import { checkAgent, fetchLocalInventory, normalizeAgentInventory } from "@/lib/agent";
 import { setAgentData } from "@/lib/agentStore";
 import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
+import { type PatchStatus } from "@/components/PatchStatusBadge";
 import {
   Package,
   Monitor,
@@ -59,6 +60,44 @@ export default function HomePageInner() {
   const [agentStats, setAgentStats] = useState<typeof mockStats | null>(null);
   const [dataSource, setDataSource] = useState<"mock" | "agent">("mock");
   const [agentSyncTime, setAgentSyncTime] = useState<string | null>(null);
+  // patch status keyed by bundle_id (deduplicated — if any row is outdated, whole app is outdated)
+  const [patchStatusMap, setPatchStatusMap] = useState<Record<string, { status: PatchStatus; latestVersion: string | null }>>({});
+  const [statusSummary, setStatusSummary] = useState<{ outdated: number; current: number; unknown: number } | null>(null);
+
+  useEffect(() => {
+    // Fetch patch status separately and build a bundle_id → status map
+    async function loadPatchStatus() {
+      try {
+        const res = await fetch(`${FLEET_SERVER_URL}/apps/status`, {
+          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const map: Record<string, { status: PatchStatus; latestVersion: string | null }> = {};
+        let outdated = 0, current = 0, unknown = 0;
+        for (const row of data.apps as any[]) {
+          const bid = (row.bundle_id || "").toLowerCase();
+          if (!bid) continue;
+          const existing = map[bid];
+          const rowStatus: PatchStatus = row.patch_status;
+          // Worst-case wins: outdated > unknown > current
+          if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current")) {
+            map[bid] = { status: rowStatus, latestVersion: row.latest_version ?? null };
+          }
+        }
+        // Tally unique bundle_ids
+        for (const { status } of Object.values(map)) {
+          if (status === "outdated") outdated++;
+          else if (status === "current") current++;
+          else unknown++;
+        }
+        setPatchStatusMap(map);
+        setStatusSummary({ outdated, current, unknown });
+      } catch { /* non-fatal */ }
+    }
+    loadPatchStatus();
+  }, []);
+
   useEffect(() => {
     // Try fleet server first (multi-Mac) — fall back to local agent
     async function loadData() {
@@ -349,6 +388,30 @@ export default function HomePageInner() {
         </div>
       </div>
 
+      {/* Patch status summary bar */}
+      {statusSummary && (
+        <div
+          className="flex items-center gap-3 rounded-xl px-4 py-2.5 mb-4 text-sm"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <span className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: "rgba(255,255,255,0.35)" }}>Patch Status</span>
+          <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#ef5350" }}>
+            🔴 {statusSummary.outdated} outdated
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#9fe066" }}>
+            ✅ {statusSummary.current} current
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "rgba(255,255,255,0.35)" }}>
+            🟡 {statusSummary.unknown} unknown
+          </span>
+        </div>
+      )}
+
       {/* Stats bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
@@ -448,6 +511,8 @@ export default function HomePageInner() {
               totalDevices={stats.totalDevices}
               selected={selectedIds.has(app.id)}
               onToggle={toggleApp}
+              patchStatus={patchStatusMap[app.bundleId?.toLowerCase()]?.status}
+              latestVersion={patchStatusMap[app.bundleId?.toLowerCase()]?.latestVersion}
             />
           ))}
         </div>

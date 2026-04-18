@@ -1,16 +1,19 @@
 import Link from "next/link";
-import { Monitor, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Monitor } from "lucide-react";
 import type { App } from "@/lib/mockData";
 import { appInitials, appColorClass } from "@/lib/utils";
+import { PatchStatusBadge, type PatchStatus } from "@/components/PatchStatusBadge";
 
 interface AppCardProps {
   app: App;
   totalDevices: number;
   selected?: boolean;
   onToggle?: (id: string) => void;
+  patchStatus?: PatchStatus;
+  latestVersion?: string | null;
 }
 
-export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps) {
+export function AppCard({ app, totalDevices, selected, onToggle, patchStatus, latestVersion }: AppCardProps) {
   const initials = appInitials(app.name);
   const colorClass = appColorClass(app.name);
 
@@ -98,23 +101,10 @@ export function AppCard({ app, totalDevices, selected, onToggle }: AppCardProps)
               {app.totalInstalls.toLocaleString()}<span className="font-normal text-xs" style={{ color: "rgba(255,255,255,0.55)" }}> / {totalDevices.toLocaleString()}</span>
             </span>
           </div>
-          {app.hasVersionConflict ? (
-            <span
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-              style={{ background: "rgba(255,160,0,0.12)", border: "1px solid rgba(255,160,0,0.35)", color: "#ffb74d" }}
-            >
-              <AlertTriangle className="h-2.5 w-2.5" />
-              Conflict
-            </span>
-          ) : (
-            <span
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-              style={{ background: "rgba(125,217,74,0.12)", border: "1px solid rgba(125,217,74,0.35)", color: "#9fe066" }}
-            >
-              <CheckCircle2 className="h-2.5 w-2.5" />
-              Current
-            </span>
-          )}
+          <PatchStatusBadge
+            status={patchStatus ?? (app.hasVersionConflict ? "outdated" : "unknown")}
+            latestVersion={latestVersion}
+          />
         </div>
       </Link>
 
