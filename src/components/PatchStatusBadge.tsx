@@ -32,7 +32,7 @@ const STATUS_CONFIG = {
   },
   na: {
     icon: Settings,
-    label: "N/A",
+    label: "System",
     color: "rgba(255,255,255,0.25)",
     bg: "rgba(255,255,255,0.04)",
     border: "rgba(255,255,255,0.08)",

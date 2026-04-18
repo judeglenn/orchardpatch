@@ -63,7 +63,7 @@ export default function HomePageInner() {
   const [agentSyncTime, setAgentSyncTime] = useState<string | null>(null);
   // patch status keyed by bundle_id (deduplicated — if any row is outdated, whole app is outdated)
   const [patchStatusMap, setPatchStatusMap] = useState<Record<string, { status: PatchStatus; latestVersion: string | null }>>({});
-  const [statusSummary, setStatusSummary] = useState<{ outdated: number; current: number; unknown: number } | null>(null);
+  const [statusSummary, setStatusSummary] = useState<{ outdated: number; current: number; unknown: number; na: number } | null>(null);
 
   useEffect(() => {
     // Fetch patch status separately and build a bundle_id → status map
@@ -75,7 +75,7 @@ export default function HomePageInner() {
         if (!res.ok) return;
         const data = await res.json();
         const map: Record<string, { status: PatchStatus; latestVersion: string | null }> = {};
-        let outdated = 0, current = 0, unknown = 0;
+        let outdated = 0, current = 0, unknown = 0, na = 0;
         for (const row of data.apps as any[]) {
           const bid = (row.bundle_id || "").toLowerCase();
           if (!bid) continue;
@@ -86,15 +86,15 @@ export default function HomePageInner() {
             map[bid] = { status: rowStatus, latestVersion: row.latest_version ?? null };
           }
         }
-        // Tally unique bundle_ids — exclude 'na' (system apps) from all counts
+        // Tally unique bundle_ids
         for (const { status } of Object.values(map)) {
           if (status === "outdated") outdated++;
           else if (status === "current") current++;
           else if (status === "unknown") unknown++;
-          // 'na' excluded
+          else if (status === "na") na++;
         }
         setPatchStatusMap(map);
-        setStatusSummary({ outdated, current, unknown });
+        setStatusSummary({ outdated, current, unknown, na });
       } catch { /* non-fatal */ }
     }
     loadPatchStatus();
@@ -406,7 +406,8 @@ export default function HomePageInner() {
         const pills: Pill[] = [
           { status: "outdated", emoji: "🔴", label: "outdated", count: statusSummary.outdated, activeColor: "#ef5350", activeBg: "rgba(239,83,80,0.15)", activeBorder: "rgba(239,83,80,0.5)" },
           { status: "current",  emoji: "✅", label: "current",  count: statusSummary.current,  activeColor: "#9fe066", activeBg: "rgba(125,217,74,0.15)", activeBorder: "rgba(125,217,74,0.5)" },
-          { status: "unknown",  emoji: "🟡", label: "unknown",  count: statusSummary.unknown,  activeColor: "rgba(255,255,255,0.7)", activeBg: "rgba(255,255,255,0.08)", activeBorder: "rgba(255,255,255,0.25)" },
+          { status: "unknown",  emoji: "🟡", label: "Unknown",  count: statusSummary.unknown,  activeColor: "rgba(255,255,255,0.7)", activeBg: "rgba(255,255,255,0.08)", activeBorder: "rgba(255,255,255,0.25)" },
+          { status: "na",       emoji: "⚙️",  label: "System",   count: statusSummary.na,       activeColor: "rgba(255,255,255,0.4)", activeBg: "rgba(255,255,255,0.06)", activeBorder: "rgba(255,255,255,0.15)" },
         ];
         return (
           <div
