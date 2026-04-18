@@ -11,89 +11,100 @@ interface Context {
 export async function GET(_req: Request, { params }: Context) {
   try {
     const { id } = await params;
-    const res = await fetch(`${FLEET_SERVER_URL}/apps`, {
-      headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
-      next: { revalidate: 30 },
-    });
-    if (!res.ok) {
-      return NextResponse.json({ error: "Failed to fetch apps" }, { status: res.status });
-    }
-    const data = await res.json();
-    const allApps: any[] = data.apps || [];
 
-    // Match apps by converting bundle_id dots to hyphens (same as HomePageInner)
-    const matching = allApps.filter((a: any) => {
+    // Fetch all apps (for device_name join) + all app statuses (for patch_status/latest_version)
+    const [appsRes, statusRes, devicesRes] = await Promise.all([
+      fetch(`${FLEET_SERVER_URL}/apps`, {
+        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+        next: { revalidate: 30 },
+      }),
+      fetch(`${FLEET_SERVER_URL}/apps/status`, {
+        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+        next: { revalidate: 30 },
+      }),
+      fetch(`${FLEET_SERVER_URL}/devices`, {
+        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+        next: { revalidate: 30 },
+      }),
+    ]);
+
+    if (!appsRes.ok || !statusRes.ok) {
+      return NextResponse.json({ error: "Failed to fetch apps from fleet server" }, { status: 502 });
+    }
+
+    const [appsData, statusData, devicesData] = await Promise.all([
+      appsRes.json(),
+      statusRes.json(),
+      devicesRes.ok ? devicesRes.json() : Promise.resolve({ devices: [] }),
+    ]);
+
+    // Build device hostname lookup: device_id → hostname
+    const deviceNames: Record<string, string> = {};
+    for (const d of (devicesData.devices || [])) {
+      deviceNames[d.id] = d.hostname || d.id;
+    }
+    // Also pick up device_name from /apps rows (cheaper fallback)
+    for (const a of (appsData.apps || [])) {
+      if (a.device_id && a.device_name && !deviceNames[a.device_id]) {
+        deviceNames[a.device_id] = a.device_name;
+      }
+    }
+
+    // Match status rows by bundle_id (id param is bundle_id with dots→hyphens)
+    const matchingStatus: any[] = (statusData.apps || []).filter((a: any) => {
       const appId = (a.bundle_id || "").replace(/\./g, "-").toLowerCase();
       return appId === id.toLowerCase();
     });
 
-    if (matching.length === 0) {
+    if (matchingStatus.length === 0) {
       return NextResponse.json({ error: "App not found" }, { status: 404 });
     }
 
-    // Aggregate version distribution and installations
+    // Aggregate version distribution and installations from status rows
     const versionMap: Record<string, number> = {};
-    const installations: { deviceId: string; deviceName: string; version: string; lastInventory: string }[] = [];
-    let hasVersionConflict = false;
     let latestVersion: string | null = null;
     let lastSeen = "";
+    let hasAnyOutdated = false;
 
-    for (const a of matching) {
+    const installations = matchingStatus.map((a: any) => {
       const v = a.version || "unknown";
       versionMap[v] = (versionMap[v] || 0) + 1;
       if (a.latest_version && !latestVersion) latestVersion = a.latest_version;
-      if (a.last_seen && a.last_seen > lastSeen) lastSeen = a.last_seen;
-      installations.push({
+      if (a.last_checked && a.last_checked > lastSeen) lastSeen = a.last_checked;
+      if (a.patch_status === "outdated") hasAnyOutdated = true;
+
+      return {
         deviceId: a.device_id,
-        deviceName: a.device_name,
-        version: a.version || "unknown",
-        lastInventory: a.last_seen,
-      });
-    }
+        deviceName: deviceNames[a.device_id] || a.device_id,
+        version: v,
+        lastInventory: a.last_checked || new Date().toISOString(),
+        patchStatus: a.patch_status,
+        isOutdated: a.patch_status === "outdated",
+      };
+    });
 
     const versions = Object.entries(versionMap)
       .map(([version, deviceCount]) => ({ version, deviceCount }))
       .sort((a, b) => b.deviceCount - a.deviceCount);
 
-    // Detect version conflicts: more than one distinct version installed
-    hasVersionConflict = versions.length > 1;
+    // hasVersionConflict: true if any device is outdated (vs latest_version), not just version diversity
+    const hasVersionConflict = hasAnyOutdated;
 
-    // Compute latest version via semver-style comparison if not provided by server
-    if (!latestVersion && versions.length > 0) {
-      latestVersion = versions
-        .map((v) => v.version)
-        .filter((v) => v !== "unknown")
-        .sort((a, b) => {
-          const pa = a.split(".").map((n) => parseInt(n, 10) || 0);
-          const pb = b.split(".").map((n) => parseInt(n, 10) || 0);
-          for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-            const diff = (pb[i] || 0) - (pa[i] || 0);
-            if (diff !== 0) return diff;
-          }
-          return 0;
-        })[0] || null;
-    }
-
-    const installationsWithOutdated = installations.map((inst) => ({
-      ...inst,
-      isOutdated: latestVersion !== null && inst.version !== latestVersion,
-    }));
-
-    const first = matching[0];
+    const first = matchingStatus[0];
     const app = {
       id,
       name: first.name,
       bundleId: first.bundle_id,
-      category: first.category || categorizeApp(first.bundle_id || "", first.name || ""),
+      category: categorizeApp(first.bundle_id || "", first.name || ""),
       versions,
-      totalInstalls: matching.length,
+      totalInstalls: matchingStatus.length,
       mostCommonVersion: versions[0]?.version || "unknown",
       hasVersionConflict,
       lastSeen,
       latestVersion,
     };
 
-    return NextResponse.json({ app, installations: installationsWithOutdated });
+    return NextResponse.json({ app, installations });
   } catch (error) {
     console.error("[GET /api/fleet/apps/[id]]", error);
     return NextResponse.json({ error: "Failed to fetch app" }, { status: 500 });
