@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap, BellOff, Bell, MessageSquare, X, AlertTriangle, RefreshCw } from "lucide-react";
+import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap, BellOff, Bell, MessageSquare, X, AlertTriangle, RefreshCw, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 
@@ -111,7 +111,7 @@ export default function DeviceDetailPage({ params }: Props) {
   // ─── Derived state ──────────────────────────────────────────────────────────
 
   const filteredApps = useMemo(() => {
-    let result = apps;
+    let result = apps.filter((a) => a.patch_status !== "na"); // exclude system apps from main table
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -123,6 +123,13 @@ export default function DeviceDetailPage({ params }: Props) {
     }
     return result;
   }, [apps, search, statusFilter]);
+
+  const systemApps = useMemo(
+    () => apps.filter((a) => a.patch_status === "na").sort((a, b) => a.name.localeCompare(b.name)),
+    [apps]
+  );
+
+  const naCount = systemApps.length;
 
   const outdatedCount = useMemo(
     () => apps.filter((a) => a.patch_status === "outdated").length,
@@ -262,7 +269,7 @@ export default function DeviceDetailPage({ params }: Props) {
             )}
             <span className="flex items-center gap-1.5">
               <Package className="h-3.5 w-3.5" />
-              <strong style={{ color: "#f0f8ec" }}>{apps.length}</strong>&nbsp;apps installed
+              <strong style={{ color: "#f0f8ec" }}>{apps.length - naCount}</strong>&nbsp;apps installed{naCount > 0 && <span style={{ color: "rgba(255,255,255,0.35)" }}> · {naCount} system</span>}
             </span>
             {outdatedCount > 0 && (
               <button
@@ -307,9 +314,9 @@ export default function DeviceDetailPage({ params }: Props) {
               Installed Apps
             </p>
             <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
-              {filteredApps.length === apps.length
-                ? `${apps.length} apps`
-                : `${filteredApps.length} of ${apps.length} apps`}
+              {filteredApps.length === apps.length - naCount
+                ? `${apps.length - naCount} apps`
+                : `${filteredApps.length} of ${apps.length - naCount} apps`}
               {outdatedCount > 0 && (
                 <button
                   onClick={() => setStatusFilter((f) => f === "outdated" ? null : "outdated")}
@@ -460,6 +467,55 @@ export default function DeviceDetailPage({ params }: Props) {
           </Table>
         </div>
       </div>
+
+      {/* System Apps section */}
+      {systemApps.length > 0 && (
+        <details className="mt-4 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+          <summary
+            className="px-5 py-3 cursor-pointer select-none text-[11px] font-semibold uppercase tracking-[0.1em] flex items-center gap-2"
+            style={{ color: "rgba(255,255,255,0.3)", listStyle: "none" }}
+          >
+            <Settings className="h-3 w-3" />
+            System Apps ({systemApps.length})
+          </summary>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <Table>
+              <TableBody>
+                {systemApps.map((app, idx) => (
+                  <TableRow
+                    key={app.id}
+                    style={{
+                      background: idx % 2 === 1 ? "rgba(255,255,255,0.01)" : "transparent",
+                      borderColor: "rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${appColorClass(app.name)}`}>
+                          {appInitials(app.name)}
+                        </div>
+                        <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>{app.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>{app.version}</span>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>—</span>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <PatchStatusBadge status="na" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>—</span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </details>
+      )}
 
       {/* Patch by the Fruit modal */}
       {patchTarget && (

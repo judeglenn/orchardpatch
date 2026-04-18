@@ -81,16 +81,17 @@ export default function HomePageInner() {
           if (!bid) continue;
           const existing = map[bid];
           const rowStatus: PatchStatus = row.patch_status;
-          // Worst-case wins: outdated > unknown > current
-          if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current")) {
+          // Worst-case wins: outdated > unknown > current; na is lowest priority
+          if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current") || (rowStatus !== "na" && existing.status === "na")) {
             map[bid] = { status: rowStatus, latestVersion: row.latest_version ?? null };
           }
         }
-        // Tally unique bundle_ids
+        // Tally unique bundle_ids — exclude 'na' (system apps) from all counts
         for (const { status } of Object.values(map)) {
           if (status === "outdated") outdated++;
           else if (status === "current") current++;
-          else unknown++;
+          else if (status === "unknown") unknown++;
+          // 'na' excluded
         }
         setPatchStatusMap(map);
         setStatusSummary({ outdated, current, unknown });
