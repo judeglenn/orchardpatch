@@ -105,7 +105,7 @@ export default function HomePageInner() {
       try {
         const [statsRes, appsRes] = await Promise.all([
           fetch(`${FLEET_SERVER_URL}/stats`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }),
-          fetch(`${FLEET_SERVER_URL}/apps`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }),
+          fetch(`${FLEET_SERVER_URL}/apps/status`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }),
         ]);
         if (statsRes.ok && appsRes.ok) {
           const statsData = await statsRes.json();
@@ -139,7 +139,7 @@ export default function HomePageInner() {
                   versions: [{ version: a.version || "unknown", deviceCount: 1 }],
                   totalInstalls: 1,
                   mostCommonVersion: a.version || "unknown",
-                  hasVersionConflict: a.is_outdated === 1,
+                  hasVersionConflict: a.patch_status === "outdated",
                   lastSeen: a.last_seen,
                   latestVersion: a.latest_version,
                 };
@@ -150,7 +150,7 @@ export default function HomePageInner() {
                 const existing = acc[existingKey].versions.find((v: any) => v.version === a.version);
                 if (existing) existing.deviceCount++;
                 else acc[existingKey].versions.push({ version: a.version || "unknown", deviceCount: 1 });
-                if (a.is_outdated === 1) acc[existingKey].hasVersionConflict = true;
+                if (a.patch_status === "outdated") acc[existingKey].hasVersionConflict = true;
                 // Keep the most recent lastSeen
                 if (a.last_seen && a.last_seen > acc[existingKey].lastSeen) {
                   acc[existingKey].lastSeen = a.last_seen;
@@ -284,7 +284,7 @@ export default function HomePageInner() {
     const outdated = apps.filter((a) => a.hasVersionConflict);
     setSelectedIds(new Set(outdated.map((a) => a.id)));
     setShowModal(true);
-  }, []);
+  }, [apps]);
 
   const selectedApps = useMemo(
     () => apps.filter((a) => selectedIds.has(a.id)),

@@ -330,17 +330,7 @@ export default function AppDetailPage({ params }: Props) {
             </span>
           </div>
         </div>
-        {app.hasVersionConflict && (
-          <button
-            onClick={() => { setPatchDeviceId(null); setShowPatchModal(true); }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95"
-            style={{ background: "#5aaa28", color: "white" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#6abf32")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#5aaa28")}
-          >
-            🍎 Patch All
-          </button>
-        )}
+        {/* TODO: Patch by the Bushel -- requires fleet-wide dispatch, not yet implemented */}
       </div>
 
       {/* Outdated / No Conflicts banner */}

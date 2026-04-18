@@ -12,12 +12,8 @@ export async function GET(_req: Request, { params }: Context) {
   try {
     const { id } = await params;
 
-    // Fetch all apps (for device_name join) + all app statuses (for patch_status/latest_version)
-    const [appsRes, statusRes, devicesRes] = await Promise.all([
-      fetch(`${FLEET_SERVER_URL}/apps`, {
-        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
-        next: { revalidate: 30 },
-      }),
+    // Fetch app statuses (patch_status/latest_version) + devices (for hostname lookup)
+    const [statusRes, devicesRes] = await Promise.all([
       fetch(`${FLEET_SERVER_URL}/apps/status`, {
         headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
         next: { revalidate: 30 },
@@ -28,12 +24,11 @@ export async function GET(_req: Request, { params }: Context) {
       }),
     ]);
 
-    if (!appsRes.ok || !statusRes.ok) {
+    if (!statusRes.ok) {
       return NextResponse.json({ error: "Failed to fetch apps from fleet server" }, { status: 502 });
     }
 
-    const [appsData, statusData, devicesData] = await Promise.all([
-      appsRes.json(),
+    const [statusData, devicesData] = await Promise.all([
       statusRes.json(),
       devicesRes.ok ? devicesRes.json() : Promise.resolve({ devices: [] }),
     ]);
@@ -42,12 +37,6 @@ export async function GET(_req: Request, { params }: Context) {
     const deviceNames: Record<string, string> = {};
     for (const d of (devicesData.devices || [])) {
       deviceNames[d.id] = d.hostname || d.id;
-    }
-    // Also pick up device_name from /apps rows (cheaper fallback)
-    for (const a of (appsData.apps || [])) {
-      if (a.device_id && a.device_name && !deviceNames[a.device_id]) {
-        deviceNames[a.device_id] = a.device_name;
-      }
     }
 
     // Match status rows by bundle_id (id param is bundle_id with dots→hyphens)
