@@ -252,22 +252,38 @@ function JobRows({ job, index }: { job: PatchJob; index: number }) {
           ) : null}
         </td>
       </tr>
-      {expanded && job.log && (
-        <tr style={{ background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <td colSpan={7} className="px-4 pb-3 pt-0">
-            <pre
-              className="text-[11px] font-mono leading-relaxed rounded-lg px-4 py-3 mt-1 overflow-x-auto"
-              style={{
-                background: "rgba(0,0,0,0.4)",
-                color: "rgba(255,255,255,0.7)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              {job.log}
-            </pre>
-          </td>
-        </tr>
-      )}
+      {expanded && job.log && (() => {
+        const logStr = Array.isArray(job.log) ? (job.log as string[]).join("\n") : (job.log as string);
+        const lines = logStr.split("\n");
+        return (
+          <tr style={{ background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <td colSpan={7} className="px-4 pb-3 pt-0">
+              <div
+                className="text-[11px] font-mono leading-relaxed rounded-lg px-4 py-3 mt-1"
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  maxHeight: "320px",
+                  overflowY: "auto",
+                }}
+              >
+                {lines.map((line, i) => {
+                  const u = line.toUpperCase();
+                  let color = "rgba(255,255,255,0.7)";
+                  if (/ERROR|FAILED|EXIT CODE [^0]|EXITED WITH/.test(u)) color = "#ef9a9a";
+                  else if (/WARNING|WARN/.test(u)) color = "#ffb74d";
+                  else if (/SUCCESS|SUCCESSFULLY/.test(u)) color = "#9fe066";
+                  return (
+                    <div key={i} style={{ color, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                      {line || "\u00a0"}
+                    </div>
+                  );
+                })}
+              </div>
+            </td>
+          </tr>
+        );
+      })()}
     </>
   );
 }
