@@ -41,15 +41,14 @@ export default function DeviceDetailPage({ params }: Props) {
     async function loadStatus() {
       try {
         const res = await fetch(
-          `${FLEET_SERVER_URL}/apps/status`,
+          `${FLEET_SERVER_URL}/apps/status?device_id=${encodeURIComponent(id)}`,
           { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }
         );
         if (!res.ok) return;
         const data = await res.json();
-        // Filter to this device, keyed by bundle_id
+        // Keyed by bundle_id (server already filtered to this device)
         const map: Record<string, AppStatusRow> = {};
         for (const row of data.apps as any[]) {
-          if (row.device_id !== id) continue;
           const bid = (row.bundle_id || "").toLowerCase();
           if (!bid) continue;
           // Worst-case wins for dupes
