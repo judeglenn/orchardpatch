@@ -59,6 +59,7 @@ export default function DeviceDetailPage({ params }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"outdated" | null>(null);
   const [patchTarget, setPatchTarget] = useState<{ bundleId: string; label: string | null; appName: string } | null>(null);
   const [patchMode, setPatchMode] = useState<"silent" | "managed" | "prompted">("managed");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -110,12 +111,18 @@ export default function DeviceDetailPage({ params }: Props) {
   // ─── Derived state ──────────────────────────────────────────────────────────
 
   const filteredApps = useMemo(() => {
-    if (!search.trim()) return apps;
-    const q = search.toLowerCase();
-    return apps.filter(
-      (a) => a.name.toLowerCase().includes(q) || a.version.toLowerCase().includes(q)
-    );
-  }, [apps, search]);
+    let result = apps;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (a) => a.name.toLowerCase().includes(q) || a.version.toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter) {
+      result = result.filter((a) => a.patch_status === statusFilter);
+    }
+    return result;
+  }, [apps, search, statusFilter]);
 
   const outdatedCount = useMemo(
     () => apps.filter((a) => a.patch_status === "outdated").length,
@@ -258,9 +265,18 @@ export default function DeviceDetailPage({ params }: Props) {
               <strong style={{ color: "#f0f8ec" }}>{apps.length}</strong>&nbsp;apps installed
             </span>
             {outdatedCount > 0 && (
-              <span className="flex items-center gap-1.5 font-semibold" style={{ color: "#ef5350" }}>
+              <button
+                onClick={() => setStatusFilter((f) => f === "outdated" ? null : "outdated")}
+                className="flex items-center gap-1.5 font-semibold transition-all rounded px-1 -mx-1"
+                style={{
+                  color: "#ef5350",
+                  outline: statusFilter === "outdated" ? "1px solid rgba(239,83,80,0.5)" : "none",
+                  background: statusFilter === "outdated" ? "rgba(239,83,80,0.08)" : "transparent",
+                }}
+                title={statusFilter === "outdated" ? "Click to clear filter" : "Click to filter outdated apps"}
+              >
                 🔴 {outdatedCount} outdated
-              </span>
+              </button>
             )}
             {outdatedCount === 0 && currentCount > 0 && (
               <span className="flex items-center gap-1.5 font-semibold" style={{ color: "#9fe066" }}>
@@ -294,7 +310,15 @@ export default function DeviceDetailPage({ params }: Props) {
               {filteredApps.length === apps.length
                 ? `${apps.length} apps`
                 : `${filteredApps.length} of ${apps.length} apps`}
-              {outdatedCount > 0 && ` · ${outdatedCount} outdated`}
+              {outdatedCount > 0 && (
+                <button
+                  onClick={() => setStatusFilter((f) => f === "outdated" ? null : "outdated")}
+                  className="ml-1 transition-colors hover:text-[#ef5350]"
+                  style={{ color: statusFilter === "outdated" ? "#ef5350" : "rgba(255,255,255,0.35)" }}
+                >
+                  · {outdatedCount} outdated{statusFilter === "outdated" ? " ×" : ""}
+                </button>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -351,12 +375,15 @@ export default function DeviceDetailPage({ params }: Props) {
                     >
                       {/* App name */}
                       <TableCell>
-                        <div className="flex items-center gap-3">
+                        <Link
+                          href={`/apps/${app.bundle_id?.replace(/\./g, '-').toLowerCase() ?? app.id}`}
+                          className="flex items-center gap-3 group/link"
+                        >
                           <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${colorClass}`}>
                             {initials}
                           </div>
-                          <span className="text-sm font-medium" style={{ color: "#f0f8ec" }}>{app.name}</span>
-                        </div>
+                          <span className="text-sm font-medium transition-colors group-hover/link:text-[#9fe066]" style={{ color: "#f0f8ec" }}>{app.name}</span>
+                        </Link>
                       </TableCell>
 
                       {/* Installed version */}
@@ -414,7 +441,18 @@ export default function DeviceDetailPage({ params }: Props) {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-12 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-                    No apps match your search
+                    {statusFilter
+                      ? <>
+                          No {statusFilter} apps match your search.{" "}
+                          <button
+                            onClick={() => setStatusFilter(null)}
+                            className="underline transition-colors hover:text-[#9fe066]"
+                          >
+                            Clear filter
+                          </button>
+                        </>
+                      : "No apps match your search"
+                    }
                   </TableCell>
                 </TableRow>
               )}
