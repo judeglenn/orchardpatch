@@ -48,7 +48,8 @@ const lastSynced = mockApps.reduce(
 export default function HomePageInner() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("name");
-  const [conflictsOnly, setConflictsOnly] = useState(false);
+  const [conflictsOnly, setConflictsOnly] = useState(false); // kept for compat; drives patchStatusFilter
+  const [patchStatusFilter, setPatchStatusFilter] = useState<PatchStatus | null>(null);
   const [selectedCategory, setSelectedCategory] = useState(CATEGORY_ALL);
 
   // Selection state
@@ -229,8 +230,14 @@ export default function HomePageInner() {
       );
     }
 
-    if (conflictsOnly) {
-      result = result.filter((a) => a.hasVersionConflict);
+    // patchStatusFilter (from summary bar or Conflicts button) — uses real patch status data
+    const activeStatusFilter = patchStatusFilter ?? (conflictsOnly ? "outdated" : null);
+    if (activeStatusFilter) {
+      result = result.filter((a) => {
+        const bid = (a.bundleId || "").toLowerCase();
+        const status = patchStatusMap[bid]?.status ?? "unknown";
+        return status === activeStatusFilter;
+      });
     }
 
     if (selectedCategory !== CATEGORY_ALL) {
@@ -250,7 +257,7 @@ export default function HomePageInner() {
     }
 
     return result;
-  }, [search, sortBy, conflictsOnly, selectedCategory, apps]);
+  }, [search, sortBy, conflictsOnly, patchStatusFilter, patchStatusMap, selectedCategory, apps]);
 
   const allFilteredSelected =
     filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id));
@@ -372,45 +379,74 @@ export default function HomePageInner() {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
-            variant={conflictsOnly ? "default" : "outline"}
+            variant={(patchStatusFilter === "outdated" || conflictsOnly) ? "default" : "outline"}
             size="sm"
             className="h-9 gap-1.5 text-sm"
             style={
-              conflictsOnly
+              (patchStatusFilter === "outdated" || conflictsOnly)
                 ? { background: "#5aaa28", color: "white", borderColor: "#5aaa28" }
                 : { background: "rgba(255,255,255,0.06)", color: "#f0f8ec", borderColor: "rgba(255,255,255,0.12)" }
             }
-            onClick={() => setConflictsOnly((v) => !v)}
+            onClick={() => {
+              const isActive = patchStatusFilter === "outdated" || conflictsOnly;
+              setPatchStatusFilter(isActive ? null : "outdated");
+              setConflictsOnly(false);
+            }}
           >
             <Filter className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Conflicts</span>
+            <span className="hidden sm:inline">Outdated</span>
           </Button>
         </div>
       </div>
 
-      {/* Patch status summary bar */}
-      {statusSummary && (
-        <div
-          className="flex items-center gap-3 rounded-xl px-4 py-2.5 mb-4 text-sm"
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
-          <span className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: "rgba(255,255,255,0.35)" }}>Patch Status</span>
-          <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#ef5350" }}>
-            🔴 {statusSummary.outdated} outdated
-          </span>
-          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
-          <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#9fe066" }}>
-            ✅ {statusSummary.current} current
-          </span>
-          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
-          <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "rgba(255,255,255,0.35)" }}>
-            🟡 {statusSummary.unknown} unknown
-          </span>
-        </div>
-      )}
+      {/* Patch status summary bar — clickable pills filter the app list */}
+      {statusSummary && (() => {
+        type Pill = { status: PatchStatus; emoji: string; label: string; count: number; activeColor: string; activeBg: string; activeBorder: string };
+        const pills: Pill[] = [
+          { status: "outdated", emoji: "🔴", label: "outdated", count: statusSummary.outdated, activeColor: "#ef5350", activeBg: "rgba(239,83,80,0.15)", activeBorder: "rgba(239,83,80,0.5)" },
+          { status: "current",  emoji: "✅", label: "current",  count: statusSummary.current,  activeColor: "#9fe066", activeBg: "rgba(125,217,74,0.15)", activeBorder: "rgba(125,217,74,0.5)" },
+          { status: "unknown",  emoji: "🟡", label: "unknown",  count: statusSummary.unknown,  activeColor: "rgba(255,255,255,0.7)", activeBg: "rgba(255,255,255,0.08)", activeBorder: "rgba(255,255,255,0.25)" },
+        ];
+        return (
+          <div
+            className="flex items-center gap-2 rounded-xl px-4 py-2 mb-4"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] mr-1" style={{ color: "rgba(255,255,255,0.3)" }}>Patch Status</span>
+            {pills.map((pill, i) => {
+              const active = patchStatusFilter === pill.status;
+              return (
+                <>
+                  {i > 0 && <span key={`sep-${i}`} style={{ color: "rgba(255,255,255,0.15)" }}>·</span>}
+                  <button
+                    key={pill.status}
+                    onClick={() => {
+                      setPatchStatusFilter(active ? null : pill.status);
+                      setConflictsOnly(false);
+                    }}
+                    className="rounded-lg px-2.5 py-1 text-xs font-semibold transition-all"
+                    style={active
+                      ? { background: pill.activeBg, color: pill.activeColor, border: `1px solid ${pill.activeBorder}` }
+                      : { background: "transparent", color: "rgba(255,255,255,0.5)", border: "1px solid transparent" }
+                    }
+                  >
+                    {pill.emoji} {pill.count} {pill.label}
+                  </button>
+                </>
+              );
+            })}
+            {patchStatusFilter && (
+              <button
+                className="ml-auto text-[10px] rounded px-1.5 py-0.5 transition-colors"
+                style={{ color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.06)" }}
+                onClick={() => { setPatchStatusFilter(null); setConflictsOnly(false); }}
+              >
+                clear
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Stats bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -484,7 +520,7 @@ export default function HomePageInner() {
             )}
           </span>
         </div>
-        {(search || conflictsOnly || selectedCategory !== CATEGORY_ALL) && (
+        {(search || conflictsOnly || patchStatusFilter || selectedCategory !== CATEGORY_ALL) && (
           <Button
             variant="ghost"
             size="sm"
@@ -493,6 +529,7 @@ export default function HomePageInner() {
             onClick={() => {
               setSearch("");
               setConflictsOnly(false);
+              setPatchStatusFilter(null);
               setSelectedCategory(CATEGORY_ALL);
             }}
           >
