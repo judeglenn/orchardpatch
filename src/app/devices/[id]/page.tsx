@@ -91,6 +91,11 @@ export default function DeviceDetailPage({ params }: Props) {
       const deviceData = await deviceRes.json();
       const appsData = await appsRes.json();
 
+      console.log("[DeviceDetail] device:", deviceData?.id, deviceData?.hostname);
+      console.log("[DeviceDetail] appsData keys:", Object.keys(appsData));
+      console.log("[DeviceDetail] apps count:", appsData.apps?.length);
+      console.log("[DeviceDetail] outdated:", appsData.apps?.filter((a: any) => a.patch_status === "outdated").map((a: any) => a.name));
+
       setDevice(deviceData);
       setApps(appsData.apps ?? []);
     } catch (err: any) {
