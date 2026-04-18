@@ -172,8 +172,8 @@ export default function DeviceDetailPage({ params }: Props) {
               style={{ background: "#5aaa28", color: "white", borderColor: "#5aaa28" }}
               onClick={() => {
                 const outdated = filteredApps.filter((a) => {
-                  const meta = getAppById(a.appId);
-                  return meta && a.version !== meta.mostCommonVersion;
+                  const bid = ((a as any).bundleId || "").toLowerCase();
+                  return appStatusMap[bid]?.status === "outdated";
                 });
                 if (outdated.length === 0) {
                   alert("All apps are up to date!");
