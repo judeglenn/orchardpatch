@@ -118,11 +118,11 @@ function formatDuration(startedAt: string, completedAt?: string): string {
 }
 
 function MethodBadge({ method }: { method?: string | null }) {
-  const cfg: Record<string, { label: string; emoji: string; bg: string; color: string; border: string }> = {
-    fruit:   { label: "Fruit",   emoji: "🍎", bg: "rgba(125,217,74,0.1)",  color: "#9fe066", border: "rgba(125,217,74,0.3)" },
-    branch:  { label: "Branch",  emoji: "🌿", bg: "rgba(100,200,100,0.1)", color: "#7dd94a", border: "rgba(100,200,100,0.3)" },
-    bushel:  { label: "Bushel",  emoji: "🧺", bg: "rgba(255,183,77,0.1)",  color: "#ffb74d", border: "rgba(255,183,77,0.3)" },
-    orchard: { label: "Orchard", emoji: "🌳", bg: "rgba(100,181,246,0.1)", color: "#90caf9", border: "rgba(100,181,246,0.3)" },
+  const cfg: Record<string, { label: string; emoji: string; bg: string; color: string; border: string; title: string }> = {
+    fruit:   { label: "Fruit",   emoji: "🍎", bg: "rgba(125,217,74,0.1)",  color: "#9fe066", border: "rgba(125,217,74,0.3)",  title: "Patch by the Fruit — single app, single device" },
+    branch:  { label: "Branch",  emoji: "🌿", bg: "rgba(100,200,100,0.1)", color: "#7dd94a", border: "rgba(100,200,100,0.3)", title: "Patch by the Branch — all outdated apps, single device" },
+    bushel:  { label: "Bushel",  emoji: "🧺", bg: "rgba(255,183,77,0.1)",  color: "#ffb74d", border: "rgba(255,183,77,0.3)",  title: "Patch by the Bushel — single app, all devices" },
+    orchard: { label: "Orchard", emoji: "🌳", bg: "rgba(100,181,246,0.1)", color: "#90caf9", border: "rgba(100,181,246,0.3)", title: "Patch by the Orchard — all outdated apps, entire fleet" },
   };
   const m = method && cfg[method] ? cfg[method] : null;
   if (!m) return <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>;
@@ -130,6 +130,7 @@ function MethodBadge({ method }: { method?: string | null }) {
     <span
       className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
       style={{ background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
+      title={m.title}
     >
       {m.emoji} {m.label}
     </span>
