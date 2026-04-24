@@ -657,10 +657,10 @@ export default function DeviceDetailPage({ params }: Props) {
               <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Deployment Mode</p>
               <div className="grid grid-cols-3 gap-2">
                 {([
-                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts" },
+                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts", recommended: false },
                   { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notifies user to quit", recommended: true },
-                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when" },
-                ] as const).map(({ key, icon, label, sub, recommended = false }) => {
+                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when", recommended: false },
+                ] as const).map(({ key, icon, label, sub, recommended }) => {
                   const active = branchMode === key;
                   return (
                     <button
