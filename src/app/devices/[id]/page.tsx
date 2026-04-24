@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap, BellOff, Bell, MessageSquare, X, AlertTriangle, RefreshCw, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
@@ -58,12 +59,69 @@ export default function DeviceDetailPage({ params }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const router = useRouter();
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"outdated" | null>(null);
   const [patchTarget, setPatchTarget] = useState<{ bundleId: string; label: string | null; appName: string } | null>(null);
   const [patchMode, setPatchMode] = useState<"silent" | "managed" | "prompted">("managed");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [patching, setPatching] = useState(false);
+
+  // Branch modal state
+  const [branchModalOpen, setBranchModalOpen] = useState(false);
+  const [branchChecked, setBranchChecked] = useState<Set<string>>(new Set());
+  const [branchQueuing, setBranchQueuing] = useState(false);
+  const [branchError, setBranchError] = useState<string | null>(null);
+
+  // Outdated apps that have a label (patchable via Branch)
+  const outdatedLabeledApps = useMemo(
+    () => apps.filter((a) => a.patch_status === "outdated" && a.label),
+    [apps]
+  );
+
+  function openBranchModal() {
+    // Pre-check all outdated labeled apps
+    setBranchChecked(new Set(outdatedLabeledApps.map((a) => a.label!)));
+    setBranchError(null);
+    setBranchModalOpen(true);
+  }
+
+  function toggleBranchApp(label: string) {
+    setBranchChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  }
+
+  async function handleBranchPatch() {
+    if (!device || branchChecked.size === 0) return;
+    setBranchQueuing(true);
+    setBranchError(null);
+    try {
+      const res = await fetch(`${FLEET_SERVER_URL}/patch-jobs/branch`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-orchardpatch-token": FLEET_SERVER_TOKEN,
+        },
+        body: JSON.stringify({
+          device_id: device.id,
+          labels: Array.from(branchChecked),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? `Server returned ${res.status}`);
+      setBranchModalOpen(false);
+      router.push(`/patches?device_id=${encodeURIComponent(device.id)}`);
+    } catch (err: any) {
+      setBranchError(err.message ?? "Failed to queue patches");
+    } finally {
+      setBranchQueuing(false);
+    }
+  }
 
   function showToast(msg: string) {
     setToastMsg(msg);
@@ -334,16 +392,15 @@ export default function DeviceDetailPage({ params }: Props) {
               className="h-8 gap-1.5 text-xs font-semibold"
               style={{ background: "#5aaa28", color: "white", borderColor: "#5aaa28" }}
               onClick={() => {
-                const outdated = filteredApps.filter((a) => a.patch_status === "outdated");
-                if (outdated.length === 0) {
-                  showToast("All apps are up to date!");
+                if (outdatedLabeledApps.length === 0) {
+                  showToast(outdatedCount === 0 ? "All apps are up to date!" : "No patchable outdated apps (none have Installomator labels)");
                 } else {
-                  showToast(`Queuing ${outdated.length} patch${outdated.length !== 1 ? "es" : ""}... (coming soon)`);
+                  openBranchModal();
                 }
               }}
             >
               <Zap className="h-3.5 w-3.5" />
-              Patch All Outdated 🍎
+              Patch This Device 🌿
             </Button>
             <SearchBar value={search} onChange={setSearch} placeholder="Filter apps…" className="sm:w-64" />
           </div>
@@ -515,6 +572,111 @@ export default function DeviceDetailPage({ params }: Props) {
             </Table>
           </div>
         </details>
+      )}
+
+      {/* Patch by the Branch modal */}
+      {branchModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget && !branchQueuing) setBranchModalOpen(false); }}
+        >
+          <div
+            className="rounded-2xl shadow-2xl w-full max-w-md flex flex-col"
+            style={{
+              background: "rgba(12,22,8,0.97)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
+              maxHeight: "80vh",
+            }}
+          >
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4 flex items-start justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🌿</span>
+                  <h2 className="text-base font-bold" style={{ color: "#f0f8ec" }}>Patch This Device</h2>
+                </div>
+                <p className="text-sm font-medium" style={{ color: "#9fe066" }}>{device.hostname}</p>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  {branchChecked.size} app{branchChecked.size !== 1 ? "s" : ""} selected
+                </p>
+              </div>
+              <button onClick={() => { if (!branchQueuing) setBranchModalOpen(false); }} style={{ color: "rgba(255,255,255,0.4)" }}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* App list */}
+            <div className="overflow-y-auto flex-1 px-6 py-3">
+              {outdatedLabeledApps.length === 0 ? (
+                <p className="text-sm py-4 text-center" style={{ color: "rgba(255,255,255,0.4)" }}>No patchable outdated apps.</p>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  {outdatedLabeledApps.map((app) => {
+                    const checked = branchChecked.has(app.label!);
+                    return (
+                      <button
+                        key={app.label}
+                        onClick={() => toggleBranchApp(app.label!)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all w-full"
+                        style={{
+                          border: checked ? "1px solid rgba(125,217,74,0.4)" : "1px solid rgba(255,255,255,0.07)",
+                          background: checked ? "rgba(125,217,74,0.08)" : "rgba(255,255,255,0.02)",
+                        }}
+                      >
+                        <div
+                          className="h-4 w-4 rounded shrink-0 flex items-center justify-center"
+                          style={{
+                            border: checked ? "1.5px solid #7dd94a" : "1.5px solid rgba(255,255,255,0.25)",
+                            background: checked ? "#5aaa28" : "transparent",
+                          }}
+                        >
+                          {checked && <span className="text-white text-[10px] font-bold">✓</span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate" style={{ color: "#f0f8ec" }}>{app.name}</p>
+                          <p className="text-[10px] font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>
+                            {app.version} <span style={{ color: "rgba(255,255,255,0.2)" }}>→</span> {app.latest_version ?? "?"}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Error */}
+            {branchError && (
+              <div className="mx-6 mb-2 px-3 py-2 rounded-lg text-xs" style={{ background: "rgba(239,83,80,0.12)", border: "1px solid rgba(239,83,80,0.3)", color: "#ef5350" }}>
+                {branchError}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="flex gap-3 px-6 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <button
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95"
+                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.04)" }}
+                onClick={() => setBranchModalOpen(false)}
+                disabled={branchQueuing}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
+                style={{ background: branchChecked.size === 0 ? "rgba(90,170,40,0.4)" : "#5aaa28", color: "white" }}
+                onClick={handleBranchPatch}
+                disabled={branchQueuing || branchChecked.size === 0}
+              >
+                {branchQueuing ? "Queuing…" : `Patch ${branchChecked.size} App${branchChecked.size !== 1 ? "s" : ""} 🌿`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Patch by the Fruit modal */}

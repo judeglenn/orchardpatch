@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import {
   RefreshCw,
@@ -288,25 +289,60 @@ function JobRows({ job, index }: { job: PatchJob; index: number }) {
   );
 }
 
-export default function PatchesPage() {
+// ─── Date range helpers ──────────────────────────────────────────────────────
+
+function isWithinDateRange(dateStr: string | undefined, range: string): boolean {
+  if (!dateStr || range === "all") return true;
+  const date = new Date(dateStr);
+  const now = Date.now();
+  if (range === "24h") return now - date.getTime() < 24 * 60 * 60 * 1000;
+  if (range === "7d") return now - date.getTime() < 7 * 24 * 60 * 60 * 1000;
+  if (range === "30d") return now - date.getTime() < 30 * 24 * 60 * 60 * 1000;
+  return true;
+}
+
+// ─── Inner page (needs useSearchParams) ──────────────────────────────────────
+
+function PatchesPageInner() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [jobs, setJobs] = useState<PatchJob[]>([]);
+  const [devices, setDevices] = useState<{ id: string; hostname: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [agentOffline, setAgentOffline] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
+  // ─── Filter state (URL-driven) ──────────────────────────────────────────────
+  const filterDevice = searchParams.get("device_id") ?? "";
+  const filterStatus = searchParams.get("status") ?? "";
+  const filterDate = searchParams.get("date") ?? "all";
+  const filterApp = searchParams.get("app") ?? "";
+
+  function setFilter(key: string, value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set(key, value);
+    else params.delete(key);
+    router.replace(`/patches?${params.toString()}`);
+  }
+
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     try {
-      // Try fleet server first, fall back to local agent
-      const fleetRes = await fetch(`${FLEET_SERVER_URL}/patch-jobs`, {
-        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
-      }).catch(() => null);
+      const [fleetRes, devicesRes] = await Promise.all([
+        fetch(`${FLEET_SERVER_URL}/patch-jobs?limit=500`, {
+          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+        }).catch(() => null),
+        fetch(`${FLEET_SERVER_URL}/devices`, {
+          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+        }).catch(() => null),
+      ]);
 
       if (fleetRes?.ok) {
         const data = await fleetRes.json();
-        // Normalize fleet patch jobs to local format
-        const jobs = (data.jobs || []).map((j: any) => ({
+        const normalized = (data.jobs || []).map((j: any) => ({
           id: j.id,
+          jobId: j.id,
           appName: j.app_name,
           label: j.label,
           mode: j.mode,
@@ -314,24 +350,23 @@ export default function PatchesPage() {
           deviceId: j.device_id,
           deviceName: j.device_name || j.device_id,
           createdAt: j.created_at,
-          startedAt: j.started_at,
+          startedAt: j.started_at || j.created_at,
           completedAt: j.completed_at,
           exitCode: j.exit_code,
           error: j.error,
           log: j.log ? j.log.split("\n") : [],
         }));
-        setJobs(jobs);
+        setJobs(normalized);
         setAgentOffline(false);
-        return;
+      } else {
+        setAgentOffline(true);
+        setJobs(MOCK_JOBS);
       }
 
-      const res = await fetch("http://localhost:47652/patch", {
-        signal: AbortSignal.timeout(4000),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setJobs(Array.isArray(data) ? data : (data.jobs ?? []));
-      setAgentOffline(false);
+      if (devicesRes?.ok) {
+        const data = await devicesRes.json();
+        setDevices((data.devices || []).map((d: any) => ({ id: d.id, hostname: d.hostname })));
+      }
     } catch {
       setAgentOffline(true);
       setJobs(MOCK_JOBS);
@@ -345,15 +380,29 @@ export default function PatchesPage() {
     fetchJobs();
   }, [fetchJobs]);
 
-  const total = jobs.length;
-  const succeeded = jobs.filter((j) => j.status === "success").length;
-  const failed = jobs.filter((j) => j.status === "failed").length;
-  const running = jobs.filter((j) => j.status === "running").length;
+  // ─── Filtered jobs ──────────────────────────────────────────────────────────
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((j) => {
+      if (filterDevice && j.deviceId !== filterDevice) return false;
+      if (filterStatus && j.status !== filterStatus) return false;
+      if (filterDate !== "all" && !isWithinDateRange(j.startedAt, filterDate)) return false;
+      if (filterApp && !j.appName?.toLowerCase().includes(filterApp.toLowerCase()) &&
+          !j.label?.toLowerCase().includes(filterApp.toLowerCase())) return false;
+      return true;
+    });
+  }, [jobs, filterDevice, filterStatus, filterDate, filterApp]);
+
+  const hasFilters = filterDevice || filterStatus || (filterDate && filterDate !== "all") || filterApp;
+
+  const total = filteredJobs.length;
+  const succeeded = filteredJobs.filter((j) => j.status === "success").length;
+  const failed = filteredJobs.filter((j) => j.status === "failed").length;
+  const running = filteredJobs.filter((j) => j.status === "running").length;
   const successRate =
     succeeded + failed > 0 ? Math.round((succeeded / (succeeded + failed)) * 100) : 0;
   const lastJob =
-    jobs.length > 0
-      ? jobs.reduce((a, b) => (new Date(a.startedAt) > new Date(b.startedAt) ? a : b))
+    filteredJobs.length > 0
+      ? filteredJobs.reduce((a, b) => (new Date(a.startedAt) > new Date(b.startedAt) ? a : b))
       : null;
 
   return (
@@ -452,6 +501,82 @@ export default function PatchesPage() {
         ))}
       </div>
 
+      {/* Filters */}
+      <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={glassPanel}>
+        {/* Device filter */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Device</label>
+          <select
+            value={filterDevice}
+            onChange={(e) => setFilter("device_id", e.target.value)}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium"
+            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+          >
+            <option value="">All Devices</option>
+            {devices.map((d) => (
+              <option key={d.id} value={d.id}>{d.hostname}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Status filter */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Status</label>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilter("status", e.target.value)}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium"
+            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+          >
+            <option value="">All Statuses</option>
+            <option value="success">Success</option>
+            <option value="failed">Failed</option>
+            <option value="running">In Progress</option>
+            <option value="queued">Pending</option>
+          </select>
+        </div>
+
+        {/* Date range filter */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Date Range</label>
+          <select
+            value={filterDate}
+            onChange={(e) => setFilter("date", e.target.value)}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium"
+            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+          >
+            <option value="all">All Time</option>
+            <option value="24h">Last 24h</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+          </select>
+        </div>
+
+        {/* App search */}
+        <div className="flex flex-col gap-1 flex-1 min-w-[140px]">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>App / Label</label>
+          <input
+            type="text"
+            value={filterApp}
+            onChange={(e) => setFilter("app", e.target.value)}
+            placeholder="Search apps…"
+            className="rounded-lg px-3 py-1.5 text-xs font-medium"
+            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+          />
+        </div>
+
+        {/* Clear filters */}
+        {hasFilters && (
+          <button
+            onClick={() => router.replace("/patches")}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium transition-all hover:opacity-80"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}
+          >
+            Clear filters ×
+          </button>
+        )}
+      </div>
+
       {/* Table */}
       <div className="rounded-2xl overflow-hidden" style={glassPanel}>
         <div
@@ -465,7 +590,7 @@ export default function PatchesPage() {
             Job Log
           </p>
           <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
-            {total} patch job{total !== 1 ? "s" : ""} · click a row to expand log output
+            {total} patch job{total !== 1 ? "s" : ""}{hasFilters ? " matching filters" : ""} · click a row to expand log output
           </p>
         </div>
 
@@ -485,6 +610,12 @@ export default function PatchesPage() {
             <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>
               Patch jobs will appear here once you start deploying updates.
             </p>
+          </div>
+        ) : filteredJobs.length === 0 && hasFilters ? (
+          <div className="text-center py-16">
+            <ClipboardList className="h-8 w-8 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.2)" }} />
+            <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>No jobs match the current filters</p>
+            <button onClick={() => router.replace("/patches")} className="text-xs mt-2 underline" style={{ color: "rgba(255,255,255,0.35)" }}>Clear filters</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -508,7 +639,7 @@ export default function PatchesPage() {
                 </tr>
               </thead>
               <tbody>
-                {jobs.map((job, idx) => (
+                {filteredJobs.map((job, idx) => (
                   <JobRows key={job.jobId} job={job} index={idx} />
                 ))}
               </tbody>
@@ -517,5 +648,17 @@ export default function PatchesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PatchesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#7dd94a" }} />
+      </div>
+    }>
+      <PatchesPageInner />
+    </Suspense>
   );
 }
