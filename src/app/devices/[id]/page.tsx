@@ -71,6 +71,7 @@ export default function DeviceDetailPage({ params }: Props) {
   // Branch modal state
   const [branchModalOpen, setBranchModalOpen] = useState(false);
   const [branchChecked, setBranchChecked] = useState<Set<string>>(new Set());
+  const [branchMode, setBranchMode] = useState<"silent" | "managed" | "prompted">("managed");
   const [branchQueuing, setBranchQueuing] = useState(false);
   const [branchError, setBranchError] = useState<string | null>(null);
 
@@ -81,8 +82,9 @@ export default function DeviceDetailPage({ params }: Props) {
   );
 
   function openBranchModal() {
-    // Pre-check all outdated labeled apps
+    // Pre-check all outdated labeled apps, reset mode to default
     setBranchChecked(new Set(outdatedLabeledApps.map((a) => a.label!)));
+    setBranchMode("managed");
     setBranchError(null);
     setBranchModalOpen(true);
   }
@@ -110,6 +112,7 @@ export default function DeviceDetailPage({ params }: Props) {
         body: JSON.stringify({
           device_id: device.id,
           labels: Array.from(branchChecked),
+          mode: branchMode,
         }),
       });
       const data = await res.json();
@@ -647,6 +650,38 @@ export default function DeviceDetailPage({ params }: Props) {
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Mode selector */}
+            <div className="px-6 pt-2 pb-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Deployment Mode</p>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts" },
+                  { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notifies user to quit", recommended: true },
+                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when" },
+                ] as const).map(({ key, icon, label, sub, recommended }) => {
+                  const active = branchMode === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setBranchMode(key)}
+                      className="relative flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-center transition-all"
+                      style={{
+                        border: active ? "1.5px solid rgba(125,217,74,0.6)" : "1px solid rgba(255,255,255,0.08)",
+                        background: active ? "rgba(125,217,74,0.1)" : "rgba(255,255,255,0.03)",
+                      }}
+                    >
+                      {recommended && (
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#5aaa28", color: "white" }}>Recommended</span>
+                      )}
+                      <span style={{ color: active ? "#9fe066" : "rgba(255,255,255,0.4)" }}>{icon}</span>
+                      <span className="text-[11px] font-semibold" style={{ color: active ? "#f0f8ec" : "rgba(255,255,255,0.55)" }}>{label}</span>
+                      <span className="text-[9px] leading-tight" style={{ color: "rgba(255,255,255,0.3)" }}>{sub}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Error */}

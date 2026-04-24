@@ -17,6 +17,7 @@ import {
 import { appInitials, appColorClass, formatRelativeDate } from "@/lib/utils";
 
 type PatchMode = "silent" | "managed" | "prompted";
+type PatchMethod = "fruit" | "branch" | "bushel" | "orchard";
 type PatchStatus = "success" | "failed" | "running" | "queued";
 
 type PatchJob = {
@@ -25,6 +26,8 @@ type PatchJob = {
   bundleId?: string;
   label?: string;
   mode: PatchMode;
+  method?: PatchMethod;
+  initiatedBy?: string | null;
   status: PatchStatus;
   deviceId: string;
   deviceName: string;
@@ -113,37 +116,45 @@ function formatDuration(startedAt: string, completedAt?: string): string {
   return `${Math.floor(secs / 60)}m ${secs % 60}s`;
 }
 
-function ModeBadge({ mode }: { mode: PatchMode }) {
-  const styles: Record<PatchMode, React.CSSProperties> = {
-    silent: {
-      background: "rgba(255,255,255,0.08)",
-      color: "rgba(255,255,255,0.55)",
-      border: "1px solid rgba(255,255,255,0.12)",
-    },
-    managed: {
-      background: "rgba(125,217,74,0.12)",
-      color: "#9fe066",
-      border: "1px solid rgba(125,217,74,0.3)",
-    },
-    prompted: {
-      background: "rgba(100,181,246,0.12)",
-      color: "#90caf9",
-      border: "1px solid rgba(100,181,246,0.3)",
-    },
+function MethodBadge({ method }: { method?: string | null }) {
+  const cfg: Record<string, { label: string; emoji: string; bg: string; color: string; border: string }> = {
+    fruit:   { label: "Fruit",   emoji: "🍎", bg: "rgba(125,217,74,0.1)",  color: "#9fe066", border: "rgba(125,217,74,0.3)" },
+    branch:  { label: "Branch",  emoji: "🌿", bg: "rgba(100,200,100,0.1)", color: "#7dd94a", border: "rgba(100,200,100,0.3)" },
+    bushel:  { label: "Bushel",  emoji: "🧺", bg: "rgba(255,183,77,0.1)",  color: "#ffb74d", border: "rgba(255,183,77,0.3)" },
+    orchard: { label: "Orchard", emoji: "🌳", bg: "rgba(100,181,246,0.1)", color: "#90caf9", border: "rgba(100,181,246,0.3)" },
   };
-  const labels: Record<PatchMode, string> = {
-    silent: "Silent",
-    managed: "Managed",
-    prompted: "User Prompted",
-  };
+  const m = method && cfg[method] ? cfg[method] : null;
+  if (!m) return <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>;
   return (
     <span
-      className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={styles[mode]}
+      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+      style={{ background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
     >
-      {labels[mode]}
+      {m.emoji} {m.label}
     </span>
   );
+}
+
+function ModeBadge({ mode }: { mode?: string | null }) {
+  if (mode === "silent") return (
+    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
+      style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.12)" }}>
+      Silent
+    </span>
+  );
+  if (mode === "managed") return (
+    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
+      style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066", border: "1px solid rgba(125,217,74,0.3)" }}>
+      Managed
+    </span>
+  );
+  if (mode === "prompted") return (
+    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
+      style={{ background: "rgba(100,181,246,0.12)", color: "#90caf9", border: "1px solid rgba(100,181,246,0.3)" }}>
+      User Prompted
+    </span>
+  );
+  return <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>;
 }
 
 function StatusBadge({ status }: { status: PatchStatus }) {
@@ -232,6 +243,9 @@ function JobRows({ job, index }: { job: PatchJob; index: number }) {
           </div>
         </td>
         <td className="px-4 py-3">
+          <MethodBadge method={job.method} />
+        </td>
+        <td className="px-4 py-3">
           <ModeBadge mode={job.mode} />
         </td>
         <td className="px-4 py-3">
@@ -239,6 +253,9 @@ function JobRows({ job, index }: { job: PatchJob; index: number }) {
         </td>
         <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
           {job.deviceName}
+        </td>
+        <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
+          {job.initiatedBy ?? <span style={{ color: "rgba(255,255,255,0.2)" }}>—</span>}
         </td>
         <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
           {formatRelativeDate(job.startedAt)}
@@ -259,7 +276,7 @@ function JobRows({ job, index }: { job: PatchJob; index: number }) {
         const lines = logStr.split("\n");
         return (
           <tr style={{ background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <td colSpan={7} className="px-4 pb-3 pt-0">
+            <td colSpan={9} className="px-4 pb-3 pt-0">
               <div
                 className="text-[11px] font-mono leading-relaxed rounded-lg px-4 py-3 mt-1"
                 style={{
@@ -325,6 +342,8 @@ function PatchesPageInner() {
     [devices, filterDevice]
   );
   const filterStatus = searchParams.get("status") ?? "";
+  const filterMethod = searchParams.get("method") ?? "";
+  const filterMode = searchParams.get("mode") ?? "";
   const filterDate = searchParams.get("date") ?? "all";
   const filterApp = searchParams.get("app") ?? "";
 
@@ -378,6 +397,8 @@ function PatchesPageInner() {
           appName: j.app_name,
           label: j.label,
           mode: j.mode,
+          method: j.method ?? "fruit",
+          initiatedBy: j.initiated_by ?? null,
           status: j.status,
           deviceId: j.device_id,
           deviceName: j.device_name || j.device_id,
@@ -417,14 +438,16 @@ function PatchesPageInner() {
     return jobs.filter((j) => {
       if (filterDevice && j.deviceId !== filterDevice) return false;
       if (filterStatus && j.status !== filterStatus) return false;
+      if (filterMethod && j.method !== filterMethod) return false;
+      if (filterMode && j.mode !== filterMode) return false;
       if (filterDate !== "all" && !isWithinDateRange(j.startedAt, filterDate)) return false;
       if (filterApp && !j.appName?.toLowerCase().includes(filterApp.toLowerCase()) &&
           !j.label?.toLowerCase().includes(filterApp.toLowerCase())) return false;
       return true;
     });
-  }, [jobs, filterDevice, filterStatus, filterDate, filterApp]);
+  }, [jobs, filterDevice, filterStatus, filterMethod, filterMode, filterDate, filterApp]);
 
-  const hasFilters = filterDevice || filterStatus || (filterDate && filterDate !== "all") || filterApp;
+  const hasFilters = filterDevice || filterStatus || filterMethod || filterMode || (filterDate && filterDate !== "all") || filterApp;
 
   const total = filteredJobs.length;
   const succeeded = filteredJobs.filter((j) => j.status === "success").length;
@@ -588,6 +611,39 @@ function PatchesPageInner() {
           )}
         </div>
 
+        {/* Method filter */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Method</label>
+          <select
+            value={filterMethod}
+            onChange={(e) => setFilter("method", e.target.value)}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium"
+            style={{ background: "rgba(255,255,255,0.07)", border: filterMethod ? "1px solid rgba(125,217,74,0.4)" : "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+          >
+            <option value="">All Methods</option>
+            <option value="fruit">🍎 Fruit</option>
+            <option value="branch">🌿 Branch</option>
+            <option value="bushel">🧺 Bushel</option>
+            <option value="orchard">🌳 Orchard</option>
+          </select>
+        </div>
+
+        {/* Mode filter */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Mode</label>
+          <select
+            value={filterMode}
+            onChange={(e) => setFilter("mode", e.target.value)}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium"
+            style={{ background: "rgba(255,255,255,0.07)", border: filterMode ? "1px solid rgba(125,217,74,0.4)" : "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+          >
+            <option value="">All Modes</option>
+            <option value="silent">Silent</option>
+            <option value="managed">Managed</option>
+            <option value="prompted">User Prompted</option>
+          </select>
+        </div>
+
         {/* Status filter */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Status</label>
@@ -696,7 +752,7 @@ function PatchesPageInner() {
                     background: "rgba(0,0,0,0.2)",
                   }}
                 >
-                  {["App", "Mode", "Status", "Device", "Started", "Duration", ""].map((h) => (
+                  {["App", "Method", "Mode", "Status", "Device", "Initiated By", "Started", "Duration", ""].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em]"
