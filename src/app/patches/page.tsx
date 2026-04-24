@@ -22,14 +22,15 @@ type PatchStatus = "success" | "failed" | "running" | "queued";
 type PatchJob = {
   jobId: string;
   appName: string;
-  bundleId: string;
+  bundleId?: string;
+  label?: string;
   mode: PatchMode;
   status: PatchStatus;
   deviceId: string;
   deviceName: string;
   startedAt: string;
   completedAt?: string;
-  log?: string;
+  log?: string | string[];
   error?: string;
 };
 
