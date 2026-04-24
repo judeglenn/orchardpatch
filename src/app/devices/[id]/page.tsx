@@ -660,7 +660,7 @@ export default function DeviceDetailPage({ params }: Props) {
                   { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts" },
                   { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notifies user to quit", recommended: true },
                   { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when" },
-                ] as const).map(({ key, icon, label, sub, recommended }) => {
+                ] as const).map(({ key, icon, label, sub, recommended = false }) => {
                   const active = branchMode === key;
                   return (
                     <button
