@@ -584,8 +584,14 @@ function PatchesPageInner() {
           />
           {deviceDropdownOpen && (
             <div
-              className="absolute top-full mt-1 left-0 w-52 rounded-xl overflow-hidden z-50 shadow-2xl"
-              style={{ background: "rgba(18,32,12,0.98)", border: "1px solid rgba(255,255,255,0.12)" }}
+              className="absolute top-full mt-1 left-0 w-52 rounded-xl z-50"
+              style={{
+                background: "rgba(18,32,12,0.98)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4)",
+                maxHeight: "200px",
+                overflowY: "auto",
+              }}
             >
               <button
                 className="w-full text-left px-3 py-2 text-xs transition-colors hover:bg-white/5"
