@@ -557,7 +557,7 @@ function PatchesPageInner() {
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={glassPanel}>
+      <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={{ ...glassPanel, overflow: "visible" }}>
         {/* Device typeahead */}
         <div className="flex flex-col gap-1 relative" ref={deviceInputRef}>
           <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Device</label>
