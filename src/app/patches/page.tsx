@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import {
@@ -330,6 +331,7 @@ function PatchesPageInner() {
   const [deviceQuery, setDeviceQuery] = useState("");
   const [deviceDropdownOpen, setDeviceDropdownOpen] = useState(false);
   const deviceInputRef = useRef<HTMLDivElement>(null);
+  const [dropdownAnchor, setDropdownAnchor] = useState<{ top: number; left: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [agentOffline, setAgentOffline] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -565,7 +567,14 @@ function PatchesPageInner() {
             type="text"
             value={deviceDropdownOpen ? deviceQuery : (filterDeviceHostname || deviceQuery)}
             placeholder="Search devices…"
-            onFocus={() => { setDeviceQuery(""); setDeviceDropdownOpen(true); }}
+            onFocus={() => {
+              setDeviceQuery("");
+              setDeviceDropdownOpen(true);
+              if (deviceInputRef.current) {
+                const r = deviceInputRef.current.getBoundingClientRect();
+                setDropdownAnchor({ top: r.bottom + window.scrollY + 4, left: r.left + window.scrollX });
+              }
+            }}
             onChange={(e) => { setDeviceQuery(e.target.value); setDeviceDropdownOpen(true); }}
             onKeyDown={(e) => {
               if (e.key === "Escape") { setDeviceDropdownOpen(false); setDeviceQuery(filterDeviceHostname); }
@@ -582,16 +591,20 @@ function PatchesPageInner() {
               outline: "none",
             }}
           />
-          {deviceDropdownOpen && (
+          {deviceDropdownOpen && dropdownAnchor && typeof document !== "undefined" && createPortal(
             <div
-              className="absolute top-full mt-1 left-0 w-52 rounded-xl"
               style={{
+                position: "absolute",
+                top: dropdownAnchor.top,
+                left: dropdownAnchor.left,
+                width: "208px",
                 background: "rgba(18,32,12,0.98)",
                 border: "1px solid rgba(255,255,255,0.15)",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4)",
                 maxHeight: "200px",
                 overflowY: "auto",
                 zIndex: 9999,
+                borderRadius: "12px",
               }}
             >
               <button
@@ -614,7 +627,8 @@ function PatchesPageInner() {
               {filteredDevices.length === 0 && (
                 <p className="px-3 py-2 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>No devices match</p>
               )}
-            </div>
+            </div>,
+            document.body
           )}
         </div>
 
