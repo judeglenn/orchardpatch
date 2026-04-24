@@ -7,14 +7,14 @@ const FEATURES = [
     icon: <Zap className="h-5 w-5" style={{ color: "#2d5016" }} />,
     title: "Auto-remediation Rules",
     description:
-      'Set it and forget it. Define rules like "always keep Chrome within 1 version of latest" and OrchardPatch handles the rest — no manual trigger required.',
+      'Set it and forget it. Define rules like "always keep Chrome within 1 version of latest" and OrchardPatch handles the rest - no manual trigger required.',
     bg: "#f0f7e8",
   },
   {
     icon: <Clock className="h-5 w-5" style={{ color: "#1565c0" }} />,
     title: "Scheduled Patch Windows",
     description:
-      "Define maintenance windows per app or per device group. Patches run overnight, on login, or during off-hours — never interrupting your team mid-meeting.",
+      "Define maintenance windows per app or per device group. Patches run overnight, on login, or during off-hours - never interrupting your team mid-meeting.",
     bg: "#e3f2fd",
   },
   {
