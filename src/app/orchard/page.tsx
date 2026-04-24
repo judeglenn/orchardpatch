@@ -70,13 +70,13 @@ export default function OrchardPage() {
           className="rounded-xl px-5 py-4"
           style={{ background: "#f0f7e8", border: "1px solid #c5e1a5" }}
         >
-          <p className="text-sm leading-relaxed" style={{ color: "#2d5016" }}>
-            <strong>Patch by the Fruit</strong> patches one app on one device.{" "}
-            <strong>Patch by the Branch</strong> patches one app across your entire fleet.{" "}
-            <strong>Patch by the Bushel</strong> patches all outdated apps on a single device.{" "}
-            <strong>Patch by the Orchard</strong> patches all outdated apps across your entire fleet.{" "}
-            Cultivation is autopilot — define your policies once, and your fleet stays up to date automatically. No scripts. No cron jobs. No babysitting.
-          </p>
+          <div className="text-sm leading-relaxed space-y-1.5" style={{ color: "#2d5016" }}>
+            <p><strong>Patch by the Fruit</strong> patches one app on one device.</p>
+            <p><strong>Patch by the Branch</strong> patches one app across your entire fleet.</p>
+            <p><strong>Patch by the Bushel</strong> patches all outdated apps on a single device.</p>
+            <p><strong>Patch by the Orchard</strong> patches all outdated apps across your entire fleet.</p>
+            <p><strong>Cultivation</strong> is autopilot. Define your policies once, and your fleet stays up to date automatically.</p>
+          </div>
         </div>
       </div>
 
