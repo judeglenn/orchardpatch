@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import {
@@ -310,15 +310,46 @@ function PatchesPageInner() {
 
   const [jobs, setJobs] = useState<PatchJob[]>([]);
   const [devices, setDevices] = useState<{ id: string; hostname: string }[]>([]);
+  const [deviceQuery, setDeviceQuery] = useState("");
+  const [deviceDropdownOpen, setDeviceDropdownOpen] = useState(false);
+  const deviceInputRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [agentOffline, setAgentOffline] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   // ─── Filter state (URL-driven) ──────────────────────────────────────────────
   const filterDevice = searchParams.get("device_id") ?? "";
+  // Keep typeahead input in sync with URL param (e.g. redirect from Branch modal)
+  const filterDeviceHostname = useMemo(
+    () => devices.find((d) => d.id === filterDevice)?.hostname ?? "",
+    [devices, filterDevice]
+  );
   const filterStatus = searchParams.get("status") ?? "";
   const filterDate = searchParams.get("date") ?? "all";
   const filterApp = searchParams.get("app") ?? "";
+
+  // Click-outside to close device dropdown
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (deviceInputRef.current && !deviceInputRef.current.contains(e.target as Node)) {
+        setDeviceDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Sync typeahead display with URL param
+  useEffect(() => {
+    if (!deviceDropdownOpen) {
+      setDeviceQuery(filterDeviceHostname);
+    }
+  }, [filterDeviceHostname, deviceDropdownOpen]);
+
+  const filteredDevices = useMemo(() => {
+    if (!deviceQuery) return devices;
+    return devices.filter((d) => d.hostname.toLowerCase().includes(deviceQuery.toLowerCase()));
+  }, [devices, deviceQuery]);
 
   function setFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -504,20 +535,57 @@ function PatchesPageInner() {
 
       {/* Filters */}
       <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={glassPanel}>
-        {/* Device filter */}
-        <div className="flex flex-col gap-1">
+        {/* Device typeahead */}
+        <div className="flex flex-col gap-1 relative" ref={deviceInputRef}>
           <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Device</label>
-          <select
-            value={filterDevice}
-            onChange={(e) => setFilter("device_id", e.target.value)}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
-          >
-            <option value="">All Devices</option>
-            {devices.map((d) => (
-              <option key={d.id} value={d.id}>{d.hostname}</option>
-            ))}
-          </select>
+          <input
+            type="text"
+            value={deviceDropdownOpen ? deviceQuery : (filterDeviceHostname || deviceQuery)}
+            placeholder="Search devices…"
+            onFocus={() => { setDeviceQuery(""); setDeviceDropdownOpen(true); }}
+            onChange={(e) => { setDeviceQuery(e.target.value); setDeviceDropdownOpen(true); }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") { setDeviceDropdownOpen(false); setDeviceQuery(filterDeviceHostname); }
+              if (e.key === "Backspace" && !deviceQuery && filterDevice) {
+                setFilter("device_id", "");
+                setDeviceQuery("");
+              }
+            }}
+            className="rounded-lg px-3 py-1.5 text-xs font-medium w-44"
+            style={{
+              background: "rgba(255,255,255,0.07)",
+              border: filterDevice ? "1px solid rgba(125,217,74,0.4)" : "1px solid rgba(255,255,255,0.12)",
+              color: "#f0f8ec",
+              outline: "none",
+            }}
+          />
+          {deviceDropdownOpen && (
+            <div
+              className="absolute top-full mt-1 left-0 w-52 rounded-xl overflow-hidden z-50 shadow-2xl"
+              style={{ background: "rgba(18,32,12,0.98)", border: "1px solid rgba(255,255,255,0.12)" }}
+            >
+              <button
+                className="w-full text-left px-3 py-2 text-xs transition-colors hover:bg-white/5"
+                style={{ color: !filterDevice ? "#9fe066" : "rgba(255,255,255,0.45)" }}
+                onMouseDown={() => { setFilter("device_id", ""); setDeviceQuery(""); setDeviceDropdownOpen(false); }}
+              >
+                All Devices
+              </button>
+              {filteredDevices.map((d) => (
+                <button
+                  key={d.id}
+                  className="w-full text-left px-3 py-2 text-xs transition-colors hover:bg-white/5"
+                  style={{ color: filterDevice === d.id ? "#9fe066" : "#f0f8ec" }}
+                  onMouseDown={() => { setFilter("device_id", d.id); setDeviceQuery(d.hostname); setDeviceDropdownOpen(false); }}
+                >
+                  {d.hostname}
+                </button>
+              ))}
+              {filteredDevices.length === 0 && (
+                <p className="px-3 py-2 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>No devices match</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Status filter */}
