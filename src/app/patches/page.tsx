@@ -557,7 +557,7 @@ function PatchesPageInner() {
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={{ ...glassPanel, overflow: "visible" }}>
+      <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={{ ...glassPanel, overflow: "visible", position: "relative", zIndex: 20 }}>
         {/* Device typeahead */}
         <div className="flex flex-col gap-1 relative" ref={deviceInputRef}>
           <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Device</label>
@@ -584,13 +584,14 @@ function PatchesPageInner() {
           />
           {deviceDropdownOpen && (
             <div
-              className="absolute top-full mt-1 left-0 w-52 rounded-xl z-50"
+              className="absolute top-full mt-1 left-0 w-52 rounded-xl"
               style={{
                 background: "rgba(18,32,12,0.98)",
                 border: "1px solid rgba(255,255,255,0.15)",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4)",
                 maxHeight: "200px",
                 overflowY: "auto",
+                zIndex: 9999,
               }}
             >
               <button
