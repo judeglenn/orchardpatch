@@ -38,26 +38,29 @@ export default function OrchardPage() {
     <div className="px-6 py-6 max-w-3xl">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-3">
+        <div
+          className="flex items-center gap-3 mb-3 rounded-xl px-5 py-4"
+          style={{ background: "#1a2e0d", border: "1px solid #2d5016" }}
+        >
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl"
-            style={{ background: "#f0f7e8" }}
+            className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl shrink-0"
+            style={{ background: "#2d5016" }}
           >
             🌳
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold" style={{ color: "#1a1a2e" }}>
-                Patch by the Orchard
+              <h1 className="text-xl font-bold text-white">
+                Cultivation
               </h1>
               <span
                 className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: "#fff3e0", color: "#e65100" }}
+                style={{ background: "rgba(255,255,255,0.1)", color: "#a0c878" }}
               >
                 Coming Soon
               </span>
             </div>
-            <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>
+            <p className="text-sm mt-0.5 text-white opacity-75">
               Policy-based auto-remediation for your entire fleet
             </p>
           </div>
@@ -68,10 +71,11 @@ export default function OrchardPage() {
           style={{ background: "#f0f7e8", border: "1px solid #c5e1a5" }}
         >
           <p className="text-sm leading-relaxed" style={{ color: "#2d5016" }}>
-            <strong>Patch by the Fruit</strong> patches one app at a time.{" "}
-            <strong>Patch by the Bushel</strong> lets you batch and deploy manually.{" "}
-            <strong>Patch by the Orchard</strong> is autopilot — define your policies once,
-            and your fleet stays up to date automatically. No scripts. No cron jobs. No babysitting.
+            <strong>Patch by the Fruit</strong> patches one app on one device.{" "}
+            <strong>Patch by the Branch</strong> patches one app across your entire fleet.{" "}
+            <strong>Patch by the Bushel</strong> patches all outdated apps on a single device.{" "}
+            <strong>Patch by the Orchard</strong> patches all outdated apps across your entire fleet.{" "}
+            Cultivation is autopilot — define your policies once, and your fleet stays up to date automatically. No scripts. No cron jobs. No babysitting.
           </p>
         </div>
       </div>
@@ -108,7 +112,7 @@ export default function OrchardPage() {
         <div>
           <p className="text-sm font-semibold text-white mb-0.5">Enterprise Tier</p>
           <p className="text-xs" style={{ color: "#a0c878" }}>
-            Patch by the Orchard is part of the Enterprise plan. Join the waitlist to be notified when it launches.
+            Cultivation is part of the Enterprise plan. Join the waitlist to be notified when it launches.
           </p>
         </div>
         <a

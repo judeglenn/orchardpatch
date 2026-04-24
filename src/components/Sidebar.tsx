@@ -12,7 +12,7 @@ const NAV_ITEMS = [
 ];
 
 const COMING_SOON_ITEMS = [
-  { href: "/orchard", icon: TreeDeciduous, label: "Patch by the Orchard", matchPrefix: "/orchard" },
+  { href: "/orchard", icon: TreeDeciduous, label: "Cultivation", matchPrefix: "/orchard" },
   { href: "/reports", icon: BarChart3, label: "Reports", matchPrefix: "/reports" },
   { href: "/alerts", icon: Bell, label: "Alerts", matchPrefix: "/alerts" },
 ];
