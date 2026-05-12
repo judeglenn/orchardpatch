@@ -157,6 +157,11 @@ export default function AppDetailPage({ params }: Props) {
   const [patchDeviceId, setPatchDeviceId] = useState<string | null>(null);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
+  // Bushel (Patch All) modal state
+  const [showBushelModal, setShowBushelModal] = useState(false);
+  const [bushelMode, setBushelMode] = useState<PatchMode>("managed");
+  const [bushelLoading, setBushelLoading] = useState(false);
+
   // Fleet data takes priority, then mock/agent fallback
   let app = fleetApp ?? getAppById(id) ?? getAgentApp(id);
   if (!app && id.includes("-")) {
@@ -180,6 +185,8 @@ export default function AppDetailPage({ params }: Props) {
               deviceName: d.name,
               version: a.version,
               lastInventory: d.lastInventory,
+              isOutdated: false, // Mock data doesn't have outdated flag, use app.hasVersionConflict instead
+              label: undefined, // Mock data doesn't have live label
             }))
         )
   );
@@ -193,7 +200,28 @@ export default function AppDetailPage({ params }: Props) {
     setShowPatchModal(false);
     if (!app) return;
 
-    const label = getInstallomatorLabel(app.bundleId);
+    // FIX: Use live label from installations instead of hardcoded map (Fruit label bug fix)
+    let label: string | null = null;
+    
+    if (patchDeviceId && fleetInstallations) {
+      // Single device patch - pull label from that device's installation
+      const inst = fleetInstallations.find(i => i.deviceId === patchDeviceId);
+      if (inst && inst.label) {
+        label = inst.label;
+      }
+    } else if (fleetInstallations && fleetInstallations.length > 0) {
+      // Multi-device patch - pull label from first installation
+      const firstInst = fleetInstallations.find(i => i.label);
+      if (firstInst) {
+        label = firstInst.label;
+      }
+    }
+
+    // Fallback to hardcoded map if live label not available (for mock data)
+    if (!label) {
+      label = getInstallomatorLabel(app.bundleId);
+    }
+
     if (!label) {
       showToast(`⚠️ No Installomator label found for ${app.name}`);
       return;
@@ -230,6 +258,65 @@ export default function AppDetailPage({ params }: Props) {
     }
 
     setPatchDeviceId(null);
+  }
+
+  async function handleConfirmBushelPatch() {
+    setShowBushelModal(false);
+    if (!app) return;
+
+    // Filter to only outdated devices
+    const outdatedDevices = installations.filter(i => i.isOutdated);
+    if (outdatedDevices.length === 0) {
+      showToast(`⚠️ No outdated devices for ${app.name}`);
+      return;
+    }
+
+    // Use live label from first outdated installation
+    let label: string | null = null;
+    const firstOutdated = fleetInstallations?.find(i => i.isOutdated);
+    if (firstOutdated && firstOutdated.label) {
+      label = firstOutdated.label;
+    }
+
+    // Fallback to hardcoded map
+    if (!label) {
+      label = getInstallomatorLabel(app.bundleId);
+    }
+
+    if (!label) {
+      showToast(`⚠️ No Installomator label found for ${app.name}`);
+      return;
+    }
+
+    showToast(`🧺 Queuing ${bushelMode} patch for ${app.name} on ${outdatedDevices.length} device${outdatedDevices.length !== 1 ? "s" : ""}...`);
+
+    try {
+      setBushelLoading(true);
+      const res = await fetch("/api/patch-jobs/bushel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          label,
+          mode: bushelMode,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(`❌ ${data.error || "Patch failed to queue"}`);
+        return;
+      }
+
+      showToast(`✅ Patch jobs queued (${data.queued} device${data.queued !== 1 ? "s" : ""}) — redirecting...`);
+      setTimeout(() => {
+        window.location.href = `/patches?method=bushel&label=${encodeURIComponent(label)}`;
+      }, 800);
+    } catch (err) {
+      showToast(`❌ Server error — could not queue patches`);
+    } finally {
+      setBushelLoading(false);
+    }
   }
 
   function pollJobStatus(jobId: string) {
@@ -287,6 +374,9 @@ export default function AppDetailPage({ params }: Props) {
   const initials = appInitials(app.name);
   const colorClass = appColorClass(app.name);
 
+  // Calculate outdated devices for Bushel button
+  const outdatedDevices = installations.filter(i => i.isOutdated);
+
   return (
     <div className="px-6 py-6">
       {/* Back button */}
@@ -330,7 +420,6 @@ export default function AppDetailPage({ params }: Props) {
             </span>
           </div>
         </div>
-        {/* TODO: Patch by the Bushel -- requires fleet-wide dispatch, not yet implemented */}
       </div>
 
       {/* Outdated / No Conflicts banner */}
@@ -476,11 +565,22 @@ export default function AppDetailPage({ params }: Props) {
 
       {/* Device installations table */}
       <div className="rounded-2xl overflow-hidden" style={glassPanel}>
-        <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.55)" }}>Installed Devices</p>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
-            {installations.length} device{installations.length !== 1 ? "s" : ""} with {app.name} installed
-          </p>
+        <div className="px-5 py-4 flex items-start justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.55)" }}>Installed Devices</p>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+              {installations.length} device{installations.length !== 1 ? "s" : ""} with {app.name} installed
+            </p>
+          </div>
+          {app.hasVersionConflict && outdatedDevices.length > 0 && (
+            <button
+              onClick={() => { setBushelMode("managed"); setShowBushelModal(true); }}
+              className="ml-4 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:opacity-90 active:scale-95"
+              style={{ background: "#5aaa28", color: "white" }}
+            >
+              🧺 Patch All Outdated ({outdatedDevices.length})
+            </button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <Table>
@@ -537,7 +637,7 @@ export default function AppDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Patch modal */}
+      {/* Fruit patch modal */}
       {showPatchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowPatchModal(false); }}>
@@ -605,7 +705,102 @@ export default function AppDetailPage({ params }: Props) {
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#6abf32")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "#5aaa28")}
               >
-                Deploy {patchMode === "silent" ? "Silent" : patchMode === "managed" ? "Managed" : "User Prompted"} 🌳
+                Deploy {patchMode === "silent" ? "Silent" : patchMode === "managed" ? "Managed" : "User Prompted"} 🍎
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bushel patch modal */}
+      {showBushelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowBushelModal(false); }}>
+          <div
+            className="rounded-2xl shadow-2xl w-full max-w-lg"
+            style={{
+              background: "rgba(12,22,8,0.95)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
+            }}
+          >
+            <div className="px-6 pt-6 pb-4 flex items-start justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🧺</span>
+                  <h2 className="text-base font-bold" style={{ color: "#f0f8ec" }}>Patch by the Bushel</h2>
+                </div>
+                <p className="text-sm font-medium" style={{ color: "#9fe066" }}>{app.name}</p>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  {outdatedDevices.length} outdated device{outdatedDevices.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <button onClick={() => setShowBushelModal(false)} style={{ color: "rgba(255,255,255,0.4)" }}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Affected devices list */}
+            <div className="px-6 py-4 max-h-48 overflow-y-auto" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>Affected Devices</p>
+              <div className="space-y-2">
+                {outdatedDevices.map((inst) => (
+                  <div key={inst.deviceId} className="flex items-center justify-between rounded px-3 py-2" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: "#f0f8ec" }}>{inst.deviceName}</p>
+                      <p className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.55)" }}>Current: {inst.version}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mode selector */}
+            <div className="px-6 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>Patch Mode</p>
+              <div className="flex flex-col gap-2">
+                {([
+                  { key: "silent" as PatchMode, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts", recommended: false },
+                  { key: "managed" as PatchMode, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
+                  { key: "prompted" as PatchMode, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when", recommended: false },
+                ] as const).map(({ key, icon, label, sub, recommended }) => (
+                  <button key={key} onClick={() => setBushelMode(key)}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
+                    style={{
+                      border: bushelMode === key ? "1px solid rgba(125,217,74,0.5)" : "1px solid rgba(255,255,255,0.12)",
+                      background: bushelMode === key ? "rgba(125,217,74,0.12)" : "rgba(255,255,255,0.04)",
+                      boxShadow: bushelMode === key ? "0 0 0 1px rgba(125,217,74,0.3)" : "none",
+                    }}>
+                    <div style={{ color: bushelMode === key ? "#7dd94a" : "rgba(255,255,255,0.55)" }}>{icon}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-semibold" style={{ color: "#f0f8ec" }}>{label}</span>
+                        {recommended && <span className="text-[9px] px-1 py-0.5 rounded font-medium" style={{ background: "rgba(125,217,74,0.2)", color: "#9fe066" }}>✓ Recommended</span>}
+                      </div>
+                      <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{sub}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 px-6 pb-6 pt-4">
+              <button onClick={() => setShowBushelModal(false)}
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95"
+                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.04)" }}>
+                Cancel
+              </button>
+              <button onClick={handleConfirmBushelPatch}
+                disabled={bushelLoading}
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95"
+                style={{ background: bushelLoading ? "rgba(125,217,74,0.5)" : "#5aaa28", color: "white", cursor: bushelLoading ? "wait" : "pointer" }}
+                onMouseEnter={(e) => !bushelLoading && (e.currentTarget.style.background = "#6abf32")}
+                onMouseLeave={(e) => !bushelLoading && (e.currentTarget.style.background = "#5aaa28")}
+              >
+                {bushelLoading ? "⏳ Queuing..." : `Deploy ${bushelMode === "silent" ? "Silent" : bushelMode === "managed" ? "Managed" : "User Prompted"} 🧺`}
               </button>
             </div>
           </div>
