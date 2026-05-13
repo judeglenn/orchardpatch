@@ -11,7 +11,7 @@ import {
   Legend,
 } from 'recharts';
 import { Trees, AlertCircle } from 'lucide-react';
-import Sidebar from '@/components/Sidebar';
+import { Sidebar } from '@/components/Sidebar';
 
 interface AppStatus {
   id: string;
