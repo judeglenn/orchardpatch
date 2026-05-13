@@ -281,11 +281,7 @@ export default function HomePageInner() {
     }
   }, [allFilteredSelected, filtered]);
 
-  const patchAllOutdated = useCallback(() => {
-    const outdated = apps.filter((a) => a.hasVersionConflict);
-    setSelectedIds(new Set(outdated.map((a) => a.id)));
-    setShowModal(true);
-  }, [apps]);
+  
 
   const selectedApps = useMemo(
     () => apps.filter((a) => selectedIds.has(a.id)),
@@ -317,16 +313,7 @@ export default function HomePageInner() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 gap-1.5 text-sm font-semibold"
-            style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066", borderColor: "rgba(125,217,74,0.35)" }}
-            onClick={patchAllOutdated}
-          >
-            <Sprout className="h-3.5 w-3.5" />
-            Patch All Outdated
-          </Button>
+          
           <SearchBar
             value={search}
             onChange={setSearch}

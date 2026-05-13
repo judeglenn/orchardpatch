@@ -162,8 +162,8 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-auto">
         {/* Header */}
         <div className="p-6 border-b">
-          <h1 className="text-3xl font-bold">Fleet Dashboard</h1>
-          <p className="text-gray-600 mt-1">Monitor your device fleet and manage patches</p>
+          <h1 className="text-3xl font-bold text-foreground">Fleet Dashboard</h1>
+          <p className="text-foreground/70 mt-1">Monitor your device fleet and manage patches</p>
         </div>
 
         <div className="p-6 space-y-6">
