@@ -6,8 +6,8 @@ import { LayoutGrid, Laptop, Trees, TreeDeciduous, BarChart3, Bell, Settings, Cl
 
 
 const NAV_ITEMS = [
-  { href: "/", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
   { href: "/dashboard", icon: Trees, label: "Dashboard", matchPrefix: "/dashboard" },
+  { href: "/", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
   { href: "/fleet", icon: Globe, label: "Devices", matchPrefix: "/fleet" },
   { href: "/patches", icon: ClipboardList, label: "Patch History", matchPrefix: "/patches" },
 ];
