@@ -304,13 +304,13 @@ export default function DashboardPage() {
               {[1, 2, 3].map(i => (
                 <div key={i} className="h-20 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center opacity-40">
                   <div className="text-center">
-                    <Trees className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                    <p className="text-xs text-gray-400">Pin app</p>
+                    <Trees className="w-6 h-6 text-gray-600 mx-auto mb-1" />
+                    <p className="text-xs text-gray-700">Pin app</p>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-700">
               Pin your most critical apps for quick access and monitoring. Coming soon.
             </p>
           </div>
