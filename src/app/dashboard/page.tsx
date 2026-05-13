@@ -260,7 +260,7 @@ export default function DashboardPage() {
                   <p className="text-gray-400 text-sm">No outdated apps</p>
                 )}
               </div>
-              <Link href="/apps" className="mt-4 text-sm text-orchardpatch-green hover:underline inline-block">
+              <Link href="/apps" className="mt-4 text-sm text-green-700 hover:text-green-800 hover:underline inline-block">
                 View all in App Inventory →
               </Link>
             </div>
