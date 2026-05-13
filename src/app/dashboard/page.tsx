@@ -162,8 +162,8 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-auto">
         {/* Header */}
         <div className="p-6 border-b">
-          <h1 className="text-3xl font-bold text-foreground">Fleet Dashboard</h1>
-          <p className="text-foreground/70 mt-1">Monitor your device fleet and manage patches</p>
+          <h1 className="text-3xl font-bold text-gray-900">Fleet Dashboard</h1>
+          <p className="text-gray-600 mt-1">Monitor your device fleet and manage patches</p>
         </div>
 
         <div className="p-6 space-y-6">
@@ -194,7 +194,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-6">
             {/* Left: Donut Chart */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Fleet Health</h2>
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">Fleet Health</h2>
               <div className="relative h-64 flex items-center justify-center">
                 {chartData.length > 0 ? (
                   <>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
 
             {/* Right: Top Outdated */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Top Outdated Apps</h2>
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">Top Outdated Apps</h2>
               <div className="space-y-3 max-h-80 overflow-y-auto">
                 {topOutdated.length > 0 ? (
                   topOutdated.map(app => (
@@ -272,7 +272,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3">
                 <Trees className="w-6 h-6 text-amber-600" />
                 <div>
-                  <h3 className="text-lg font-semibold">Patch by the Orchard</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Patch by the Orchard</h3>
                   <p className="text-sm text-gray-600">Queue patches across your entire fleet</p>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function DashboardPage() {
 
           {/* Pinned Apps Section (Empty State) */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">Pinned Apps</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">Pinned Apps</h3>
             <div className="grid grid-cols-3 gap-4 mb-4">
               {[1, 2, 3].map(i => (
                 <div key={i} className="h-20 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center opacity-40">
@@ -325,7 +325,7 @@ export default function DashboardPage() {
             <div className="p-6 border-b flex items-center gap-3">
               <Trees className="w-6 h-6 text-amber-600" />
               <div>
-                <h2 className="text-xl font-semibold">Patch by the Orchard</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Patch by the Orchard</h2>
                 <p className="text-sm text-gray-600">Review everything that will be patched</p>
               </div>
             </div>
