@@ -1,8 +1,5 @@
-"use client";
-import dynamic from "next/dynamic";
-
-const HomePageInner = dynamic(() => import("@/components/HomePageInner"), { ssr: false });
+import { redirect } from 'next/navigation';
 
 export default function HomePage() {
-  return <HomePageInner />;
+  redirect('/dashboard');
 }

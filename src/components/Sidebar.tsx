@@ -7,7 +7,7 @@ import { LayoutGrid, Laptop, Trees, TreeDeciduous, BarChart3, Bell, Settings, Cl
 
 const NAV_ITEMS = [
   { href: "/dashboard", icon: Trees, label: "Dashboard", matchPrefix: "/dashboard" },
-  { href: "/", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
+  { href: "/apps", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
   { href: "/fleet", icon: Globe, label: "Devices", matchPrefix: "/fleet" },
   { href: "/patches", icon: ClipboardList, label: "Patch History", matchPrefix: "/patches" },
 ];
@@ -28,6 +28,9 @@ export function Sidebar() {
   function isActive(item: (typeof NAV_ITEMS)[number]) {
     if (item.href === "/dashboard") {
       return pathname === "/dashboard";
+    }
+    if (item.href === "/") {
+      return pathname === "/" || pathname.startsWith("/apps");
     }
     return pathname.startsWith(item.matchPrefix);
   }
