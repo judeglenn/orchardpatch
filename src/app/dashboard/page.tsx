@@ -10,10 +10,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { TreeIcon, AlertCircle } from 'lucide-react';
-import SidebarNav from '@/components/SidebarNav';
-import MethodBadge from '@/components/MethodBadge';
-import ModeBadge from '@/components/ModeBadge';
+import { Trees, AlertCircle } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
 
 interface AppStatus {
   id: string;
@@ -148,7 +146,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex h-screen">
-        <SidebarNav />
+        <Sidebar />
         <main className="flex-1 p-6">
           <p>Loading...</p>
         </main>
@@ -160,7 +158,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <SidebarNav />
+      <Sidebar />
       <main className="flex-1 overflow-auto">
         {/* Header */}
         <div className="p-6 border-b">
@@ -272,7 +270,7 @@ export default function DashboardPage() {
           <div className="bg-white rounded-lg border-2 border-amber-400 shadow p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <TreeIcon className="w-6 h-6 text-amber-600" />
+                <Trees className="w-6 h-6 text-amber-600" />
                 <div>
                   <h3 className="text-lg font-semibold">Patch by the Orchard</h3>
                   <p className="text-sm text-gray-600">Queue patches across your entire fleet</p>
@@ -306,7 +304,7 @@ export default function DashboardPage() {
               {[1, 2, 3].map(i => (
                 <div key={i} className="h-20 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center opacity-40">
                   <div className="text-center">
-                    <TreeIcon className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                    <Trees className="w-6 h-6 text-gray-400 mx-auto mb-1" />
                     <p className="text-xs text-gray-400">Pin app</p>
                   </div>
                 </div>
@@ -325,7 +323,7 @@ export default function DashboardPage() {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 flex flex-col">
             {/* Header */}
             <div className="p-6 border-b flex items-center gap-3">
-              <TreeIcon className="w-6 h-6 text-amber-600" />
+              <Trees className="w-6 h-6 text-amber-600" />
               <div>
                 <h2 className="text-xl font-semibold">Patch by the Orchard</h2>
                 <p className="text-sm text-gray-600">Review everything that will be patched</p>
