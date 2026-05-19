@@ -69,6 +69,7 @@ export async function GET(_req: Request, { params }: Context) {
         lastInventory: a.last_checked || new Date().toISOString(),
         patchStatus: a.patch_status,
         isOutdated: a.patch_status === "outdated",
+        label: a.label,
       };
     });
 
@@ -85,6 +86,7 @@ export async function GET(_req: Request, { params }: Context) {
       name: first.name,
       bundleId: first.bundle_id,
       category: categorizeApp(first.bundle_id || "", first.name || ""),
+      label: first.label || null,
       versions,
       totalInstalls: matchingStatus.length,
       mostCommonVersion: versions[0]?.version || "unknown",
