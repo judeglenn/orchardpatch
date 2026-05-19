@@ -616,7 +616,7 @@ export default function AppDetailPage({ params }: Props) {
                   </TableCell>
                   <TableCell className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>{formatDate(inst.lastInventory)}</TableCell>
                   <TableCell className="text-right">
-                    {app.hasVersionConflict ? (
+                    {inst.isOutdated ? (
                       <button
                         onClick={() => { setPatchDeviceId(inst.deviceId); setShowPatchModal(true); }}
                         className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all hover:opacity-80 active:scale-95"
