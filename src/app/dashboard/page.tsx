@@ -288,7 +288,7 @@ export default function DashboardPage() {
             <button
               onClick={() => {
                 setConfirmCheckbox(false);
-                setSelectedMode('managed');
+                setSelectedMode('silent');
                 setShowOrchardModal(true);
               }}
               className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium"
@@ -374,6 +374,7 @@ export default function DashboardPage() {
                   >
                     <p className="text-sm font-semibold text-gray-900 capitalize">{mode}</p>
                     {mode === 'managed' && <p className="text-xs text-gray-600 mt-1">(recommended)</p>}
+                     {mode === 'prompted' && <p className="text-xs text-gray-600 mt-1">If already closed, Installomator installs silently.</p>}
                   </button>
                 ))}
               </div>

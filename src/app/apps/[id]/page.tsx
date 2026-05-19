@@ -483,7 +483,7 @@ export default function AppDetailPage({ params }: Props) {
               key: "prompted" as PatchMode,
               icon: <MessageSquare className="h-4 w-4" />,
               label: "User Prompted",
-              description: "User sees a \"Quit and Update\" or \"Not Now\" dialog. They control when the update happens.",
+              description: "User sees a \"Quit and Update\" or \"Not Now\" dialog. They control when the update happens. If the app is already closed, Installomator installs silently regardless of this setting.",
               flags: "NOTIFY=all · BLOCKING=prompt_user",
               active: app.hasVersionConflict,
             },
@@ -672,7 +672,7 @@ export default function AppDetailPage({ params }: Props) {
                 {([
                   { key: "silent" as PatchMode, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts", recommended: false },
                   { key: "managed" as PatchMode, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
-                  { key: "prompted" as PatchMode, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when", recommended: false },
+                  { key: "prompted" as PatchMode, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when. If already closed, Installomator installs silently.", recommended: false },
                 ] as const).map(({ key, icon, label, sub, recommended }) => (
                   <button key={key} onClick={() => setPatchMode(key)}
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
@@ -764,7 +764,7 @@ export default function AppDetailPage({ params }: Props) {
                 {([
                   { key: "silent" as PatchMode, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts", recommended: false },
                   { key: "managed" as PatchMode, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
-                  { key: "prompted" as PatchMode, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when", recommended: false },
+                  { key: "prompted" as PatchMode, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when. If already closed, Installomator installs silently.", recommended: false },
                 ] as const).map(({ key, icon, label, sub, recommended }) => (
                   <button key={key} onClick={() => setBushelMode(key)}
                     className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
