@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Laptop, Trees, TreeDeciduous, BarChart3, Bell, Settings, ClipboardList, Globe } from "lucide-react";
+import { LayoutGrid, Laptop, Trees, TreeDeciduous, BarChart3, Bell, Settings, ClipboardList, Globe, Package } from "lucide-react";
 
 
 const NAV_ITEMS = [
   { href: "/dashboard", icon: Trees, label: "Dashboard", matchPrefix: "/dashboard" },
   { href: "/apps", icon: LayoutGrid, label: "Apps", matchPrefix: "/apps" },
+  { href: "/catalog", icon: Package, label: "Catalog", matchPrefix: "/catalog" },
   { href: "/fleet", icon: Globe, label: "Devices", matchPrefix: "/fleet" },
   { href: "/patches", icon: ClipboardList, label: "Patch History", matchPrefix: "/patches" },
 ];
