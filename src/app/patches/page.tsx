@@ -216,7 +216,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   );
 }
 
-function JobRows({ job, index }: { job: PatchJob; index: number }) {
+function JobRows({ job, index, cancellingId, onCancel }: { job: PatchJob; index: number; cancellingId: string | null; onCancel: (jobId: string) => Promise<void> }) {
   const [expanded, setExpanded] = useState(false);
   const initials = appInitials(job.appName);
   const colorClass = appColorClass(job.appName);
@@ -265,6 +265,24 @@ function JobRows({ job, index }: { job: PatchJob; index: number }) {
         <td className="px-4 py-3 text-sm font-mono" style={{ color: "rgba(255,255,255,0.45)" }}>
           {formatDuration(job.startedAt, job.completedAt)}
         </td>
+        <td className="px-4 py-3 text-center">
+          {job.status === "queued" ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCancel(job.jobId);
+              }}
+              disabled={cancellingId === job.jobId}
+              className="text-xs font-medium transition-all hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                color: cancellingId === job.jobId ? "rgba(255,255,255,0.3)" : "rgba(255,107,107,0.8)",
+              }}
+            >
+              {cancellingId === job.jobId ? "Cancelling..." : "Cancel"}
+            </button>
+          ) : null}
+        </td>
+        
         <td className="px-4 py-3 text-right">
           {job.log ? (
             <span style={{ color: "rgba(255,255,255,0.35)" }}>
@@ -278,7 +296,7 @@ function JobRows({ job, index }: { job: PatchJob; index: number }) {
         const lines = logStr.split("\n");
         return (
           <tr style={{ background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <td colSpan={9} className="px-4 pb-3 pt-0">
+            <td colSpan={10} className="px-4 pb-3 pt-0">
               <div
                 className="text-[11px] font-mono leading-relaxed rounded-lg px-4 py-3 mt-1"
                 style={{
@@ -328,6 +346,7 @@ function PatchesPageInner() {
   const router = useRouter();
 
   const [jobs, setJobs] = useState<PatchJob[]>([]);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [devices, setDevices] = useState<{ id: string; hostname: string }[]>([]);
   const [deviceQuery, setDeviceQuery] = useState("");
   const [deviceDropdownOpen, setDeviceDropdownOpen] = useState(false);
@@ -462,6 +481,35 @@ function PatchesPageInner() {
     filteredJobs.length > 0
       ? filteredJobs.reduce((a, b) => (new Date(a.startedAt) > new Date(b.startedAt) ? a : b))
       : null;
+
+  async function handleCancel(jobId: string) {
+    setCancellingId(jobId);
+    try {
+      const res = await fetch(`/api/patch-jobs/${encodeURIComponent(jobId)}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(`Failed to cancel: ${data.error || "Unknown error"}`);
+        setCancellingId(null);
+        return;
+      }
+
+      // Update local state - mark job as cancelled
+      setJobs((prevJobs) =>
+        prevJobs.map((job) =>
+          job.jobId === jobId ? { ...job, status: "cancelled" as PatchStatus } : job
+        )
+      );
+      setCancellingId(null);
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+      setCancellingId(null);
+    }
+  }
 
   return (
     <div className="px-6 py-6">
@@ -774,7 +822,7 @@ function PatchesPageInner() {
                     background: "rgba(0,0,0,0.2)",
                   }}
                 >
-                  {["App", "Method", "Mode", "Status", "Device", "Initiated By", "Started", "Duration", ""].map((h) => (
+                  {["App", "Method", "Mode", "Status", "Device", "Initiated By", "Started", "Duration", "", ""].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em]"
@@ -787,7 +835,7 @@ function PatchesPageInner() {
               </thead>
               <tbody>
                 {filteredJobs.map((job, idx) => (
-                  <JobRows key={job.jobId} job={job} index={idx} />
+                  <JobRows key={job.jobId} job={job} index={idx} cancellingId={cancellingId} onCancel={handleCancel} />
                 ))}
               </tbody>
             </table>
