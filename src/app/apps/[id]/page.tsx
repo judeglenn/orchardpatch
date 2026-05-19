@@ -356,7 +356,8 @@ export default function AppDetailPage({ params }: Props) {
     boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
   };
 
-  if (!fleetLoaded && !agentLoaded) {
+  // Show loading until we have app data or fleet loading finishes
+  if (!app && !fleetLoaded) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="h-8 w-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#7dd94a", borderTopColor: "transparent" }} />
@@ -364,6 +365,7 @@ export default function AppDetailPage({ params }: Props) {
     );
   }
 
+  // Show "not found" only after loading is done
   if (!app) {
     return (
       <div className="px-6 py-6">

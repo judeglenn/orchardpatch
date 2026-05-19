@@ -457,7 +457,7 @@ function PatchesPageInner() {
 
   // ─── Filtered jobs ──────────────────────────────────────────────────────────
   const filteredJobs = useMemo(() => {
-    return jobs.filter((j) => {
+    const filtered = jobs.filter((j) => {
       if (filterDevice && j.deviceId !== filterDevice) return false;
       if (filterStatus && j.status !== filterStatus) return false;
       if (filterMethod && j.method !== filterMethod) return false;
@@ -467,6 +467,8 @@ function PatchesPageInner() {
           !j.label?.toLowerCase().includes(filterApp.toLowerCase())) return false;
       return true;
     });
+    // Sort by startedAt descending (newest first)
+    return filtered.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
   }, [jobs, filterDevice, filterStatus, filterMethod, filterMode, filterDate, filterApp]);
 
   const hasFilters = filterDevice || filterStatus || filterMethod || filterMode || (filterDate && filterDate !== "all") || filterApp;
@@ -498,13 +500,11 @@ function PatchesPageInner() {
         return;
       }
 
-      // Update local state - mark job as cancelled
-      setJobs((prevJobs) =>
-        prevJobs.map((job) =>
-          job.jobId === jobId ? { ...job, status: "cancelled" as PatchStatus } : job
-        )
-      );
+      // Re-fetch jobs from server to get authoritative state
       setCancellingId(null);
+      setTimeout(() => {
+        fetchJobs();
+      }, 250);
     } catch (err: any) {
       alert(`Error: ${err.message}`);
       setCancellingId(null);
