@@ -498,31 +498,12 @@ export default function AppDetailPage({ params }: Props) {
               </div>
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>{description}</p>
               <div className="text-[10px] font-mono rounded px-2 py-1" style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.4)" }}>{flags}</div>
-              {active ? (
-                <button
-                  onClick={() => { setPatchMode(key); setPatchDeviceId(null); setShowPatchModal(true); }}
-                  className="mt-auto w-full text-xs font-semibold py-2 rounded-md transition-all active:scale-95"
-                  style={{
-                    background: key === "managed" ? "#5aaa28" : "#4a9020",
-                    color: "white",
-                    border: "none",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#6abf32")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = key === "managed" ? "#5aaa28" : "#4a9020")}
-                >
-                  {activeJobId ? "⏳ Patching..." : `Deploy ${label} 🍎`}
-                </button>
-              ) : (
-                <button
-                  className="mt-auto w-full text-xs font-semibold py-2 rounded-md cursor-not-allowed"
-                  style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.08)" }}
-                  disabled
-                >
-                  Up to date — No patch needed
-                </button>
-              )}
+
             </div>
           ))}
+        </div>
+        <div className="px-5 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>Configure patch policies in Cultivation (coming soon)</p>
         </div>
       </div>
 
