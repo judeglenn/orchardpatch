@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAppById, getAppInstallations } from "@/lib/mockData";
@@ -107,6 +108,7 @@ function getInstallomatorLabel(bundleId: string): string | null {
 
 export default function AppDetailPage({ params }: Props) {
   const { id } = use(params);
+  const router = useRouter();
 
   const [fleetApp, setFleetApp] = useState<any>(null);
   const [fleetInstallations, setFleetInstallations] = useState<any[] | null>(null);
@@ -251,8 +253,13 @@ export default function AppDetailPage({ params }: Props) {
       }
 
       setActiveJobId(data.jobId);
-      showToast(`✅ Patch job queued (${target}) — monitoring...`);
-      pollJobStatus(data.jobId);
+      showToast(`✅ Patch job queued (${target}) — redirecting...`);
+      setTimeout(() => {
+        const params = new URLSearchParams();
+        params.set('method', 'fruit');
+        if (patchDeviceId) params.set('device_id', patchDeviceId);
+        router.push(`/patches?${params.toString()}`);
+      }, 800);
     } catch {
       showToast(`❌ Agent not reachable — is it running?`);
     }
