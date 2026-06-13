@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,7 +10,10 @@ import {
   Loader2,
   AlertCircle,
   Package,
+  X,
 } from "lucide-react";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type CatalogItem = {
   label: string;
@@ -27,146 +30,196 @@ type CatalogResponse = {
   pages: number;
 };
 
+type Device = {
+  id: string;
+  hostname: string;
+};
+
+type PatchMode = "silent" | "managed" | "prompted";
+
+const MODE_META: Record<PatchMode, { label: string; description: string }> = {
+  silent:   { label: "Silent",  description: "Force quit blocking processes, no prompts" },
+  managed:  { label: "Managed", description: "Notify user, must comply" },
+  prompted: { label: "Prompted", description: "User chooses when. If already closed, installs silently." },
+};
+
+// ─── Source badge ─────────────────────────────────────────────────────────────
+
+function SourceBadge({ source }: { source: string }) {
+  return (
+    <span
+      className="text-xs font-semibold px-2 py-0.5 rounded-full"
+      style={{ background: "rgba(125,217,74,0.15)", color: "#9fe066", border: "1px solid rgba(125,217,74,0.25)" }}
+    >
+      {source}
+    </span>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function CatalogPage() {
   const router = useRouter();
+
+  // Catalog state
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState<CatalogResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showDeployModal, setShowDeployModal] = useState(false);
+
+  // Toast
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showToast(msg: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToastMsg(msg);
+    toastTimer.current = setTimeout(() => setToastMsg(null), 3500);
+  }
+
+  // Deploy modal state
+  const [showModal, setShowModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState<CatalogItem | null>(null);
-  const [deployMode, setDeployMode] = useState<"silent" | "managed" | "prompted">("managed");
-  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
-  const [allDevices, setAllDevices] = useState<{ id: string; hostname: string }[]>([]);
-  const [deployLoading, setDeployLoading] = useState(false);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [devicesLoading, setDevicesLoading] = useState(false);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
+  const [mode, setMode] = useState<PatchMode>("silent");
+  const [deploying, setDeploying] = useState(false);
 
-  const limit = 50;
+  // ── Debounced search ────────────────────────────────────────────────────────
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Fetch catalog
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value);
+      setPage(1);
+    }, 300);
+  };
+
+  // ── Fetch catalog ───────────────────────────────────────────────────────────
   const fetchCatalog = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
-      if (search) params.append("search", search);
+      if (debouncedSearch) params.append("search", debouncedSearch);
       params.append("page", page.toString());
-      params.append("limit", limit.toString());
+      params.append("limit", "50");
 
       const res = await fetch(`/api/catalog?${params.toString()}`);
-      const data = await res.json();
+      const json = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to load catalog");
+        setError(json.error || "Failed to load catalog");
         return;
       }
-
-      setData(data);
-    } catch (err) {
+      setData(json);
+    } catch {
       setError("Failed to load catalog");
     } finally {
       setLoading(false);
     }
-  }, [search, page, limit]);
-
-  // Fetch devices for deploy modal
-  const fetchDevices = useCallback(async () => {
-    try {
-      const res = await fetch("/api/devices");
-      const result = await res.json();
-      setAllDevices(result.devices || []);
-    } catch {
-      setAllDevices([]);
-    }
-  }, []);
+  }, [debouncedSearch, page]);
 
   useEffect(() => {
     fetchCatalog();
   }, [fetchCatalog]);
 
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
-
-  const handleDeploy = (app: CatalogItem) => {
-    setSelectedApp(app);
-    setSelectedDevices([]);
-    setShowDeployModal(true);
-    fetchDevices();
-  };
-
-  const handleConfirmDeploy = async () => {
-    if (!selectedApp || selectedDevices.length === 0) return;
-
-    setDeployLoading(true);
+  // ── Fetch devices for modal ─────────────────────────────────────────────────
+  const fetchDevices = useCallback(async () => {
+    setDevicesLoading(true);
     try {
-      if (selectedDevices.length === 1) {
-        // Fruit: single device
-        const res = await fetch("/api/patch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            bundleId: selectedApp.bundle_id || selectedApp.label,
-            label: selectedApp.label,
-            appName: selectedApp.app_name,
-            mode: deployMode,
-            deviceId: selectedDevices[0],
-          }),
-        });
-
-        if (!res.ok) {
-          alert(`Failed: ${(await res.json()).error}`);
-          return;
-        }
-
-        setShowDeployModal(false);
-        router.push("/patches?method=fruit");
-      } else {
-        // Bushel: multiple devices
-        const res = await fetch("/api/patch-jobs/bushel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            label: selectedApp.label,
-            mode: deployMode,
-          }),
-        });
-
-        if (!res.ok) {
-          alert(`Failed: ${(await res.json()).error}`);
-          return;
-        }
-
-        setShowDeployModal(false);
-        router.push("/patches?method=bushel");
-      }
-    } catch (err) {
-      alert(`Error: ${err instanceof Error ? err.message : "Unknown error"}`);
+      const res = await fetch("/api/devices");
+      const json = await res.json();
+      setDevices(json.devices || []);
+    } catch {
+      setDevices([]);
     } finally {
-      setDeployLoading(false);
+      setDevicesLoading(false);
     }
-  };
+  }, []);
 
-  const toggleDevice = (deviceId: string) => {
-    setSelectedDevices((prev) =>
-      prev.includes(deviceId) ? prev.filter((d) => d !== deviceId) : [...prev, deviceId]
-    );
-  };
+  // ── Open / close modal ──────────────────────────────────────────────────────
+  function openModal(item: CatalogItem) {
+    setSelectedApp(item);
+    setSelectedDeviceId("");
+    setMode("silent");
+    setShowModal(true);
+    fetchDevices();
+  }
 
-  const selectAllDevices = () => {
-    if (selectedDevices.length === allDevices.length) {
-      setSelectedDevices([]);
-    } else {
-      setSelectedDevices(allDevices.map((d) => d.id));
+  function closeModal() {
+    setShowModal(false);
+    setSelectedApp(null);
+    setSelectedDeviceId("");
+  }
+
+  // ── Deploy ──────────────────────────────────────────────────────────────────
+  async function handleDeploy() {
+    if (!selectedApp || !selectedDeviceId) return;
+    setDeploying(true);
+    try {
+      const res = await fetch("/api/patch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          label: selectedApp.label,
+          appName: selectedApp.app_name,
+          deviceId: selectedDeviceId,
+          mode,
+        }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        showToast(`❌ ${json.error || "Deploy failed"}`);
+        return;
+      }
+
+      closeModal();
+      showToast(`✅ Patch queued for ${selectedApp.app_name} — redirecting...`);
+      setTimeout(() => {
+        router.push(`/patches?method=fruit&label=${encodeURIComponent(selectedApp.label)}`);
+      }, 800);
+    } catch {
+      showToast("❌ Server error — could not queue patch");
+    } finally {
+      setDeploying(false);
     }
-  };
+  }
 
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="px-6 py-6 max-w-6xl">
+
+      {/* Toast */}
+      <div
+        className="fixed top-5 left-1/2 z-[100] px-5 py-3 rounded-xl text-sm font-semibold shadow-xl"
+        style={{
+          transform: toastMsg ? "translate(-50%, 0)" : "translate(-50%, -120%)",
+          transition: "transform 300ms cubic-bezier(0.34,1.56,0.64,1), opacity 300ms ease",
+          opacity: toastMsg ? 1 : 0,
+          pointerEvents: toastMsg ? "auto" : "none",
+          background: "#5aaa28",
+          color: "white",
+          minWidth: 260,
+          textAlign: "center",
+        }}
+      >
+        {toastMsg}
+      </div>
+
       {/* Header */}
       <div className="mb-8">
-        <Link href="/apps" className="inline-flex items-center gap-1.5 text-sm mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
+        <Link
+          href="/apps"
+          className="inline-flex items-center gap-1.5 text-sm mb-4"
+          style={{ color: "rgba(255,255,255,0.55)" }}
+        >
           <ChevronLeft className="h-4 w-4" /> Back to Inventory
         </Link>
         <div className="flex items-center gap-3 mb-2">
@@ -176,34 +229,44 @@ export default function CatalogPage() {
           </h1>
         </div>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-          Browse and deploy from {data?.total || 0} available packages
+          {data
+            ? `${data.total.toLocaleString()} patchable app${data.total !== 1 ? "s" : ""} via Installomator`
+            : "1,137 patchable apps via Installomator"}
         </p>
         <div className="flex items-center gap-2 mt-3">
-          <span
-            className="text-xs font-semibold px-2 py-1 rounded-full"
-            style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066" }}
-          >
-            Installomator
-          </span>
+          <SourceBadge source="Installomator" />
         </div>
       </div>
 
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4" style={{ color: "rgba(255,255,255,0.35)" }} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
+            style={{ color: "rgba(255,255,255,0.35)" }}
+          />
           <input
             type="text"
             placeholder="Search by app name or label..."
             value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg"
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-lg text-sm"
             style={{
               background: "rgba(255,255,255,0.06)",
               border: "1px solid rgba(255,255,255,0.12)",
               color: "#f0f8ec",
+              outline: "none",
             }}
           />
+          {search && (
+            <button
+              onClick={() => handleSearchChange("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+              style={{ color: "rgba(255,255,255,0.35)" }}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -211,13 +274,13 @@ export default function CatalogPage() {
       {error && (
         <div
           className="mb-6 p-4 rounded-lg flex items-start gap-3"
-          style={{ background: "rgba(244,67,54,0.12)", borderLeft: "3px solid #ef9a9a" }}
+          style={{ background: "rgba(244,67,54,0.10)", borderLeft: "3px solid #ef9a9a" }}
         >
-          <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: "#ef9a9a" }} />
+          <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" style={{ color: "#ef9a9a" }} />
           <div>
             <p style={{ color: "#ef9a9a" }}>{error}</p>
             <button
-              onClick={() => fetchCatalog()}
+              onClick={fetchCatalog}
               className="text-xs mt-2 underline"
               style={{ color: "#ef9a9a" }}
             >
@@ -227,20 +290,20 @@ export default function CatalogPage() {
         </div>
       )}
 
-      {/* Loading */}
+      {/* Loading skeleton */}
       {loading && !data ? (
-        <div className="flex items-center justify-center py-16">
+        <div className="flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#7dd94a" }} />
         </div>
       ) : !data || data.items.length === 0 ? (
-        <div className="text-center py-16">
-          <Package className="h-12 w-12 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.2)" }} />
+        <div className="text-center py-20">
+          <Package className="h-12 w-12 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.15)" }} />
           <p style={{ color: "rgba(255,255,255,0.45)" }}>
-            {search ? `No packages matching "${search}"` : "No packages available"}
+            {debouncedSearch ? `No packages matching "${debouncedSearch}"` : "No packages available"}
           </p>
-          {search && (
+          {debouncedSearch && (
             <button
-              onClick={() => handleSearch("")}
+              onClick={() => handleSearchChange("")}
               className="text-xs mt-3 underline"
               style={{ color: "rgba(255,255,255,0.35)" }}
             >
@@ -250,27 +313,34 @@ export default function CatalogPage() {
         </div>
       ) : (
         <>
+          {/* Result count */}
+          <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.40)" }}>
+            {debouncedSearch
+              ? `${data.total.toLocaleString()} result${data.total !== 1 ? "s" : ""} for "${debouncedSearch}"`
+              : `Showing ${((page - 1) * 50 + 1).toLocaleString()}–${Math.min(page * 50, data.total).toLocaleString()} of ${data.total.toLocaleString()}`}
+          </p>
+
           {/* Table */}
           <div
             className="rounded-2xl overflow-hidden mb-6"
             style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.10)",
             }}
           >
             <table className="w-full">
               <thead style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                 <tr style={{ background: "rgba(0,0,0,0.2)" }}>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.40)" }}>
                     App Name
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.40)" }}>
                     Label
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase" style={{ color: "rgba(255,255,255,0.45)" }}>
-                    Team ID
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.40)" }}>
+                    Source
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.40)" }}>
                     Action
                   </th>
                 </tr>
@@ -281,22 +351,24 @@ export default function CatalogPage() {
                     key={item.label}
                     style={{
                       background: idx % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      borderBottom: "1px solid rgba(255,255,255,0.05)",
                     }}
                   >
-                    <td className="px-4 py-3 text-sm" style={{ color: "#f0f8ec" }}>
+                    <td className="px-4 py-3 text-sm font-medium" style={{ color: "#f0f8ec" }}>
                       {item.app_name}
                     </td>
-                    <td className="px-4 py-3 text-xs font-mono" style={{ color: "rgba(255,255,255,0.55)" }}>
-                      {item.label}
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.50)" }}>
+                        {item.label}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-                      {item.expected_team || "—"}
+                    <td className="px-4 py-3">
+                      <SourceBadge source="Installomator" />
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => handleDeploy(item)}
-                        className="text-xs font-semibold px-3 py-1.5 rounded transition-all hover:opacity-80 active:scale-95"
+                        onClick={() => openModal(item)}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-80 active:scale-95"
                         style={{ background: "#5aaa28", color: "white" }}
                       >
                         Deploy
@@ -310,11 +382,11 @@ export default function CatalogPage() {
 
           {/* Pagination */}
           {data.pages > 1 && (
-            <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="flex items-center justify-center gap-4 mb-6">
               <button
-                onClick={() => setPage(Math.max(1, page - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 rounded text-xs font-medium disabled:opacity-50"
+                className="p-1.5 rounded disabled:opacity-30 transition-opacity"
                 style={{
                   background: "rgba(255,255,255,0.06)",
                   border: "1px solid rgba(255,255,255,0.12)",
@@ -323,13 +395,13 @@ export default function CatalogPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span style={{ color: "rgba(255,255,255,0.55)" }} className="text-sm">
+              <span className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
                 Page {data.page} of {data.pages}
               </span>
               <button
-                onClick={() => setPage(Math.min(data.pages, page + 1))}
+                onClick={() => setPage((p) => Math.min(data.pages, p + 1))}
                 disabled={page === data.pages}
-                className="px-3 py-1.5 rounded text-xs font-medium disabled:opacity-50"
+                className="p-1.5 rounded disabled:opacity-30 transition-opacity"
                 style={{
                   background: "rgba(255,255,255,0.06)",
                   border: "1px solid rgba(255,255,255,0.12)",
@@ -344,101 +416,119 @@ export default function CatalogPage() {
       )}
 
       {/* Deploy Modal */}
-      {showDeployModal && selectedApp && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {showModal && selectedApp && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.60)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+        >
           <div
-            className="rounded-2xl shadow-2xl w-full max-w-lg max-h-96 flex flex-col"
+            className="w-full max-w-md rounded-2xl overflow-hidden"
             style={{
-              background: "rgba(12,22,8,0.95)",
-              backdropFilter: "blur(20px)",
+              background: "#1a2613",
               border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
             }}
           >
-            {/* Header */}
+            {/* Modal header */}
             <div
-              className="px-6 py-4"
+              className="flex items-start justify-between px-6 py-5"
               style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
             >
-              <h2 className="text-lg font-bold mb-1" style={{ color: "#f0f8ec" }}>
-                Deploy {selectedApp.app_name}
-              </h2>
-              <p className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.55)" }}>
-                {selectedApp.label}
-              </p>
+              <div>
+                <h2 className="text-base font-semibold" style={{ color: "#f0f8ec" }}>
+                  Deploy {selectedApp.app_name}
+                </h2>
+                <p className="text-xs font-mono mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  {selectedApp.label}
+                </p>
+              </div>
+              <button onClick={closeModal} style={{ color: "rgba(255,255,255,0.40)" }}>
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              {/* Devices */}
-              <div className="mb-6">
-                <p className="text-xs font-semibold uppercase mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>
-                  Select Devices
-                </p>
-                <button
-                  onClick={selectAllDevices}
-                  className="text-xs mb-2 underline"
-                  style={{ color: "rgba(255,255,255,0.35)" }}
+            {/* Modal body */}
+            <div className="px-6 py-5 space-y-6">
+
+              {/* Device selector */}
+              <div>
+                <label
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: "rgba(255,255,255,0.55)" }}
                 >
-                  {selectedDevices.length === allDevices.length ? "Deselect All" : "Select All"}
-                </button>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {allDevices.map((device) => (
-                    <label key={device.id} className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedDevices.includes(device.id)}
-                        onChange={() => toggleDevice(device.id)}
-                        className="w-4 h-4 rounded"
-                      />
-                      <span className="text-sm" style={{ color: "#f0f8ec" }}>
-                        {device.hostname}
-                      </span>
-                    </label>
-                  ))}
-                </div>
+                  Target Device
+                </label>
+                {devicesLoading ? (
+                  <div className="flex items-center gap-2 py-2" style={{ color: "rgba(255,255,255,0.40)" }}>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Loading devices...</span>
+                  </div>
+                ) : (
+                  <select
+                    value={selectedDeviceId}
+                    onChange={(e) => setSelectedDeviceId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg text-sm"
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      border: selectedDeviceId
+                        ? "1px solid rgba(125,217,74,0.5)"
+                        : "1px solid rgba(255,255,255,0.15)",
+                      color: selectedDeviceId ? "#f0f8ec" : "rgba(255,255,255,0.40)",
+                      outline: "none",
+                    }}
+                  >
+                    <option value="" disabled style={{ background: "#1a2613" }}>
+                      Select a device...
+                    </option>
+                    {devices.map((d) => (
+                      <option key={d.id} value={d.id} style={{ background: "#1a2613" }}>
+                        {d.hostname}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
-              {/* Mode */}
+              {/* Mode picker */}
               <div>
-                <p className="text-xs font-semibold uppercase mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>
+                <p
+                  className="text-xs font-semibold uppercase mb-2"
+                  style={{ color: "rgba(255,255,255,0.55)" }}
+                >
                   Patch Mode
                 </p>
                 <div className="space-y-2">
-                  {(["silent", "managed", "prompted"] as const).map((mode) => (
+                  {(["silent", "managed", "prompted"] as PatchMode[]).map((m) => (
                     <button
-                      key={mode}
-                      onClick={() => setDeployMode(mode)}
-                      className="w-full text-left px-3 py-2 rounded text-sm transition-all"
+                      key={m}
+                      onClick={() => setMode(m)}
+                      className="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all"
                       style={{
-                        background: deployMode === mode ? "rgba(125,217,74,0.12)" : "rgba(255,255,255,0.04)",
-                        border:
-                          deployMode === mode
-                            ? "1px solid rgba(125,217,74,0.5)"
-                            : "1px solid rgba(255,255,255,0.12)",
-                        color: deployMode === mode ? "#9fe066" : "rgba(255,255,255,0.55)",
+                        background: mode === m ? "rgba(125,217,74,0.10)" : "rgba(255,255,255,0.04)",
+                        border: mode === m
+                          ? "1px solid rgba(125,217,74,0.45)"
+                          : "1px solid rgba(255,255,255,0.10)",
+                        color: mode === m ? "#9fe066" : "rgba(255,255,255,0.55)",
                       }}
                     >
-                      <div className="font-semibold capitalize">{mode}</div>
-                      <div className="text-xs mt-0.5">
-                        {mode === "silent" && "Force quit, no prompts"}
-                        {mode === "managed" && "Notify, must comply"}
-                        {mode === "prompted" && "User chooses when. If already closed, installs silently."}
-                      </div>
+                      <div className="font-semibold">{MODE_META[m].label}</div>
+                      <div className="text-xs mt-0.5 opacity-80">{MODE_META[m].description}</div>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Modal footer */}
             <div
               className="flex gap-3 px-6 py-4"
               style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
             >
               <button
-                onClick={() => setShowDeployModal(false)}
-                disabled={deployLoading}
-                className="flex-1 px-4 py-2 rounded text-sm font-medium"
+                onClick={closeModal}
+                disabled={deploying}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium"
                 style={{
                   background: "rgba(255,255,255,0.06)",
                   border: "1px solid rgba(255,255,255,0.12)",
@@ -448,16 +538,22 @@ export default function CatalogPage() {
                 Cancel
               </button>
               <button
-                onClick={handleConfirmDeploy}
-                disabled={selectedDevices.length === 0 || deployLoading}
-                className="flex-1 px-4 py-2 rounded text-sm font-semibold transition-all active:scale-95"
+                onClick={handleDeploy}
+                disabled={!selectedDeviceId || deploying}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
                 style={{
-                  background: selectedDevices.length === 0 ? "rgba(125,217,74,0.3)" : "#5aaa28",
+                  background: !selectedDeviceId || deploying ? "rgba(90,170,40,0.35)" : "#5aaa28",
                   color: "white",
-                  cursor: selectedDevices.length === 0 ? "not-allowed" : "pointer",
+                  cursor: !selectedDeviceId || deploying ? "not-allowed" : "pointer",
                 }}
               >
-                {deployLoading ? "Deploying..." : `Deploy ${deployMode === "silent" ? "Silent" : deployMode === "managed" ? "Managed" : "Prompted"}`}
+                {deploying ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Deploying...
+                  </span>
+                ) : (
+                  `Deploy ${MODE_META[mode].label}`
+                )}
               </button>
             </div>
           </div>
