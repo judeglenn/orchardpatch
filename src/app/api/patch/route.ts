@@ -7,10 +7,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AGENT_URL } from "@/lib/agent";
 
-const FLEET_SERVER_URL = process.env.NEXT_PUBLIC_FLEET_SERVER_URL || "https://orchardpatch-server-production.up.railway.app";
-const FLEET_SERVER_TOKEN = process.env.NEXT_PUBLIC_FLEET_SERVER_TOKEN || "orchardpatch-fleet-2026";
+const FLEET_SERVER_URL = process.env.NEXT_PUBLIC_FLEET_SERVER_URL;
+const FLEET_SERVER_TOKEN = process.env.NEXT_PUBLIC_FLEET_SERVER_TOKEN;
 
 export async function POST(req: NextRequest) {
+  if (!FLEET_SERVER_URL || !FLEET_SERVER_TOKEN) {
+    return NextResponse.json({ error: "Fleet server not configured" }, { status: 503 });
+  }
   const body = await req.json();
   const { bundleId, label, appName, mode, deviceId } = body;
 
@@ -25,7 +28,7 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-orchardpatch-token": FLEET_SERVER_TOKEN,
+          "x-orchardpatch-token": FLEET_SERVER_TOKEN as string,
         },
         body: JSON.stringify({ bundleId, label, appName, mode, deviceId }),
         signal: AbortSignal.timeout(10000),

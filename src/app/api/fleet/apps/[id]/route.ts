@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { categorizeApp } from "@/lib/agent";
 
-const FLEET_SERVER_URL = process.env.NEXT_PUBLIC_FLEET_SERVER_URL || "https://orchardpatch-server-production.up.railway.app";
-const FLEET_SERVER_TOKEN = process.env.NEXT_PUBLIC_FLEET_SERVER_TOKEN || "orchardpatch-fleet-2026";
+const FLEET_SERVER_URL = process.env.NEXT_PUBLIC_FLEET_SERVER_URL;
+const FLEET_SERVER_TOKEN = process.env.NEXT_PUBLIC_FLEET_SERVER_TOKEN;
 
 interface Context {
   params: Promise<{ id: string }>;
 }
 
 export async function GET(_req: Request, { params }: Context) {
+  if (!FLEET_SERVER_URL || !FLEET_SERVER_TOKEN) {
+    return NextResponse.json({ error: "Fleet server not configured" }, { status: 503 });
+  }
   try {
     const { id } = await params;
 
