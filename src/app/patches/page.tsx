@@ -14,12 +14,14 @@ import {
   ChevronRight,
   WifiOff,
   Clock,
+  Ban,
+  AlertTriangle,
 } from "lucide-react";
 import { appInitials, appColorClass, formatRelativeDate } from "@/lib/utils";
 
 type PatchMode = "silent" | "managed" | "prompted";
 type PatchMethod = "fruit" | "branch" | "bushel" | "orchard";
-type PatchStatus = "success" | "failed" | "running" | "queued";
+type PatchStatus = "success" | "failed" | "running" | "queued" | "cancelled";
 
 type PatchJob = {
   jobId: string;
@@ -202,16 +204,45 @@ function StatusBadge({ status }: { status: PatchStatus }) {
       </span>
     );
   }
+  if (status === "queued") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+        style={{
+          background: "rgba(255,255,255,0.06)",
+          color: "rgba(255,255,255,0.45)",
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        <Clock className="h-3 w-3" /> Queued
+      </span>
+    );
+  }
+  if (status === "cancelled") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+        style={{
+          background: "rgba(148,163,184,0.12)",
+          color: "#94a3b8",
+          border: "1px solid rgba(148,163,184,0.3)",
+        }}
+      >
+        <Ban className="h-3 w-3" /> Cancelled
+      </span>
+    );
+  }
+  // Loud fallback — any unhandled status value renders visibly wrong on purpose
   return (
     <span
       className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
       style={{
-        background: "rgba(255,255,255,0.06)",
-        color: "rgba(255,255,255,0.45)",
-        border: "1px solid rgba(255,255,255,0.1)",
+        background: "rgba(255,87,34,0.12)",
+        color: "#ff8a65",
+        border: "1px solid rgba(255,87,34,0.3)",
       }}
     >
-      <Clock className="h-3 w-3" /> Queued
+      <AlertTriangle className="h-3 w-3" /> Unknown: {status}
     </span>
   );
 }
@@ -728,6 +759,7 @@ function PatchesPageInner() {
             <option value="failed">Failed</option>
             <option value="running">In Progress</option>
             <option value="queued">Pending</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         </div>
 
