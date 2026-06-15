@@ -64,6 +64,7 @@ export default function CatalogPage() {
   // Catalog state
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [data, setData] = useState<CatalogResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +109,7 @@ export default function CatalogPage() {
       const params = new URLSearchParams();
       if (debouncedSearch) params.append("search", debouncedSearch);
       params.append("page", page.toString());
-      params.append("limit", "50");
+      params.append("limit", pageSize.toString());
 
       const res = await fetch(`/api/catalog?${params.toString()}`);
       const json = await res.json();
@@ -123,7 +124,7 @@ export default function CatalogPage() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, page]);
+  }, [debouncedSearch, page, pageSize]);
 
   useEffect(() => {
     fetchCatalog();
@@ -382,7 +383,7 @@ export default function CatalogPage() {
 
           {/* Pagination */}
           {data.pages > 1 && (
-            <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="flex items-center justify-center gap-4 mb-6" style={{ flexWrap: "wrap" }}>
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
@@ -410,6 +411,21 @@ export default function CatalogPage() {
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+                className="px-2 py-1 rounded text-xs"
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "rgba(255,255,255,0.55)",
+                  outline: "none",
+                }}
+              >
+                <option value={25} style={{ background: "#1a2613" }}>25 / page</option>
+                <option value={50} style={{ background: "#1a2613" }}>50 / page</option>
+                <option value={100} style={{ background: "#1a2613" }}>100 / page</option>
+              </select>
             </div>
           )}
         </>

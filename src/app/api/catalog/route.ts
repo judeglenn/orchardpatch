@@ -13,14 +13,15 @@ export async function GET(req: NextRequest) {
   }
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search") || "";
-  const page = searchParams.get("page") || "1";
-  const limit = searchParams.get("limit") || "50";
+  const pageNum = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+  const limitNum = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
+  const offset = (pageNum - 1) * limitNum;
 
   try {
     const query = new URLSearchParams();
     if (search) query.append("search", search);
-    query.append("page", page);
-    query.append("limit", limit);
+    query.append("limit", limitNum.toString());
+    query.append("offset", offset.toString());
 
     const res = await fetch(`${FLEET_SERVER_URL}/api/catalog?${query.toString()}`, {
       method: "GET",
@@ -35,7 +36,11 @@ export async function GET(req: NextRequest) {
     if (!res.ok) {
       return NextResponse.json({ error: data.error || "Fleet server error" }, { status: res.status });
     }
-    return NextResponse.json(data);
+
+    // Translate server's offset-based response to page-based for the frontend
+    const page = Math.floor(data.offset / data.limit) + 1;
+    const pages = Math.ceil(data.total / data.limit);
+    return NextResponse.json({ ...data, page, pages });
   } catch (err: any) {
     if (err.name === "TimeoutError" || err.name === "AbortError") {
       return NextResponse.json({ error: "Fleet server not reachable" }, { status: 503 });
