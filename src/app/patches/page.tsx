@@ -509,7 +509,7 @@ function PatchesPageInner() {
   const failed = filteredJobs.filter((j) => j.status === "failed").length;
   const running = filteredJobs.filter((j) => j.status === "running").length;
   const successRate =
-    succeeded + failed > 0 ? Math.round((succeeded / (succeeded + failed)) * 100) : 0;
+    succeeded + failed > 0 ? Math.round((succeeded / (succeeded + failed)) * 100) : null;
   const lastJob =
     filteredJobs.length > 0
       ? filteredJobs.reduce((a, b) => (new Date(a.startedAt) > new Date(b.startedAt) ? a : b))
@@ -609,9 +609,9 @@ function PatchesPageInner() {
           { label: "Total Jobs", value: String(total), color: "#f0f8ec" },
           {
             label: "Success Rate",
-            value: succeeded + failed > 0 ? `${successRate}%` : "—",
+            value: successRate !== null ? `${successRate}%` : "—",
             color:
-              successRate >= 90 ? "#9fe066" : successRate >= 70 ? "#ffb74d" : "#ef9a9a",
+              successRate === null ? "rgba(255,255,255,0.35)" : successRate >= 90 ? "#9fe066" : successRate >= 70 ? "#ffb74d" : "#ef9a9a",
           },
           {
             label: "Running",
