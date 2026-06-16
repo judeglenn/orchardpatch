@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams, useRouter } from "next/navigation";
-import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import {
   RefreshCw,
   ClipboardList,
@@ -434,12 +433,8 @@ function PatchesPageInner() {
     setLoading(true);
     try {
       const [fleetRes, devicesRes] = await Promise.all([
-        fetch(`${FLEET_SERVER_URL}/patch-jobs?limit=500`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
-        }).catch(() => null),
-        fetch(`${FLEET_SERVER_URL}/devices`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
-        }).catch(() => null),
+        fetch(`/api/patch-jobs?limit=500`).catch(() => null),
+        fetch(`/api/devices`).catch(() => null),
       ]);
 
       if (fleetRes?.ok) {

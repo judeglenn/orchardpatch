@@ -7,7 +7,6 @@ import { apps as mockApps, stats as mockStats } from "@/lib/mockData";
 import type { App, Device } from "@/lib/mockData";
 import { checkAgent, fetchLocalInventory, normalizeAgentInventory } from "@/lib/agent";
 import { setAgentData } from "@/lib/agentStore";
-import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import { type PatchStatus } from "@/components/PatchStatusBadge";
 import {
   Package,
@@ -69,9 +68,7 @@ export default function HomePageInner() {
     // Fetch patch status separately and build a bundle_id → status map
     async function loadPatchStatus() {
       try {
-        const res = await fetch(`${FLEET_SERVER_URL}/apps/status`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
-        });
+        const res = await fetch(`/api/apps/status`);
         if (!res.ok) return;
         const data = await res.json();
         const map: Record<string, { status: PatchStatus; latestVersion: string | null }> = {};
@@ -105,8 +102,8 @@ export default function HomePageInner() {
     async function loadData() {
       try {
         const [statsRes, appsRes] = await Promise.all([
-          fetch(`${FLEET_SERVER_URL}/stats`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string } }),
-          fetch(`${FLEET_SERVER_URL}/apps/status`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string } }),
+          fetch(`/api/stats`),
+          fetch(`/api/apps/status`),
         ]);
         if (statsRes.ok && appsRes.ok) {
           const statsData = await statsRes.json();

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { BarChart3, ShieldCheck, AlertTriangle, CheckCircle2, Loader2, WifiOff } from "lucide-react";
 import { getAgentStore } from "@/lib/agentStore";
-import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import { appInitials, appColorClass } from "@/lib/utils";
 
 type PatchJob = {
@@ -36,8 +35,7 @@ export default function ReportsPage() {
       setPatchLoading(true);
       try {
         // Try fleet server first
-        const fleetRes = await fetch(`${FLEET_SERVER_URL}/patch-jobs`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
+        const fleetRes = await fetch(`/api/patch-jobs`, {
           signal: AbortSignal.timeout(6000),
         }).catch(() => null);
 

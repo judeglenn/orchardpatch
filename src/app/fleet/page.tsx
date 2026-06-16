@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Monitor, AlertTriangle, CheckCircle2, RefreshCw, Wifi } from "lucide-react";
-import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 import { appInitials, appColorClass, formatRelativeDate } from "@/lib/utils";
 import { devices as mockDevices } from "@/lib/mockData";
 
@@ -46,8 +45,8 @@ export default function FleetPage() {
     setLoading(true);
     try {
       const [statsRes, devicesRes] = await Promise.all([
-        fetch(`${FLEET_SERVER_URL}/stats`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string } }),
-        fetch(`${FLEET_SERVER_URL}/devices`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string } }),
+        fetch(`/api/stats`),
+        fetch(`/api/devices`),
       ]);
       const statsData = await statsRes.json();
       const devicesData = await devicesRes.json();
@@ -91,7 +90,7 @@ export default function FleetPage() {
           <h1 className="text-xl font-bold mb-1" style={{ color: "#f0f8ec" }}>Fleet</h1>
           <p className="text-sm flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
             <Wifi className="h-3.5 w-3.5" style={{ color: "#7dd94a" }} />
-            {(FLEET_SERVER_URL ?? "").replace("https://", "")}{lastRefresh ? ` · last refresh ${lastRefresh.toLocaleTimeString()}` : ""}
+            {"orchardpatch-server-production.up.railway.app"}{lastRefresh ? ` · last refresh ${lastRefresh.toLocaleTimeString()}` : ""}
           </p>
         </div>
         <button onClick={fetchData} disabled={loading}
@@ -189,7 +188,7 @@ export default function FleetPage() {
         style={{ background: "rgba(125,217,74,0.06)", border: "1px solid rgba(125,217,74,0.15)" }}>
         <Wifi className="h-3.5 w-3.5 shrink-0" style={{ color: "#7dd94a" }} />
         <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-          Fleet data from <span style={{ color: "#7dd94a" }}>{(FLEET_SERVER_URL ?? "").replace("https://", "")}</span> · agents check in every 15 min
+          Fleet data from <span style={{ color: "#7dd94a" }}>orchardpatch-server-production.up.railway.app</span> · agents check in every 15 min
         </p>
       </div>
     </div>

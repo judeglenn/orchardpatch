@@ -16,7 +16,6 @@ import {
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap, BellOff, Bell, MessageSquare, X, AlertTriangle, RefreshCw, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FLEET_SERVER_URL, FLEET_SERVER_TOKEN } from "@/lib/fleetServer";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,11 +102,10 @@ export default function DeviceDetailPage({ params }: Props) {
     setBranchQueuing(true);
     setBranchError(null);
     try {
-      const res = await fetch(`${FLEET_SERVER_URL}/patch-jobs/branch`, {
+      const res = await fetch(`/api/patch-jobs/branch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-orchardpatch-token": FLEET_SERVER_TOKEN as string,
         },
         body: JSON.stringify({
           device_id: device.id,
@@ -135,11 +133,9 @@ export default function DeviceDetailPage({ params }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const headers = { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string };
-
       const [deviceRes, appsRes] = await Promise.all([
-        fetch(`${FLEET_SERVER_URL}/devices/${encodeURIComponent(id)}`, { headers }),
-        fetch(`${FLEET_SERVER_URL}/apps/status?device_id=${encodeURIComponent(id)}`, { headers }),
+        fetch(`/api/fleet/devices/${encodeURIComponent(id)}`),
+        fetch(`/api/apps/status?device_id=${encodeURIComponent(id)}`),
       ]);
 
       if (!deviceRes.ok) {
@@ -213,11 +209,10 @@ export default function DeviceDetailPage({ params }: Props) {
     }
     setPatching(true);
     try {
-      const res = await fetch(`${FLEET_SERVER_URL}/patch`, {
+      const res = await fetch(`/api/patch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-orchardpatch-token": FLEET_SERVER_TOKEN as string,
         },
         body: JSON.stringify({
           deviceId: device.id,
