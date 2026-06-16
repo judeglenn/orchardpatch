@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const FLEET_SERVER_URL = process.env.NEXT_PUBLIC_FLEET_SERVER_URL;
-const FLEET_SERVER_TOKEN = process.env.NEXT_PUBLIC_FLEET_SERVER_TOKEN;
+const FLEET_SERVER_URL = process.env.FLEET_SERVER_URL;
+const FLEET_SERVER_TOKEN = process.env.FLEET_SERVER_TOKEN;
 
 export async function GET(req: NextRequest) {
   if (!FLEET_SERVER_URL || !FLEET_SERVER_TOKEN) {

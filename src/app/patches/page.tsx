@@ -435,10 +435,10 @@ function PatchesPageInner() {
     try {
       const [fleetRes, devicesRes] = await Promise.all([
         fetch(`${FLEET_SERVER_URL}/patch-jobs?limit=500`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
         }).catch(() => null),
         fetch(`${FLEET_SERVER_URL}/devices`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
         }).catch(() => null),
       ]);
 

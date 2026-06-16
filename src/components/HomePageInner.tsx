@@ -70,7 +70,7 @@ export default function HomePageInner() {
     async function loadPatchStatus() {
       try {
         const res = await fetch(`${FLEET_SERVER_URL}/apps/status`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
         });
         if (!res.ok) return;
         const data = await res.json();
@@ -105,8 +105,8 @@ export default function HomePageInner() {
     async function loadData() {
       try {
         const [statsRes, appsRes] = await Promise.all([
-          fetch(`${FLEET_SERVER_URL}/stats`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }),
-          fetch(`${FLEET_SERVER_URL}/apps/status`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN } }),
+          fetch(`${FLEET_SERVER_URL}/stats`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string } }),
+          fetch(`${FLEET_SERVER_URL}/apps/status`, { headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string } }),
         ]);
         if (statsRes.ok && appsRes.ok) {
           const statsData = await statsRes.json();

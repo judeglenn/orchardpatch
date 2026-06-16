@@ -4,12 +4,13 @@
  * Used when SERVER_URL is configured.
  */
 
-export const FLEET_SERVER_URL = process.env.NEXT_PUBLIC_FLEET_SERVER_URL || "https://orchardpatch-server-production.up.railway.app";
-export const FLEET_SERVER_TOKEN = process.env.NEXT_PUBLIC_FLEET_SERVER_TOKEN || "orchardpatch-fleet-2026";
+export const FLEET_SERVER_URL = process.env.FLEET_SERVER_URL;
+export const FLEET_SERVER_TOKEN = process.env.FLEET_SERVER_TOKEN;
 
 async function fleetFetch(path: string) {
+  if (!FLEET_SERVER_URL || !FLEET_SERVER_TOKEN) throw new Error("Fleet server not configured");
   const res = await fetch(`${FLEET_SERVER_URL}${path}`, {
-    headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+    headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
     next: { revalidate: 30 }, // cache for 30s in Next.js
   });
   if (!res.ok) throw new Error(`Fleet server returned ${res.status}`);

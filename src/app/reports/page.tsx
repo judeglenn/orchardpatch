@@ -37,7 +37,7 @@ export default function ReportsPage() {
       try {
         // Try fleet server first
         const fleetRes = await fetch(`${FLEET_SERVER_URL}/patch-jobs`, {
-          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+          headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
           signal: AbortSignal.timeout(6000),
         }).catch(() => null);
 

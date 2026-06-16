@@ -107,7 +107,7 @@ export default function DeviceDetailPage({ params }: Props) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-orchardpatch-token": FLEET_SERVER_TOKEN,
+          "x-orchardpatch-token": FLEET_SERVER_TOKEN as string,
         },
         body: JSON.stringify({
           device_id: device.id,
@@ -135,7 +135,7 @@ export default function DeviceDetailPage({ params }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const headers = { "x-orchardpatch-token": FLEET_SERVER_TOKEN };
+      const headers = { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string };
 
       const [deviceRes, appsRes] = await Promise.all([
         fetch(`${FLEET_SERVER_URL}/devices/${encodeURIComponent(id)}`, { headers }),
@@ -217,7 +217,7 @@ export default function DeviceDetailPage({ params }: Props) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-orchardpatch-token": FLEET_SERVER_TOKEN,
+          "x-orchardpatch-token": FLEET_SERVER_TOKEN as string,
         },
         body: JSON.stringify({
           deviceId: device.id,

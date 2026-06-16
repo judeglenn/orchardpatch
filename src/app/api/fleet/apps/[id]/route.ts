@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { categorizeApp } from "@/lib/agent";
 
-const FLEET_SERVER_URL = process.env.NEXT_PUBLIC_FLEET_SERVER_URL;
-const FLEET_SERVER_TOKEN = process.env.NEXT_PUBLIC_FLEET_SERVER_TOKEN;
+const FLEET_SERVER_URL = process.env.FLEET_SERVER_URL;
+const FLEET_SERVER_TOKEN = process.env.FLEET_SERVER_TOKEN;
 
 interface Context {
   params: Promise<{ id: string }>;
@@ -18,11 +18,11 @@ export async function GET(_req: Request, { params }: Context) {
     // Fetch app statuses (patch_status/latest_version) + devices (for hostname lookup)
     const [statusRes, devicesRes] = await Promise.all([
       fetch(`${FLEET_SERVER_URL}/apps/status`, {
-        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
         next: { revalidate: 30 },
       }),
       fetch(`${FLEET_SERVER_URL}/devices`, {
-        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN },
+        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
         next: { revalidate: 30 },
       }),
     ]);
