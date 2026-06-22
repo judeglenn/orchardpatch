@@ -74,6 +74,10 @@ export default function DeviceDetailPage({ params }: Props) {
   const [branchQueuing, setBranchQueuing] = useState(false);
   const [branchError, setBranchError] = useState<string | null>(null);
 
+  // Force check-in state
+  const [forceCheckinLoading, setForceCheckinLoading] = useState(false);
+  const [forceCheckinStatus, setForceCheckinStatus] = useState<"idle" | "success" | "error">("idle");
+
   // Outdated apps that have a label (patchable via Branch)
   const outdatedLabeledApps = useMemo(
     () => apps.filter((a) => a.patch_status === "outdated" && a.label),
@@ -127,6 +131,30 @@ export default function DeviceDetailPage({ params }: Props) {
   function showToast(msg: string) {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3500);
+  }
+
+  async function handleForceCheckin() {
+    if (!device || forceCheckinLoading) return;
+    setForceCheckinLoading(true);
+    setForceCheckinStatus("idle");
+    try {
+      const res = await fetch("/api/force-checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceId: device.id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Request failed");
+      }
+      setForceCheckinStatus("success");
+      setTimeout(() => setForceCheckinStatus("idle"), 3000);
+    } catch {
+      setForceCheckinStatus("error");
+      setTimeout(() => setForceCheckinStatus("idle"), 3000);
+    } finally {
+      setForceCheckinLoading(false);
+    }
   }
 
   const loadData = useCallback(async () => {
@@ -353,6 +381,37 @@ export default function DeviceDetailPage({ params }: Props) {
                 <strong style={{ color: "#f0f8ec" }}>{formatRelativeDate(device.last_seen)}</strong>
                 &nbsp;
                 <span className="text-xs">({formatDate(device.last_seen)})</span>
+              </span>
+            )}
+          </div>
+          {/* Force check-in */}
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={handleForceCheckin}
+              disabled={forceCheckinLoading}
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50"
+              style={{
+                border: "1px solid rgba(255,255,255,0.18)",
+                background: "rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.75)",
+              }}
+            >
+              <RefreshCw className={"h-3 w-3" + (forceCheckinLoading ? " animate-spin" : "")} />
+              {forceCheckinLoading ? "Checking in..." : "Force Check-in"}
+            </button>
+            {forceCheckinStatus === "success" && (
+              <span className="text-xs font-medium" style={{ color: "#9fe066" }}>
+                Check-in queued
+              </span>
+            )}
+            {forceCheckinStatus === "error" && (
+              <span className="text-xs font-medium" style={{ color: "#ef9a9a" }}>
+                Failed — try again
+              </span>
+            )}
+            {forceCheckinStatus === "idle" && (
+              <span className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+                Results appear within 60 seconds
               </span>
             )}
           </div>
