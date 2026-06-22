@@ -33,6 +33,7 @@ type PatchJob = {
   status: PatchStatus;
   deviceId: string;
   deviceName: string;
+  createdAt: string;
   startedAt: string;
   completedAt?: string;
   log?: string | string[];
@@ -48,6 +49,7 @@ const MOCK_JOBS: PatchJob[] = [
     status: "success",
     deviceId: "dev-001",
     deviceName: "chip-mbp.local",
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     startedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     completedAt: new Date(Date.now() - 2 * 60 * 60 * 1000 + 48000).toISOString(),
     log: "🌳 Starting patch for Google Chrome (googlechromepkg)\nChecking installed version: 122.0.6261.128\nLatest available: 124.0.6367.82\nDownloading googlechromepkg...\nInstalling Google Chrome...\n✅ Successfully patched Google Chrome to 124.0.6367.82",
@@ -60,6 +62,7 @@ const MOCK_JOBS: PatchJob[] = [
     status: "failed",
     deviceId: "dev-002",
     deviceName: "eng-mac-17.local",
+    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
     startedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
     completedAt: new Date(Date.now() - 5 * 60 * 60 * 1000 + 12000).toISOString(),
     log: "🌳 Starting patch for Slack (slack)\nChecking installed version: 4.36.140\nDownloading slack...\n❌ Error: Download failed — checksum mismatch",
@@ -73,6 +76,7 @@ const MOCK_JOBS: PatchJob[] = [
     status: "success",
     deviceId: "dev-003",
     deviceName: "design-mac-02.local",
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     startedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     completedAt: new Date(Date.now() - 24 * 60 * 60 * 1000 + 62000).toISOString(),
     log: "🌳 Starting patch for Zoom (zoom)\nPrompting user to quit Zoom...\nUser accepted update dialog\nInstalling zoom...\n✅ Successfully patched Zoom to 5.17.11",
@@ -85,6 +89,7 @@ const MOCK_JOBS: PatchJob[] = [
     status: "running",
     deviceId: "dev-001",
     deviceName: "chip-mbp.local",
+    createdAt: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
     startedAt: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
     log: "🌳 Starting patch for Visual Studio Code (visualstudiocode)\nDownloading visualstudiocode...\nInstalling...",
   },
@@ -96,6 +101,7 @@ const MOCK_JOBS: PatchJob[] = [
     status: "queued",
     deviceId: "dev-004",
     deviceName: "finance-mac-05.local",
+    createdAt: new Date(Date.now() - 30 * 1000).toISOString(),
     startedAt: new Date(Date.now() - 30 * 1000).toISOString(),
     log: "",
   },
@@ -246,7 +252,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   );
 }
 
-function JobRows({ job, index, cancellingId, onCancel }: { job: PatchJob; index: number; cancellingId: string | null; onCancel: (jobId: string) => Promise<void> }) {
+function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job: PatchJob; index: number; cancellingId: string | null; onCancel: (jobId: string) => Promise<void>; undoSecondsLeft: number }) {
   const [expanded, setExpanded] = useState(false);
   const initials = appInitials(job.appName);
   const colorClass = appColorClass(job.appName);
@@ -296,7 +302,28 @@ function JobRows({ job, index, cancellingId, onCancel }: { job: PatchJob; index:
           {formatDuration(job.startedAt, job.completedAt)}
         </td>
         <td className="px-4 py-3 text-center">
-          {job.status === "queued" ? (
+          {job.status === "queued" && job.mode === "silent" && undoSecondsLeft > 0 ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel(job.jobId);
+                }}
+                disabled={cancellingId === job.jobId}
+                className="text-xs font-medium transition-all hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed px-2 py-0.5 rounded"
+                style={{
+                  color: cancellingId === job.jobId ? "rgba(255,255,255,0.3)" : "#fbbf24",
+                  border: "1px solid rgba(251,191,36,0.4)",
+                  background: "rgba(251,191,36,0.08)",
+                }}
+              >
+                {cancellingId === job.jobId ? "Cancelling..." : "Undo (" + undoSecondsLeft + "s)"}
+              </button>
+              <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+                Silent patch
+              </span>
+            </div>
+          ) : job.status === "queued" ? (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -377,6 +404,7 @@ function PatchesPageInner() {
 
   const [jobs, setJobs] = useState<PatchJob[]>([]);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
   const [devices, setDevices] = useState<{ id: string; hostname: string }[]>([]);
   const [deviceQuery, setDeviceQuery] = useState("");
   const [deviceDropdownOpen, setDeviceDropdownOpen] = useState(false);
@@ -480,6 +508,23 @@ function PatchesPageInner() {
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
+
+  // 1-second tick to keep undo countdown live while any silent queued jobs are in-window
+  useEffect(() => {
+    const hasWindowJob = jobs.some(j =>
+      j.status === "queued" &&
+      j.mode === "silent" &&
+      (Date.now() - new Date(j.createdAt).getTime()) < 15000
+    );
+    if (!hasWindowJob) return;
+    const interval = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, [jobs, tick]);
+
+  const undoSecondsLeft = (createdAt: string): number => {
+    const elapsed = (Date.now() - new Date(createdAt).getTime()) / 1000;
+    return Math.max(0, Math.ceil(15 - elapsed));
+  };
 
   // ─── Filtered jobs ──────────────────────────────────────────────────────────
   const filteredJobs = useMemo(() => {
@@ -862,7 +907,7 @@ function PatchesPageInner() {
               </thead>
               <tbody>
                 {filteredJobs.map((job, idx) => (
-                  <JobRows key={job.jobId} job={job} index={idx} cancellingId={cancellingId} onCancel={handleCancel} />
+                  <JobRows key={job.jobId} job={job} index={idx} cancellingId={cancellingId} onCancel={handleCancel} undoSecondsLeft={job.status === "queued" && job.mode === "silent" ? undoSecondsLeft(job.createdAt) : 0} />
                 ))}
               </tbody>
             </table>
