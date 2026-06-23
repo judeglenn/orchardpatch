@@ -33,7 +33,7 @@ type SortKey = "installs" | "name" | "lastSeen";
 
 const SORT_LABELS: Record<SortKey, string> = {
   installs: "Most Installs",
-  name: "Name A–Z",
+  name: "Name A-Z",
   lastSeen: "Recently Seen",
 };
 
@@ -60,9 +60,9 @@ export default function HomePageInner() {
   const [agentStats, setAgentStats] = useState<typeof mockStats | null>(null);
   const [dataSource, setDataSource] = useState<"mock" | "agent">("mock");
   const [agentSyncTime, setAgentSyncTime] = useState<string | null>(null);
-  // patch status keyed by bundle_id (deduplicated — if any row is outdated, whole app is outdated)
-  const [patchStatusMap, setPatchStatusMap] = useState<Record<string, { status: PatchStatus; latestVersion: string | null }>>({});
-  const [statusSummary, setStatusSummary] = useState<{ outdated: number; current: number; unknown: number; na: number } | null>(null);
+  // patch status keyed by bundle_id (deduplicated - if any row is outdated, whole app is outdated)
+  const [patchStatusMap, setPatchStatusMap] = useState<Record<string, { status: PatchStatus; latestVersion: string | null }>>({}); 
+  const [statusSummary, setStatusSummary] = useState<{ outdated: number; current: number; unknown: number; na: number; mas: number } | null>(null);
 
   useEffect(() => {
     // Fetch patch status separately and build a bundle_id → status map
@@ -72,14 +72,15 @@ export default function HomePageInner() {
         if (!res.ok) return;
         const data = await res.json();
         const map: Record<string, { status: PatchStatus; latestVersion: string | null }> = {};
-        let outdated = 0, current = 0, unknown = 0, na = 0;
+        let outdated = 0, current = 0, unknown = 0, na = 0, mas = 0;
         for (const row of data.apps as any[]) {
           const bid = (row.bundle_id || "").toLowerCase();
           if (!bid) continue;
           const existing = map[bid];
-          const rowStatus: PatchStatus = row.patch_status;
-          // Worst-case wins: outdated > unknown > current; na is lowest priority
-          if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current") || (rowStatus !== "na" && existing.status === "na")) {
+          // MAS apps get synthetic 'mas' status client-side for distinct filtering
+          const rowStatus: PatchStatus = row.source === 'mas' ? 'mas' : row.patch_status;
+          // Worst-case wins: outdated > unknown > current; na/mas is lowest priority
+          if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current") || (rowStatus !== "na" && rowStatus !== "mas" && (existing.status === "na" || existing.status === "mas"))) {
             map[bid] = { status: rowStatus, latestVersion: row.latest_version ?? null };
           }
         }
@@ -89,16 +90,17 @@ export default function HomePageInner() {
           else if (status === "current") current++;
           else if (status === "unknown") unknown++;
           else if (status === "na") na++;
+          else if (status === "mas") mas++;
         }
         setPatchStatusMap(map);
-        setStatusSummary({ outdated, current, unknown, na });
+        setStatusSummary({ outdated, current, unknown, na, mas });
       } catch { /* non-fatal */ }
     }
     loadPatchStatus();
   }, []);
 
   useEffect(() => {
-    // Try fleet server first (multi-Mac) — fall back to local agent
+    // Try fleet server first (multi-Mac) - fall back to local agent
     async function loadData() {
       try {
         const [statsRes, appsRes] = await Promise.all([
@@ -228,7 +230,7 @@ export default function HomePageInner() {
       );
     }
 
-    // patchStatusFilter (from summary bar or Conflicts button) — uses real patch status data
+    // patchStatusFilter (from summary bar or Conflicts button) - uses real patch status data
     const activeStatusFilter = patchStatusFilter ?? (conflictsOnly ? "outdated" : null);
     if (activeStatusFilter) {
       result = result.filter((a) => {
@@ -278,7 +280,7 @@ export default function HomePageInner() {
     }
   }, [allFilteredSelected, filtered]);
 
-  
+
 
   const selectedApps = useMemo(
     () => apps.filter((a) => selectedIds.has(a.id)),
@@ -310,11 +312,11 @@ export default function HomePageInner() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          
+
           <SearchBar
             value={search}
             onChange={setSearch}
-            placeholder="Search apps…"
+            placeholder="Search apps..."
             className="w-60"
           />
           <DropdownMenu>
@@ -384,14 +386,15 @@ export default function HomePageInner() {
         </div>
       </div>
 
-      {/* Patch status summary bar — clickable pills filter the app list */}
+      {/* Patch status summary bar - clickable pills filter the app list */}
       {statusSummary && (() => {
         type Pill = { status: PatchStatus; emoji: string; label: string; count: number; activeColor: string; activeBg: string; activeBorder: string };
         const pills: Pill[] = [
-          { status: "outdated", emoji: "🔴", label: "outdated", count: statusSummary.outdated, activeColor: "#ef5350", activeBg: "rgba(239,83,80,0.15)", activeBorder: "rgba(239,83,80,0.5)" },
-          { status: "current",  emoji: "✅", label: "current",  count: statusSummary.current,  activeColor: "#9fe066", activeBg: "rgba(125,217,74,0.15)", activeBorder: "rgba(125,217,74,0.5)" },
-          { status: "unknown",  emoji: "🟡", label: "Unknown",  count: statusSummary.unknown,  activeColor: "rgba(255,255,255,0.7)", activeBg: "rgba(255,255,255,0.08)", activeBorder: "rgba(255,255,255,0.25)" },
-          { status: "na",       emoji: "⚙️",  label: "System",   count: statusSummary.na,       activeColor: "rgba(255,255,255,0.4)", activeBg: "rgba(255,255,255,0.06)", activeBorder: "rgba(255,255,255,0.15)" },
+          { status: "outdated", emoji: "🔴", label: "outdated",  count: statusSummary.outdated, activeColor: "#ef5350",               activeBg: "rgba(239,83,80,0.15)",    activeBorder: "rgba(239,83,80,0.5)" },
+          { status: "current",  emoji: "✅", label: "current",   count: statusSummary.current,  activeColor: "#9fe066",               activeBg: "rgba(125,217,74,0.15)",   activeBorder: "rgba(125,217,74,0.5)" },
+          { status: "unknown",  emoji: "🟡", label: "Unknown",   count: statusSummary.unknown,  activeColor: "rgba(255,255,255,0.7)", activeBg: "rgba(255,255,255,0.08)",  activeBorder: "rgba(255,255,255,0.25)" },
+          { status: "na",       emoji: "⚙️",  label: "System",    count: statusSummary.na,       activeColor: "rgba(255,255,255,0.4)", activeBg: "rgba(255,255,255,0.06)",  activeBorder: "rgba(255,255,255,0.15)" },
+          { status: "mas",      emoji: "🍎", label: "App Store", count: statusSummary.mas,       activeColor: "rgba(100,180,255,0.9)", activeBg: "rgba(100,180,255,0.12)",  activeBorder: "rgba(100,180,255,0.4)" },
         ];
         return (
           <div
@@ -496,12 +499,12 @@ export default function HomePageInner() {
             Applications
             {filtered.length !== apps.length && (
               <span className="ml-2 normal-case tracking-normal font-normal">
-                — {filtered.length} of {apps.length}
+                - {filtered.length} of {apps.length}
               </span>
             )}
             {filtered.length === apps.length && (
               <span className="ml-2 normal-case tracking-normal font-normal">
-                — {apps.length}
+                - {apps.length}
               </span>
             )}
           </span>

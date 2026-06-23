@@ -1,6 +1,6 @@
-import { CheckCircle2, AlertCircle, HelpCircle, Settings } from "lucide-react";
+import { CheckCircle2, AlertCircle, HelpCircle, Settings, ShoppingBag } from "lucide-react";
 
-export type PatchStatus = "current" | "outdated" | "unknown" | "na";
+export type PatchStatus = "current" | "outdated" | "unknown" | "na" | "mas";
 
 interface PatchStatusBadgeProps {
   status: PatchStatus;
@@ -37,6 +37,13 @@ const STATUS_CONFIG = {
     bg: "rgba(255,255,255,0.04)",
     border: "rgba(255,255,255,0.08)",
   },
+  mas: {
+    icon: ShoppingBag,
+    label: "App Store",
+    color: "rgba(100,180,255,0.7)",
+    bg: "rgba(100,180,255,0.08)",
+    border: "rgba(100,180,255,0.2)",
+  },
 };
 
 export function PatchStatusBadge({ status, latestVersion, className = "" }: PatchStatusBadgeProps) {
@@ -47,7 +54,7 @@ export function PatchStatusBadge({ status, latestVersion, className = "" }: Patc
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${className}`}
       style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
-      title={status === "na" ? "Managed by Apple" : latestVersion ? `Latest: ${latestVersion}` : undefined}
+      title={status === "na" ? "Managed by Apple" : status === "mas" ? "Managed by App Store" : latestVersion ? `Latest: ${latestVersion}` : undefined}
     >
       <Icon className="h-2.5 w-2.5" />
       {cfg.label}
@@ -56,5 +63,5 @@ export function PatchStatusBadge({ status, latestVersion, className = "" }: Patc
 }
 
 export function patchStatusEmoji(status: PatchStatus): string {
-  return status === "current" ? "✅" : status === "outdated" ? "🔴" : status === "na" ? "⚪" : "🟡";
+  return status === "current" ? "✅" : status === "outdated" ? "🔴" : status === "na" ? "⚪" : status === "mas" ? "🍎" : "🟡";
 }
