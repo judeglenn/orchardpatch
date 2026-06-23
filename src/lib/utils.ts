@@ -18,12 +18,12 @@ export function formatRelativeDate(isoDate: string): string {
   return `${Math.floor(diffDays / 30)}mo ago`;
 }
 
-export function formatTime(isoDate: string | null | undefined): string {
+export function formatDateTime(isoDate: string | null | undefined): string {
   if (!isoDate) return "--";
-  return new Date(isoDate).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const d = new Date(isoDate);
+  const date = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `${date} at ${time}`;
 }
 
 export function formatDate(isoDate: string): string {

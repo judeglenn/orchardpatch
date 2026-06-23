@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
@@ -16,7 +16,7 @@ import {
   Ban,
   AlertTriangle,
 } from "lucide-react";
-import { appInitials, appColorClass, formatRelativeDate, formatTime, formatDate } from "@/lib/utils";
+import { appInitials, appColorClass, formatRelativeDate, formatDateTime } from "@/lib/utils";
 
 type PatchMode = "silent" | "managed" | "prompted";
 type PatchMethod = "fruit" | "branch" | "bushel" | "orchard";
@@ -296,7 +296,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
           {job.initiatedBy ?? <span style={{ color: "rgba(255,255,255,0.2)" }}>—</span>}
         </td>
         <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-          {formatTime(job.startedAt)}
+          {formatDateTime(job.startedAt)}
         </td>
         <td className="px-4 py-3 text-sm font-mono" style={{ color: "rgba(255,255,255,0.45)" }}>
           {formatDuration(job.startedAt, job.completedAt)}
@@ -527,7 +527,7 @@ function PatchesPageInner() {
   };
 
   // ─── Filtered jobs ──────────────────────────────────────────────────────────
-  const groupedJobs = useMemo(() => {
+  const filteredJobs = useMemo(() => {
     const filtered = jobs.filter((j) => {
       if (filterDevice && j.deviceId !== filterDevice) return false;
       if (filterStatus && j.status !== filterStatus) return false;
@@ -538,37 +538,13 @@ function PatchesPageInner() {
           !j.label?.toLowerCase().includes(filterApp.toLowerCase())) return false;
       return true;
     });
-
-    // Group by local calendar date of createdAt
-    const buckets = new Map<string, PatchJob[]>();
-    for (const j of filtered) {
-      const key = new Date(j.createdAt).toLocaleDateString();
-      if (!buckets.has(key)) buckets.set(key, []);
-      buckets.get(key)!.push(j);
-    }
-
-    // Sort jobs within each group by startedAt DESC (createdAt fallback)
-    for (const group of buckets.values()) {
-      group.sort((a, b) => {
-        const aT = new Date(a.startedAt || a.createdAt).getTime();
-        const bT = new Date(b.startedAt || b.createdAt).getTime();
-        return bT - aT;
-      });
-    }
-
-    // Build labeled groups, sorted newest-first
-    const today = new Date().toLocaleDateString();
-    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
-
-    return Array.from(buckets.entries())
-      .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-      .map(([key, groupJobs]) => ({
-        label: key === today ? "Today" : key === yesterday ? "Yesterday" : formatDate(groupJobs[0].createdAt),
-        jobs: groupJobs,
-      }));
+    // Sort by startedAt descending (createdAt fallback for queued/cancelled jobs)
+    return filtered.sort((a, b) => {
+      const aT = new Date(a.startedAt || a.createdAt).getTime();
+      const bT = new Date(b.startedAt || b.createdAt).getTime();
+      return bT - aT;
+    });
   }, [jobs, filterDevice, filterStatus, filterMethod, filterMode, filterDate, filterApp]);
-
-  const filteredJobs = useMemo(() => groupedJobs.flatMap((g) => g.jobs), [groupedJobs]);
 
   const hasFilters = filterDevice || filterStatus || filterMethod || filterMode || (filterDate && filterDate !== "all") || filterApp;
 
@@ -934,21 +910,8 @@ function PatchesPageInner() {
                 </tr>
               </thead>
               <tbody>
-                {groupedJobs.map((group) => (
-                  <React.Fragment key={group.label}>
-                    <tr>
-                      <td
-                        colSpan={10}
-                        className="px-4 pt-5 pb-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
-                        style={{ color: "rgba(255,255,255,0.35)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-                      >
-                        {group.label}
-                      </td>
-                    </tr>
-                    {group.jobs.map((job, idx) => (
-                      <JobRows key={job.jobId} job={job} index={idx} cancellingId={cancellingId} onCancel={handleCancel} undoSecondsLeft={job.status === "queued" && job.mode === "silent" ? undoSecondsLeft(job.createdAt) : 0} />
-                    ))}
-                  </React.Fragment>
+                {filteredJobs.map((job, idx) => (
+                  <JobRows key={job.jobId} job={job} index={idx} cancellingId={cancellingId} onCancel={handleCancel} undoSecondsLeft={job.status === "queued" && job.mode === "silent" ? undoSecondsLeft(job.createdAt) : 0} />
                 ))}
               </tbody>
             </table>
