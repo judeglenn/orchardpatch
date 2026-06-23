@@ -16,7 +16,7 @@ import {
   Ban,
   AlertTriangle,
 } from "lucide-react";
-import { appInitials, appColorClass, formatRelativeDate, formatDateTime } from "@/lib/utils";
+import { appInitials, appColorClass, formatRelativeDate, formatDateTime, getJobSummary } from "@/lib/utils";
 
 type PatchMode = "silent" | "managed" | "prompted";
 type PatchMethod = "fruit" | "branch" | "bushel" | "orchard";
@@ -36,6 +36,7 @@ type PatchJob = {
   createdAt: string;
   startedAt: string;
   completedAt?: string;
+  exitCode?: number | null;
   log?: string | string[];
   error?: string;
 };
@@ -353,9 +354,15 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         const lines = logStr.split("\n");
         return (
           <tr style={{ background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <td colSpan={10} className="px-4 pb-3 pt-0">
+            <td colSpan={10} className="px-4 pb-3 pt-2">
+              {/* TL;DR summary */}
+              <div className="mb-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>TL;DR</p>
+                <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.75)" }}>{getJobSummary(job.status, job.exitCode ?? null)}</p>
+              </div>
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginBottom: "8px" }} />
               <div
-                className="text-[11px] font-mono leading-relaxed rounded-lg px-4 py-3 mt-1"
+                className="text-[11px] font-mono leading-relaxed rounded-lg px-4 py-3"
                 style={{
                   background: "rgba(0,0,0,0.4)",
                   border: "1px solid rgba(255,255,255,0.08)",

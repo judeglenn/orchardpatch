@@ -18,6 +18,17 @@ export function formatRelativeDate(isoDate: string): string {
   return `${Math.floor(diffDays / 30)}mo ago`;
 }
 
+export function getJobSummary(status: string, exitCode: number | null | undefined): string {
+  if (status === "cancelled") return "Cancelled before execution";
+  if (status === "queued") return "Waiting to be picked up by the agent";
+  if (exitCode === 0) return "Patch completed successfully";
+  if (exitCode === 23) return "App is managed by the Mac App Store. Installomator cannot patch MAS installs.";
+  if (exitCode === 16) return "Download failed. Check network connectivity or try again.";
+  if (exitCode === 11) return "Checksum mismatch. Downloaded file may be corrupted. Try again.";
+  if (exitCode != null && exitCode !== 0) return `Patch failed (exit code ${exitCode}). See log for details.`;
+  return "No details available.";
+}
+
 export function formatDateTime(isoDate: string | null | undefined): string {
   if (!isoDate) return "--";
   const d = new Date(isoDate);
