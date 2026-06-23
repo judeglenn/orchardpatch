@@ -21,7 +21,7 @@ export function formatRelativeDate(isoDate: string): string {
 export function formatDateTime(isoDate: string | null | undefined): string {
   if (!isoDate) return "--";
   const d = new Date(isoDate);
-  const date = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const date = d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   return `${date} at ${time}`;
 }

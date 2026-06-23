@@ -664,7 +664,7 @@ function PatchesPageInner() {
           },
           {
             label: "Last Patch",
-            value: lastJob ? formatRelativeDate(lastJob.startedAt) : "—",
+            value: lastJob ? formatDateTime(lastJob.startedAt) : "—",
             color: "rgba(255,255,255,0.7)",
           },
         ].map((stat) => (
