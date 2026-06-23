@@ -73,6 +73,7 @@ export async function GET(_req: Request, { params }: Context) {
         patchStatus: a.patch_status,
         isOutdated: a.patch_status === "outdated",
         label: a.label,
+        source: a.source ?? null,
       };
     });
 
