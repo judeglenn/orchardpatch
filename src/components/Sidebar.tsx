@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavItem {
   href: string;
@@ -240,6 +241,9 @@ export function Sidebar() {
           flexShrink: 0,
         }} />
         v0.1.0 · OrchardPatch
+        <div style={{ marginLeft: "auto" }}>
+          <ThemeToggle />
+        </div>
       </div>
     </aside>
   );
