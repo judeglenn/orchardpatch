@@ -48,8 +48,7 @@ const MODE_META: Record<PatchMode, { label: string; description: string }> = {
 function SourceBadge({ source }: { source: string }) {
   return (
     <span
-      className="text-xs font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "rgba(125,217,74,0.15)", color: "#9fe066", border: "1px solid rgba(125,217,74,0.25)" }}
+      style={{ display: "inline-flex", alignItems: "center", fontSize: 12, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, background: "var(--accent-tint)", color: "var(--accent)", border: "1px solid var(--border-accent)" }}
     >
       {source}
     </span>
@@ -195,7 +194,7 @@ export default function CatalogPage() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="px-6 py-6 max-w-6xl">
+    <div style={{ padding: "24px", maxWidth: "72rem" }}>
 
       {/* Toast */}
       <div
@@ -205,7 +204,7 @@ export default function CatalogPage() {
           transition: "transform 300ms cubic-bezier(0.34,1.56,0.64,1), opacity 300ms ease",
           opacity: toastMsg ? 1 : 0,
           pointerEvents: toastMsg ? "auto" : "none",
-          background: "#5aaa28",
+          background: "var(--accent)",
           color: "white",
           minWidth: 260,
           textAlign: "center",
@@ -215,55 +214,46 @@ export default function CatalogPage() {
       </div>
 
       {/* Header */}
-      <div className="mb-8">
+      <div style={{ marginBottom: 32 }}>
         <Link
           href="/apps"
-          className="inline-flex items-center gap-1.5 text-sm mb-4"
-          style={{ color: "rgba(255,255,255,0.55)" }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, marginBottom: 16, color: "var(--text-secondary)" }}
         >
           <ChevronLeft className="h-4 w-4" /> Back to Inventory
         </Link>
-        <div className="flex items-center gap-3 mb-2">
-          <Package className="h-6 w-6" style={{ color: "#7dd94a" }} />
-          <h1 className="text-3xl font-bold" style={{ color: "#f0f8ec" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+          <Package className="h-6 w-6" style={{ color: "var(--accent)" }} />
+          <h1 style={{ fontSize: 30, fontWeight: 700, color: "var(--text-primary)" }}>
             Software Catalog
           </h1>
         </div>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>
           {data
             ? `${data.total.toLocaleString()} patchable app${data.total !== 1 ? "s" : ""} via Installomator`
             : "1,137 patchable apps via Installomator"}
         </p>
-        <div className="flex items-center gap-2 mt-3">
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
           <SourceBadge source="Installomator" />
         </div>
       </div>
 
       {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ position: "relative" }}>
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
-            style={{ color: "rgba(255,255,255,0.35)" }}
+            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "var(--text-tertiary)" }}
           />
           <input
             type="text"
             placeholder="Search by app name or label..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg text-sm"
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "#f0f8ec",
-              outline: "none",
-            }}
+            style={{ width: "100%", paddingLeft: 40, paddingRight: 16, paddingTop: 8, paddingBottom: 8, borderRadius: 8, fontSize: 14, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           />
           {search && (
             <button
               onClick={() => handleSearchChange("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2"
-              style={{ color: "rgba(255,255,255,0.35)" }}
+              style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)" }}
             >
               <X className="h-4 w-4" />
             </button>
@@ -274,16 +264,14 @@ export default function CatalogPage() {
       {/* Error */}
       {error && (
         <div
-          className="mb-6 p-4 rounded-lg flex items-start gap-3"
-          style={{ background: "rgba(244,67,54,0.10)", borderLeft: "3px solid #ef9a9a" }}
+          style={{ marginBottom: 24, padding: 16, borderRadius: 8, display: "flex", alignItems: "flex-start", gap: 12, background: "color-mix(in srgb, var(--st-lagging) 10%, transparent)", borderLeft: "3px solid var(--st-lagging)" }}
         >
-          <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" style={{ color: "#ef9a9a" }} />
+          <AlertCircle style={{ width: 20, height: 20, marginTop: 2, flexShrink: 0, color: "var(--st-lagging)" }} />
           <div>
-            <p style={{ color: "#ef9a9a" }}>{error}</p>
+            <p style={{ color: "var(--st-lagging)" }}>{error}</p>
             <button
               onClick={fetchCatalog}
-              className="text-xs mt-2 underline"
-              style={{ color: "#ef9a9a" }}
+              style={{ fontSize: 12, marginTop: 8, textDecoration: "underline", color: "var(--st-lagging)" }}
             >
               Retry
             </button>
@@ -293,20 +281,19 @@ export default function CatalogPage() {
 
       {/* Loading skeleton */}
       {loading && !data ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#7dd94a" }} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 0" }}>
+          <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--accent)" }} />
         </div>
       ) : !data || data.items.length === 0 ? (
-        <div className="text-center py-20">
-          <Package className="h-12 w-12 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.15)" }} />
-          <p style={{ color: "rgba(255,255,255,0.45)" }}>
+        <div style={{ textAlign: "center", padding: "80px 0" }}>
+          <Package style={{ width: 48, height: 48, margin: "0 auto 12px", color: "var(--text-tertiary)" }} />
+          <p style={{ color: "var(--text-secondary)" }}>
             {debouncedSearch ? `No packages matching "${debouncedSearch}"` : "No packages available"}
           </p>
           {debouncedSearch && (
             <button
               onClick={() => handleSearchChange("")}
-              className="text-xs mt-3 underline"
-              style={{ color: "rgba(255,255,255,0.35)" }}
+              style={{ fontSize: 12, marginTop: 12, textDecoration: "underline", color: "var(--text-tertiary)" }}
             >
               Clear search
             </button>
@@ -315,7 +302,7 @@ export default function CatalogPage() {
       ) : (
         <>
           {/* Result count */}
-          <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.40)" }}>
+          <p style={{ fontSize: 12, marginBottom: 12, color: "var(--text-tertiary)" }}>
             {debouncedSearch
               ? `${data.total.toLocaleString()} result${data.total !== 1 ? "s" : ""} for "${debouncedSearch}"`
               : `Showing ${((page - 1) * 50 + 1).toLocaleString()}–${Math.min(page * 50, data.total).toLocaleString()} of ${data.total.toLocaleString()}`}
@@ -323,25 +310,21 @@ export default function CatalogPage() {
 
           {/* Table */}
           <div
-            className="rounded-2xl overflow-hidden mb-6"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.10)",
-            }}
+            style={{ borderRadius: 16, overflow: "hidden", marginBottom: 24, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
           >
             <table className="w-full">
-              <thead style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                <tr style={{ background: "rgba(0,0,0,0.2)" }}>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.40)" }}>
+              <thead style={{ borderBottom: "1px solid var(--border-hairline)" }}>
+                <tr style={{ background: "color-mix(in srgb, var(--page-bg) 40%, transparent)" }}>
+                  <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>
                     App Name
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.40)" }}>
+                  <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>
                     Label
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.40)" }}>
+                  <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>
                     Source
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.40)" }}>
+                  <th style={{ padding: "12px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>
                     Action
                   </th>
                 </tr>
@@ -351,26 +334,25 @@ export default function CatalogPage() {
                   <tr
                     key={item.label}
                     style={{
-                      background: idx % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-                      borderBottom: "1px solid rgba(255,255,255,0.05)",
+                      background: idx % 2 === 1 ? "color-mix(in srgb, var(--surface-glass) 50%, transparent)" : "transparent",
+                      borderBottom: "1px solid var(--border-hairline)",
                     }}
                   >
-                    <td className="px-4 py-3 text-sm font-medium" style={{ color: "#f0f8ec" }}>
+                    <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>
                       {item.app_name}
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.50)" }}>
+                    <td style={{ padding: "12px 16px" }}>
+                      <span style={{ fontSize: 12, fontFamily: "monospace", color: "var(--text-secondary)" }}>
                         {item.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td style={{ padding: "12px 16px" }}>
                       <SourceBadge source="Installomator" />
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td style={{ padding: "12px 16px", textAlign: "right" }}>
                       <button
                         onClick={() => openModal(item)}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-80 active:scale-95"
-                        style={{ background: "#5aaa28", color: "white" }}
+                        style={{ fontSize: 12, fontWeight: 600, padding: "6px 12px", borderRadius: 8, cursor: "pointer", background: "var(--accent)", color: "white" }}
                       >
                         Deploy
                       </button>
@@ -383,48 +365,32 @@ export default function CatalogPage() {
 
           {/* Pagination */}
           {data.pages > 1 && (
-            <div className="flex items-center justify-center gap-4 mb-6" style={{ flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 24, flexWrap: "wrap" as const }}>
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-1.5 rounded disabled:opacity-30 transition-opacity"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "rgba(255,255,255,0.55)",
-                }}
+                style={{ padding: 6, borderRadius: 6, cursor: "pointer", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+              <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>
                 Page {data.page} of {data.pages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(data.pages, p + 1))}
                 disabled={page === data.pages}
-                className="p-1.5 rounded disabled:opacity-30 transition-opacity"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "rgba(255,255,255,0.55)",
-                }}
+                style={{ padding: 6, borderRadius: 6, cursor: "pointer", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
               <select
                 value={pageSize}
                 onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-                className="px-2 py-1 rounded text-xs"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "rgba(255,255,255,0.55)",
-                  outline: "none",
-                }}
+                style={{ padding: "4px 8px", borderRadius: 6, fontSize: 12, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)", outline: "none" }}
               >
-                <option value={25} style={{ background: "#1a2613" }}>25 / page</option>
-                <option value={50} style={{ background: "#1a2613" }}>50 / page</option>
-                <option value={100} style={{ background: "#1a2613" }}>100 / page</option>
+                <option value={25} style={{ background: "var(--surface-glass)" }}>25 / page</option>
+                <option value={50} style={{ background: "var(--surface-glass)" }}>50 / page</option>
+                <option value={100} style={{ background: "var(--surface-glass)" }}>100 / page</option>
               </select>
             </div>
           )}
@@ -434,71 +400,55 @@ export default function CatalogPage() {
       {/* Deploy Modal */}
       {showModal && selectedApp && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.60)" }}
+          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.60)" }}
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
         >
           <div
-            className="w-full max-w-md rounded-2xl overflow-hidden"
-            style={{
-              background: "#1a2613",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
-            }}
+            style={{ width: "100%", maxWidth: 448, borderRadius: 16, overflow: "hidden", backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
           >
             {/* Modal header */}
             <div
-              className="flex items-start justify-between px-6 py-5"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid var(--border-hairline)" }}
             >
               <div>
-                <h2 className="text-base font-semibold" style={{ color: "#f0f8ec" }}>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>
                   Deploy {selectedApp.app_name}
                 </h2>
-                <p className="text-xs font-mono mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                <p style={{ fontSize: 12, fontFamily: "monospace", marginTop: 2, color: "var(--text-tertiary)" }}>
                   {selectedApp.label}
                 </p>
               </div>
-              <button onClick={closeModal} style={{ color: "rgba(255,255,255,0.40)" }}>
+              <button onClick={closeModal} style={{ color: "var(--text-tertiary)" }}>
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Modal body */}
-            <div className="px-6 py-5 space-y-6">
+            <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 24 }}>
 
               {/* Device selector */}
               <div>
                 <label
-                  className="block text-xs font-semibold uppercase mb-2"
-                  style={{ color: "rgba(255,255,255,0.55)" }}
+                  style={{ display: "block", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8, color: "var(--text-secondary)" }}
                 >
                   Target Device
                 </label>
                 {devicesLoading ? (
-                  <div className="flex items-center gap-2 py-2" style={{ color: "rgba(255,255,255,0.40)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", color: "var(--text-tertiary)" }}>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Loading devices...</span>
+                    <span style={{ fontSize: 14 }}>Loading devices...</span>
                   </div>
                 ) : (
                   <select
                     value={selectedDeviceId}
                     onChange={(e) => setSelectedDeviceId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{
-                      background: "rgba(255,255,255,0.06)",
-                      border: selectedDeviceId
-                        ? "1px solid rgba(125,217,74,0.5)"
-                        : "1px solid rgba(255,255,255,0.15)",
-                      color: selectedDeviceId ? "#f0f8ec" : "rgba(255,255,255,0.40)",
-                      outline: "none",
-                    }}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 8, fontSize: 14, background: "var(--surface-raised)", border: selectedDeviceId ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", color: selectedDeviceId ? "var(--text-primary)" : "var(--text-tertiary)", outline: "none" }}
                   >
-                    <option value="" disabled style={{ background: "#1a2613" }}>
+                    <option value="" disabled style={{ background: "var(--surface-glass)" }}>
                       Select a device...
                     </option>
                     {devices.map((d) => (
-                      <option key={d.id} value={d.id} style={{ background: "#1a2613" }}>
+                      <option key={d.id} value={d.id} style={{ background: "var(--surface-glass)" }}>
                         {d.hostname}
                       </option>
                     ))}
@@ -509,24 +459,16 @@ export default function CatalogPage() {
               {/* Mode picker */}
               <div>
                 <p
-                  className="text-xs font-semibold uppercase mb-2"
-                  style={{ color: "rgba(255,255,255,0.55)" }}
+                  style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8, color: "var(--text-secondary)" }}
                 >
                   Patch Mode
                 </p>
-                <div className="space-y-2">
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {(["silent", "managed", "prompted"] as PatchMode[]).map((m) => (
                     <button
                       key={m}
                       onClick={() => setMode(m)}
-                      className="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all"
-                      style={{
-                        background: mode === m ? "rgba(125,217,74,0.10)" : "rgba(255,255,255,0.04)",
-                        border: mode === m
-                          ? "1px solid rgba(125,217,74,0.45)"
-                          : "1px solid rgba(255,255,255,0.10)",
-                        color: mode === m ? "#9fe066" : "rgba(255,255,255,0.55)",
-                      }}
+                      style={{ width: "100%", textAlign: "left", padding: "10px 12px", borderRadius: 8, fontSize: 14, cursor: "pointer", background: mode === m ? "var(--accent-tint)" : "var(--surface-raised)", border: mode === m ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", color: mode === m ? "var(--accent)" : "var(--text-secondary)" }}
                     >
                       <div className="font-semibold">{MODE_META[m].label}</div>
                       <div className="text-xs mt-0.5 opacity-80">{MODE_META[m].description}</div>
@@ -538,33 +480,22 @@ export default function CatalogPage() {
 
             {/* Modal footer */}
             <div
-              className="flex gap-3 px-6 py-4"
-              style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ display: "flex", gap: 12, padding: "16px 24px", borderTop: "1px solid var(--border-hairline)" }}
             >
               <button
                 onClick={closeModal}
                 disabled={deploying}
-                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "rgba(255,255,255,0.55)",
-                }}
+                style={{ flex: 1, padding: "8px 16px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeploy}
                 disabled={!selectedDeviceId || deploying}
-                className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
-                style={{
-                  background: !selectedDeviceId || deploying ? "rgba(90,170,40,0.35)" : "#5aaa28",
-                  color: "white",
-                  cursor: !selectedDeviceId || deploying ? "not-allowed" : "pointer",
-                }}
+                style={{ flex: 1, padding: "8px 16px", borderRadius: 8, fontSize: 14, fontWeight: 600, background: !selectedDeviceId || deploying ? "color-mix(in srgb, var(--accent) 35%, transparent)" : "var(--accent)", color: "white", cursor: !selectedDeviceId || deploying ? "not-allowed" : "pointer" }}
               >
                 {deploying ? (
-                  <span className="flex items-center justify-center gap-2">
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                     <Loader2 className="h-4 w-4 animate-spin" /> Deploying...
                   </span>
                 ) : (
