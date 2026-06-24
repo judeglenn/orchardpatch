@@ -26,14 +26,7 @@ interface FleetStats {
   patchJobs: { total: number; success: number; failed: number };
 }
 
-const glass = {
-  background: "rgba(255,255,255,0.06)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  border: "1px solid rgba(255,255,255,0.12)",
-  borderRadius: "16px",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-} as React.CSSProperties;
+const glass: React.CSSProperties = { backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", borderRadius: "16px", boxShadow: "var(--shadow-card)" };
 
 export default function FleetPage() {
   const [devices, setDevices] = useState<FleetDevice[]>([]);
@@ -83,19 +76,18 @@ export default function FleetPage() {
   useEffect(() => { fetchData(); }, []);
 
   return (
-    <div className="px-6 py-6">
+    <div style={{ padding: "24px" }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
-          <h1 className="text-xl font-bold mb-1" style={{ color: "#f0f8ec" }}>Fleet</h1>
-          <p className="text-sm flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-            <Wifi className="h-3.5 w-3.5" style={{ color: "#7dd94a" }} />
+          <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, color: "var(--text-primary)" }}>Fleet</h1>
+          <p style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 6, color: "var(--text-tertiary)" }}>
+            <Wifi className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
             {"orchardpatch-server-production.up.railway.app"}{lastRefresh ? ` · last refresh ${lastRefresh.toLocaleTimeString()}` : ""}
           </p>
         </div>
         <button onClick={fetchData} disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
-          style={{ background: "rgba(255,255,255,0.08)", color: "#f0f8ec", border: "1px solid rgba(255,255,255,0.12)" }}>
+          style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", background: "var(--surface-raised)", color: "var(--text-primary)", border: "1px solid var(--border-hairline)" }}>
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </button>
@@ -103,16 +95,16 @@ export default function FleetPage() {
 
       {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
           {[
-            { label: "Devices", value: stats.totalDevices, color: "#7dd94a" },
-            { label: "Total Apps", value: stats.totalApps, color: "#f0f8ec" },
-            { label: "Outdated", value: stats.outdatedApps, color: stats.outdatedApps > 0 ? "#ffb74d" : "#7dd94a" },
-            { label: "Patches Run", value: stats.patchJobs.total, color: "#f0f8ec" },
+            { label: "Devices", value: stats.totalDevices, color: "var(--st-current)" },
+            { label: "Total Apps", value: stats.totalApps, color: "var(--text-primary)" },
+            { label: "Outdated", value: stats.outdatedApps, color: stats.outdatedApps > 0 ? "var(--st-outdated)" : "var(--st-current)" },
+            { label: "Patches Run", value: stats.patchJobs.total, color: "var(--text-primary)" },
           ].map(({ label, value, color }) => (
-            <div key={label} style={glass} className="px-5 py-4">
-              <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</p>
-              <p className="text-2xl font-bold" style={{ color }}>{value}</p>
+            <div key={label} style={{ ...glass, padding: "16px 20px" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, color: "var(--text-secondary)" }}>{label}</p>
+              <p style={{ fontSize: 24, fontWeight: 700, color }}>{value}</p>
             </div>
           ))}
         </div>
@@ -120,60 +112,57 @@ export default function FleetPage() {
 
       {/* Device list */}
       <div style={glass}>
-        <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)" }}>
+          <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}>
             Managed Devices {devices.length > 0 && `(${devices.length})`}
           </p>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="h-8 w-8 rounded-full border-2 border-[#7dd94a] border-t-transparent animate-spin" />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "64px 0" }}>
+            <div className="animate-spin" style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid var(--accent)", borderTopColor: "transparent" }} />
           </div>
         ) : devices.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>No devices reporting yet</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.2)" }}>Install the agent pkg and configure it to report to the central server</p>
+          <div style={{ padding: "64px 0", textAlign: "center" }}>
+            <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>No devices reporting yet</p>
+            <p style={{ fontSize: 12, marginTop: 4, color: "var(--text-tertiary)" }}>Install the agent pkg and configure it to report to the central server</p>
           </div>
         ) : (
-          <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <div>
             {devices.map((device) => (
-              <Link key={device.id} href={`/fleet/devices/${encodeURIComponent(device.id)}`} className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 transition-colors cursor-pointer">
+              <Link key={device.id} href={`/fleet/devices/${encodeURIComponent(device.id)}`} style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderTop: "1px solid var(--border-hairline)", cursor: "pointer", textDecoration: "none" }}>
                 {/* Icon */}
-                <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <Monitor className="h-5 w-5" style={{ color: "#7dd94a" }} />
+                <div style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)" }}>
+                  <Monitor className="h-5 w-5" style={{ color: "var(--accent)" }} />
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="text-sm font-semibold truncate" style={{ color: "#f0f8ec" }}>{device.hostname}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>{device.hostname}</p>
                     {device.outdated_count > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
-                        style={{ background: "rgba(255,152,0,0.15)", color: "#ffb74d", border: "1px solid rgba(255,152,0,0.3)" }}>
-                        <AlertTriangle className="h-2.5 w-2.5" />
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, flexShrink: 0, background: "color-mix(in srgb, var(--st-outdated) 15%, transparent)", color: "var(--st-outdated)", border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)" }}>
+                        <AlertTriangle style={{ width: 10, height: 10 }} />
                         {device.outdated_count} outdated
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
-                        style={{ background: "rgba(125,217,74,0.12)", color: "#7dd94a", border: "1px solid rgba(125,217,74,0.25)" }}>
-                        <CheckCircle2 className="h-2.5 w-2.5" />
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, flexShrink: 0, background: "var(--accent-tint)", color: "var(--st-current)", border: "1px solid var(--border-accent)" }}>
+                        <CheckCircle2 style={{ width: 10, height: 10 }} />
                         Up to date
                       </span>
                     )}
                   </div>
-                  <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  <p style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-tertiary)" }}>
                     {device.model || "Mac"} · {device.os_version || "macOS"} · {device.app_count} apps
                   </p>
                 </div>
 
                 {/* Last seen */}
-                <div className="text-right shrink-0">
-                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <p style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
                     {device.last_seen ? formatRelativeDate(device.last_seen) : "—"}
                   </p>
-                  <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.2)" }}>
+                  <p style={{ fontSize: 10, marginTop: 2, color: "var(--text-tertiary)" }}>
                     agent {device.agent_version || "unknown"}
                   </p>
                 </div>
@@ -184,11 +173,10 @@ export default function FleetPage() {
       </div>
 
       {/* Server info */}
-      <div className="mt-4 px-4 py-3 rounded-xl flex items-center gap-2"
-        style={{ background: "rgba(125,217,74,0.06)", border: "1px solid rgba(125,217,74,0.15)" }}>
-        <Wifi className="h-3.5 w-3.5 shrink-0" style={{ color: "#7dd94a" }} />
-        <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-          Fleet data from <span style={{ color: "#7dd94a" }}>orchardpatch-server-production.up.railway.app</span> · agents check in every 15 min
+      <div style={{ marginTop: 16, padding: "12px 16px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8, background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}>
+        <Wifi style={{ width: 14, height: 14, flexShrink: 0, color: "var(--accent)" }} />
+        <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+          Fleet data from <span style={{ color: "var(--accent)" }}>orchardpatch-server-production.up.railway.app</span> · agents check in every 15 min
         </p>
       </div>
     </div>

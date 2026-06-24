@@ -20,7 +20,8 @@ export function SearchBar({ value, onChange, placeholder = "Search...", classNam
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="pl-9 pr-9 h-9 bg-muted/50 dark:bg-muted/20 border-border focus-visible:bg-background transition-colors"
+        className="bg-muted/50 dark:bg-muted/20 border-border focus-visible:bg-background transition-colors"
+        style={{ paddingLeft: 36, paddingRight: 36, height: 36 }}
       />
       {value && (
         <button

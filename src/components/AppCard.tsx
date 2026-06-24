@@ -22,70 +22,87 @@ export function AppCard({ app, totalDevices, selected, onToggle, patchStatus, la
   const otherPct = 100 - majorityPct;
 
   return (
-    <div className="relative">
+    <div style={{ position: "relative" }}>
       <Link
         href={`/apps/${app.id}`}
-        className="group flex items-center gap-4 rounded-2xl transition-all duration-150"
         style={{
-          background: selected ? "rgba(125,217,74,0.1)" : "rgba(255,255,255,0.06)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: selected ? "1px solid rgba(125,217,74,0.35)" : "1px solid rgba(255,255,255,0.12)",
-          boxShadow: selected
-            ? "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(125,217,74,0.2)"
-            : "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          borderRadius: 16,
+          backgroundColor: selected ? "var(--accent-tint)" : "var(--surface-glass)",
+          backgroundImage: "var(--sheen)",
+          backdropFilter: "blur(20px) saturate(150%)",
+          WebkitBackdropFilter: "blur(20px) saturate(150%)",
+          border: selected ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)",
+          boxShadow: "var(--shadow-card)",
           paddingLeft: onToggle ? "2.75rem" : "1rem",
           paddingRight: "1rem",
           paddingTop: "0.875rem",
           paddingBottom: "0.875rem",
+          textDecoration: "none",
         }}
       >
         {/* Circle avatar */}
         <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white text-sm font-bold shadow-sm transition-transform duration-150 group-hover:scale-105 ${colorClass}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white text-sm font-bold ${colorClass}`}
         >
           {initials}
         </div>
 
         {/* App info */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <span
-              className="text-sm font-semibold truncate transition-colors duration-150"
-              style={{ color: "#f0f8ec" }}
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                color: "var(--text-primary)",
+              }}
             >
               {app.name}
             </span>
             <span
-              className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded"
-              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)" }}
+              style={{
+                flexShrink: 0,
+                fontSize: 10,
+                fontWeight: 500,
+                padding: "2px 6px",
+                borderRadius: 4,
+                background: "var(--surface-raised)",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border-hairline)",
+              }}
             >
               {app.category}
             </span>
           </div>
 
           {/* Version mini-bar */}
-          <div className="flex items-center gap-2">
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div
-              className="h-1.5 w-24 rounded-full overflow-hidden"
-              style={{ background: "rgba(255,255,255,0.1)" }}
+              style={{
+                height: 6,
+                width: 96,
+                borderRadius: 9999,
+                overflow: "hidden",
+                background: "var(--surface-raised)",
+                flexShrink: 0,
+              }}
             >
               {app.hasVersionConflict ? (
-                <div className="h-full flex">
-                  <div
-                    className="h-full rounded-l-full"
-                    style={{ width: `${majorityPct}%`, background: "#4caf50" }}
-                  />
-                  <div
-                    className="h-full rounded-r-full"
-                    style={{ width: `${otherPct}%`, background: "#ff9800" }}
-                  />
+                <div style={{ height: "100%", display: "flex" }}>
+                  <div style={{ height: "100%", width: `${majorityPct}%`, background: "var(--st-current)", borderRadius: "9999px 0 0 9999px" }} />
+                  <div style={{ height: "100%", width: `${otherPct}%`, background: "var(--st-outdated)", borderRadius: "0 9999px 9999px 0" }} />
                 </div>
               ) : (
-                <div className="h-full rounded-full w-full" style={{ background: "#7dd94a" }} />
+                <div style={{ height: "100%", width: "100%", borderRadius: 9999, background: "var(--st-current)" }} />
               )}
             </div>
-            <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
+            <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
               {app.hasVersionConflict
                 ? `${app.versions.length} versions`
                 : app.mostCommonVersion}
@@ -93,12 +110,13 @@ export function AppCard({ app, totalDevices, selected, onToggle, patchStatus, la
           </div>
         </div>
 
-        {/* Right side: installs + conflict badge */}
-        <div className="shrink-0 flex flex-col items-end gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <Monitor className="h-3.5 w-3.5" style={{ color: "rgba(255,255,255,0.35)" }} />
-            <span className="text-sm font-semibold" style={{ color: "#f0f8ec" }}>
-              {app.totalInstalls.toLocaleString()}<span className="font-normal text-xs" style={{ color: "rgba(255,255,255,0.55)" }}> / {totalDevices.toLocaleString()}</span>
+        {/* Right side: installs + status badge */}
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Monitor style={{ width: 14, height: 14, color: "var(--text-tertiary)" }} />
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+              {app.totalInstalls.toLocaleString()}
+              <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-secondary)" }}> / {totalDevices.toLocaleString()}</span>
             </span>
           </div>
           <PatchStatusBadge
@@ -111,20 +129,40 @@ export function AppCard({ app, totalDevices, selected, onToggle, patchStatus, la
       {/* Checkbox — sits outside Link so clicks don't navigate */}
       {onToggle && (
         <button
-          className="absolute left-0 top-0 bottom-0 w-11 flex items-center justify-center z-10 rounded-l-2xl"
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 44,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10,
+            borderRadius: "16px 0 0 16px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
           onClick={() => onToggle(app.id)}
           aria-label={selected ? `Deselect ${app.name}` : `Select ${app.name}`}
         >
           <div
-            className="h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-150 flex-shrink-0"
             style={{
-              borderColor: selected ? "#7dd94a" : "rgba(255,255,255,0.3)",
-              background: selected ? "#5aaa28" : "rgba(255,255,255,0.05)",
+              width: 16,
+              height: 16,
+              borderRadius: 4,
+              border: `2px solid ${selected ? "var(--accent)" : "var(--text-tertiary)"}`,
+              background: selected ? "var(--accent)" : "var(--surface-raised)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
             {selected && (
               <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M1 4L3.5 6.5L9 1" stroke="var(--page-bg)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             )}
           </div>

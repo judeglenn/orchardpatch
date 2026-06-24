@@ -12,51 +12,61 @@ const STATUS_CONFIG = {
   current: {
     icon: CheckCircle2,
     label: "Current",
-    color: "#9fe066",
-    bg: "rgba(125,217,74,0.12)",
-    border: "rgba(125,217,74,0.35)",
+    color: "var(--st-current)",
+    bg: "var(--accent-tint)",
+    border: "var(--border-accent)",
   },
   outdated: {
     icon: AlertCircle,
     label: "Outdated",
-    color: "#ef5350",
-    bg: "rgba(239,83,80,0.12)",
-    border: "rgba(239,83,80,0.35)",
+    color: "var(--st-outdated)",
+    bg: "color-mix(in srgb, var(--st-outdated) 12%, transparent)",
+    border: "color-mix(in srgb, var(--st-outdated) 35%, transparent)",
   },
   unknown: {
     icon: HelpCircle,
     label: "Unknown",
-    color: "rgba(255,255,255,0.35)",
-    bg: "rgba(255,255,255,0.06)",
-    border: "rgba(255,255,255,0.12)",
+    color: "var(--text-tertiary)",
+    bg: "var(--surface-raised)",
+    border: "var(--border-hairline)",
   },
   na: {
     icon: Settings,
     label: "System",
-    color: "rgba(255,255,255,0.25)",
-    bg: "rgba(255,255,255,0.04)",
-    border: "rgba(255,255,255,0.08)",
+    color: "var(--text-tertiary)",
+    bg: "var(--surface-raised)",
+    border: "var(--border-hairline)",
   },
   mas: {
     icon: ShoppingBag,
     label: "App Store",
-    color: "rgba(100,180,255,0.7)",
-    bg: "rgba(100,180,255,0.08)",
-    border: "rgba(100,180,255,0.2)",
+    color: "var(--accent)",
+    bg: "var(--accent-tint)",
+    border: "var(--border-accent)",
   },
 };
 
-export function PatchStatusBadge({ status, latestVersion, className = "" }: PatchStatusBadgeProps) {
+export function PatchStatusBadge({ status, latestVersion }: PatchStatusBadgeProps) {
   const cfg = STATUS_CONFIG[status];
   const Icon = cfg.icon;
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${className}`}
-      style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        borderRadius: 9999,
+        padding: "2px 8px",
+        fontSize: 10,
+        fontWeight: 600,
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
+        color: cfg.color,
+      }}
       title={status === "na" ? "Managed by Apple" : status === "mas" ? "Managed by App Store" : latestVersion ? `Latest: ${latestVersion}` : undefined}
     >
-      <Icon className="h-2.5 w-2.5" />
+      <Icon style={{ width: 10, height: 10 }} />
       {cfg.label}
     </span>
   );
