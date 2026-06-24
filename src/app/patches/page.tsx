@@ -114,7 +114,7 @@ const glassPanel: React.CSSProperties = {
   backdropFilter: "blur(20px) saturate(150%)",
   WebkitBackdropFilter: "blur(20px) saturate(150%)",
   border: "1px solid var(--border-hairline)",
-  borderRadius: "var(--r-xl)",
+  borderRadius: "16px",
   boxShadow: "var(--shadow-card)",
 };
 
@@ -127,22 +127,18 @@ function formatDuration(startedAt: string, completedAt?: string): string {
 }
 
 function MethodBadge({ method }: { method?: string | null }) {
-  const cfg: Record<string, { label: string; emoji: string; color: string; title: string }> = {
-    fruit:   { label: "Fruit",   emoji: "🍎", color: "var(--st-current)",  title: "Patch by the Fruit — single app, single device" },
-    branch:  { label: "Branch",  emoji: "🌿", color: "var(--st-current)",  title: "Patch by the Branch — all outdated apps, single device" },
-    bushel:  { label: "Bushel",  emoji: "🧺", color: "var(--st-outdated)", title: "Patch by the Bushel — single app, all devices" },
-    orchard: { label: "Orchard", emoji: "🌳", color: "var(--accent)",      title: "Patch by the Orchard — all outdated apps, entire fleet" },
+  const cfg: Record<string, { label: string; emoji: string; bg: string; color: string; border: string; title: string }> = {
+    fruit:   { label: "Fruit",   emoji: "🍎", bg: "color-mix(in srgb, var(--st-current) 10%, transparent)", color: "var(--st-current)", border: "color-mix(in srgb, var(--st-current) 30%, transparent)", title: "Patch by the Fruit — single app, single device" },
+    branch:  { label: "Branch",  emoji: "🌿", bg: "color-mix(in srgb, var(--st-current) 10%, transparent)", color: "var(--st-current)", border: "color-mix(in srgb, var(--st-current) 30%, transparent)", title: "Patch by the Branch — all outdated apps, single device" },
+    bushel:  { label: "Bushel",  emoji: "🧺", bg: "color-mix(in srgb, var(--st-outdated) 10%, transparent)", color: "var(--st-outdated)", border: "color-mix(in srgb, var(--st-outdated) 30%, transparent)", title: "Patch by the Bushel — single app, all devices" },
+    orchard: { label: "Orchard", emoji: "🌳", bg: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "color-mix(in srgb, var(--accent) 30%, transparent)", title: "Patch by the Orchard — all outdated apps, entire fleet" },
   };
   const m = method && cfg[method] ? cfg[method] : null;
   if (!m) return <span style={{ color: "var(--text-tertiary)" }}>—</span>;
   return (
     <span
       className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{
-        background: "color-mix(in srgb, currentColor 10%, transparent)",
-        color: m.color,
-        border: `1px solid color-mix(in srgb, currentColor 25%, transparent)`,
-      }}
+      style={{ background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
       title={m.title}
     >
       {m.emoji} {m.label}
@@ -159,7 +155,7 @@ function ModeBadge({ mode }: { mode?: string | null }) {
   );
   if (mode === "managed") return (
     <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "var(--accent-tint)", color: "var(--accent)", border: "1px solid var(--border-accent)" }}>
+      style={{ background: "var(--accent-tint)", color: "var(--st-current)", border: "1px solid var(--border-accent)" }}>
       Managed
     </span>
   );
@@ -345,7 +341,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
             </button>
           ) : null}
         </td>
-
+        
         <td className="px-4 py-3 text-right">
           {job.log ? (
             <span style={{ color: "var(--text-tertiary)" }}>
@@ -428,6 +424,7 @@ function PatchesPageInner() {
 
   // ─── Filter state (URL-driven) ──────────────────────────────────────────────
   const filterDevice = searchParams.get("device_id") ?? "";
+  // Keep typeahead input in sync with URL param (e.g. redirect from Branch modal)
   const filterDeviceHostname = useMemo(
     () => devices.find((d) => d.id === filterDevice)?.hostname ?? "",
     [devices, filterDevice]
@@ -438,6 +435,7 @@ function PatchesPageInner() {
   const filterDate = searchParams.get("date") ?? "all";
   const filterApp = searchParams.get("app") ?? "";
 
+  // Click-outside to close device dropdown
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (deviceInputRef.current && !deviceInputRef.current.contains(e.target as Node)) {
@@ -448,6 +446,7 @@ function PatchesPageInner() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Sync typeahead display with URL param
   useEffect(() => {
     if (!deviceDropdownOpen) {
       setDeviceQuery(filterDeviceHostname);
@@ -518,6 +517,7 @@ function PatchesPageInner() {
     fetchJobs();
   }, [fetchJobs]);
 
+  // 1-second tick to keep undo countdown live while any silent queued jobs are in-window
   useEffect(() => {
     const hasWindowJob = jobs.some(j =>
       j.status === "queued" &&
@@ -534,6 +534,7 @@ function PatchesPageInner() {
     return Math.max(0, Math.ceil(15 - elapsed));
   };
 
+  // ─── Filtered jobs ──────────────────────────────────────────────────────────
   const filteredJobs = useMemo(() => {
     const filtered = jobs.filter((j) => {
       if (filterDevice && j.deviceId !== filterDevice) return false;
@@ -545,6 +546,7 @@ function PatchesPageInner() {
           !j.label?.toLowerCase().includes(filterApp.toLowerCase())) return false;
       return true;
     });
+    // Sort by startedAt descending (createdAt fallback for queued/cancelled jobs)
     return filtered.sort((a, b) => {
       const aT = new Date(a.startedAt || a.createdAt).getTime();
       const bT = new Date(b.startedAt || b.createdAt).getTime();
@@ -581,6 +583,7 @@ function PatchesPageInner() {
         return;
       }
 
+      // Re-fetch jobs from server to get authoritative state
       setCancellingId(null);
       setTimeout(() => {
         fetchJobs();
@@ -592,7 +595,7 @@ function PatchesPageInner() {
   }
 
   return (
-    <div style={{ padding: "26px 30px 48px", maxWidth: 1480, width: "100%" }}>
+    <div className="px-6 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -653,36 +656,39 @@ function PatchesPageInner() {
       )}
 
       {/* Summary stats */}
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 22 }}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Jobs",   value: String(total),    numColor: "var(--text-primary)",    foot: "All time" },
-          { label: "Success Rate", value: successRate !== null ? `${successRate}%` : "—", numColor: successRate === null ? "var(--text-tertiary)" : successRate >= 90 ? "var(--st-current-text)" : successRate >= 70 ? "var(--st-outdated-text)" : "var(--st-lagging)", foot: "Patches completed" },
-          { label: "Running",      value: String(running),  numColor: running > 0 ? "var(--st-outdated-text)" : "var(--text-secondary)", foot: "In progress" },
-          { label: "Last Patch",   value: lastJob ? formatDateTime(lastJob.startedAt) : "—", numColor: "var(--text-secondary)", foot: "Most recent job" },
+          { label: "Total Jobs", value: String(total), color: "var(--text-primary)" },
+          {
+            label: "Success Rate",
+            value: successRate !== null ? `${successRate}%` : "—",
+            color:
+              successRate === null ? "var(--text-tertiary)" : successRate >= 90 ? "var(--st-current)" : successRate >= 70 ? "var(--st-outdated)" : "var(--st-lagging)",
+          },
+          {
+            label: "Running",
+            value: String(running),
+            color: running > 0 ? "var(--st-outdated)" : "var(--text-secondary)",
+          },
+          {
+            label: "Last Patch",
+            value: lastJob ? formatDateTime(lastJob.startedAt) : "—",
+            color: "var(--text-secondary)",
+          },
         ].map((stat) => (
-          <div key={stat.label} style={{
-            position: "relative",
-            overflow: "hidden",
-            backgroundColor: "var(--surface-glass)",
-            backgroundImage: "var(--sheen)",
-            WebkitBackdropFilter: "blur(18px) saturate(150%)",
-            backdropFilter: "blur(18px) saturate(150%)",
-            border: "1px solid var(--border-hairline)",
-            borderRadius: "var(--r-lg)",
-            boxShadow: "var(--shadow-card)",
-            padding: "15px 17px 16px",
-            transition: "background-color 0.5s, box-shadow 0.5s",
-          }}>
-            <div style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
+          <div key={stat.label} className="rounded-2xl px-5 py-4" style={glassPanel}>
+            <p
+              className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-1"
+              style={{ color: "var(--text-tertiary)" }}
+            >
               {stat.label}
-            </div>
-            <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: "-0.03em", marginTop: 11, lineHeight: 1, color: stat.numColor }}>
+            </p>
+            <p className="text-2xl font-bold" style={{ color: stat.color }}>
               {stat.value}
-            </div>
-            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 7 }}>{stat.foot}</div>
+            </p>
           </div>
         ))}
-      </section>
+      </div>
 
       {/* Filters */}
       <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={{ ...glassPanel, overflow: "visible", position: "relative", zIndex: 20 }}>
