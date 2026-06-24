@@ -260,8 +260,8 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         }}
         onClick={() => job.log && setExpanded((e) => !e)}
       >
-        <td className="px-4 py-3">
-          <div className="flex items-center gap-3">
+        <td style={{ padding: "12px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${colorClass}`}
             >
@@ -272,28 +272,28 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
             </span>
           </div>
         </td>
-        <td className="px-4 py-3">
+        <td style={{ padding: "12px 16px" }}>
           <MethodBadge method={job.method} />
         </td>
-        <td className="px-4 py-3">
+        <td style={{ padding: "12px 16px" }}>
           <ModeBadge mode={job.mode} />
         </td>
-        <td className="px-4 py-3">
+        <td style={{ padding: "12px 16px" }}>
           <StatusBadge status={job.status} />
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-secondary)" }}>
+        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--text-secondary)" }}>
           {job.deviceName}
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-tertiary)" }}>
+        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--text-tertiary)" }}>
           {job.initiatedBy ?? <span style={{ color: "var(--text-tertiary)" }}>—</span>}
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-secondary)" }}>
+        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--text-secondary)" }}>
           {formatDateTime(job.startedAt)}
         </td>
-        <td className="px-4 py-3 text-sm font-mono" style={{ color: "var(--text-tertiary)" }}>
+        <td style={{ padding: "12px 16px", fontSize: 14, fontFamily: "monospace", color: "var(--text-tertiary)" }}>
           {formatDuration(job.startedAt, job.completedAt)}
         </td>
-        <td className="px-4 py-3 text-center">
+        <td style={{ padding: "12px 16px", textAlign: "center" }}>
           {job.status === "queued" && job.mode === "silent" && undoSecondsLeft > 0 ? (
             <div className="flex flex-col items-center gap-0.5">
               <button
@@ -332,7 +332,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
           ) : null}
         </td>
         
-        <td className="px-4 py-3 text-right">
+        <td style={{ padding: "12px 16px", textAlign: "right" }}>
           {job.log ? (
             <span style={{ color: "var(--text-tertiary)" }}>
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -345,7 +345,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         const lines = logStr.split("\n");
         return (
           <tr style={{ background: "color-mix(in srgb, var(--page-bg) 80%, transparent)", borderBottom: "1px solid var(--border-hairline)" }}>
-            <td colSpan={10} className="px-4 pb-3 pt-2">
+            <td colSpan={10} style={{ padding: "8px 16px 12px" }}>
               {/* TL;DR summary */}
               <div className="mb-3">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "var(--text-tertiary)" }}>TL;DR</p>
@@ -353,7 +353,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
               </div>
               <div style={{ borderTop: "1px solid var(--border-hairline)", marginBottom: "8px" }} />
               <div
-                className="text-[11px] font-mono leading-relaxed rounded-lg px-4 py-3"
+                style={{ fontSize: 11, fontFamily: "monospace", lineHeight: 1.6, borderRadius: 8, padding: "12px 16px" }}
                 style={{
                   background: "color-mix(in srgb, var(--page-bg) 60%, transparent)",
                   border: "1px solid var(--border-hairline)",
@@ -612,7 +612,7 @@ function PatchesPageInner() {
         <button
           onClick={fetchJobs}
           disabled={loading}
-          className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
+          style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
           style={{
             background: "var(--surface-raised)",
             border: "1px solid var(--border-hairline)",
@@ -847,28 +847,26 @@ function PatchesPageInner() {
       {/* Table */}
       <div style={{ ...glassPanel, borderRadius: 16, overflow: "hidden" }}>
         <div
-          className="px-5 py-4"
-          style={{ borderBottom: "1px solid var(--border-hairline)" }}
+          style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)" }}
         >
           <p
-            className="text-[11px] font-semibold uppercase tracking-[0.1em]"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-secondary)" }}
           >
             Job Log
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+          <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
             {total} patch job{total !== 1 ? "s" : ""}{hasFilters ? " matching filters" : ""} · click a row to expand log output
           </p>
         </div>
 
         {loading && jobs.length === 0 ? (
-          <div className="flex items-center justify-center py-16">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "64px 0" }}>
             <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--accent)" }} />
           </div>
         ) : jobs.length === 0 ? (
-          <div className="text-center py-16">
+          <div style={{ textAlign: "center", padding: "64px 0" }}>
             <ClipboardList
-              className="h-8 w-8 mx-auto mb-3"
+              style={{ width: 32, height: 32, margin: "0 auto 12px" }}
               style={{ color: "var(--text-tertiary)" }}
             />
             <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
@@ -879,8 +877,8 @@ function PatchesPageInner() {
             </p>
           </div>
         ) : filteredJobs.length === 0 && hasFilters ? (
-          <div className="text-center py-16">
-            <ClipboardList className="h-8 w-8 mx-auto mb-3" style={{ color: "var(--text-tertiary)" }} />
+          <div style={{ textAlign: "center", padding: "64px 0" }}>
+            <ClipboardList style={{ width: 32, height: 32, margin: "0 auto 12px" }} style={{ color: "var(--text-tertiary)" }} />
             <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>No jobs match the current filters</p>
             <button onClick={() => router.replace("/patches")} className="text-xs mt-2 underline" style={{ color: "var(--text-tertiary)" }}>Clear filters</button>
           </div>
@@ -897,8 +895,7 @@ function PatchesPageInner() {
                   {["App", "Method", "Mode", "Status", "Device", "Initiated By", "Started", "Duration", "", ""].map((h) => (
                     <th
                       key={h}
-                      className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em]"
-                      style={{ color: "var(--text-secondary)" }}
+                      style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-secondary)" }}
                     >
                       {h}
                     </th>
