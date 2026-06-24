@@ -137,8 +137,7 @@ function MethodBadge({ method }: { method?: string | null }) {
   if (!m) return <span style={{ color: "var(--text-tertiary)" }}>—</span>;
   return (
     <span
-      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
+      style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
       title={m.title}
     >
       {m.emoji} {m.label}
@@ -148,20 +147,19 @@ function MethodBadge({ method }: { method?: string | null }) {
 
 function ModeBadge({ mode }: { mode?: string | null }) {
   if (mode === "silent") return (
-    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "var(--surface-raised)", color: "var(--text-secondary)", border: "1px solid var(--border-hairline)" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, background: "var(--surface-raised)", color: "var(--text-secondary)", border: "1px solid var(--border-hairline)" }}>
       Silent
     </span>
   );
   if (mode === "managed") return (
-    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "var(--accent-tint)", color: "var(--st-current)", border: "1px solid var(--border-accent)" }}>
+    <span       style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,
+       background: "var(--accent-tint)", color: "var(--st-current)", border: "1px solid var(--border-accent)" }}>
       Managed
     </span>
   );
   if (mode === "prompted") return (
-    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}>
+    <span       style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,
+       background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}>
       User Prompted
     </span>
   );
@@ -172,8 +170,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "success") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+        style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,
           background: "var(--accent-tint)",
           color: "var(--st-current)",
           border: "1px solid var(--border-accent)",
@@ -186,8 +183,8 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "failed") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,
+        
           background: "color-mix(in srgb, var(--st-lagging) 12%, transparent)",
           color: "var(--st-lagging)",
           border: "1px solid color-mix(in srgb, var(--st-lagging) 30%, transparent)",
@@ -200,8 +197,8 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "running") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,
+        
           background: "color-mix(in srgb, var(--st-outdated) 12%, transparent)",
           color: "var(--st-outdated)",
           border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)",
@@ -214,8 +211,8 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "queued") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,
+        
           background: "var(--surface-raised)",
           color: "var(--text-secondary)",
           border: "1px solid var(--border-hairline)",
@@ -228,8 +225,8 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "cancelled") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,
+        
           background: "color-mix(in srgb, var(--st-unknown) 12%, transparent)",
           color: "var(--st-unknown)",
           border: "1px solid color-mix(in srgb, var(--st-unknown) 30%, transparent)",
@@ -242,8 +239,8 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   // Loud fallback — any unhandled status value renders visibly wrong on purpose
   return (
     <span
-      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{
+            style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,
+      
         background: "color-mix(in srgb, var(--st-lagging) 12%, transparent)",
         color: "var(--st-lagging)",
         border: "1px solid color-mix(in srgb, var(--st-lagging) 30%, transparent)",
@@ -270,8 +267,8 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         }}
         onClick={() => job.log && setExpanded((e) => !e)}
       >
-        <td className="px-4 py-3">
-          <div className="flex items-center gap-3">
+        <td style={{ padding: "12px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
               className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${colorClass}`}
             >
@@ -282,28 +279,28 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
             </span>
           </div>
         </td>
-        <td className="px-4 py-3">
+        <td style={{ padding: "12px 16px" }}>
           <MethodBadge method={job.method} />
         </td>
-        <td className="px-4 py-3">
+        <td style={{ padding: "12px 16px" }}>
           <ModeBadge mode={job.mode} />
         </td>
-        <td className="px-4 py-3">
+        <td style={{ padding: "12px 16px" }}>
           <StatusBadge status={job.status} />
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-secondary)" }}>
+        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--text-secondary)" }}>
           {job.deviceName}
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-tertiary)" }}>
+        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--text-tertiary)" }}>
           {job.initiatedBy ?? <span style={{ color: "var(--text-tertiary)" }}>—</span>}
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-secondary)" }}>
+        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--text-secondary)" }}>
           {formatDateTime(job.startedAt)}
         </td>
-        <td className="px-4 py-3 text-sm font-mono" style={{ color: "var(--text-tertiary)" }}>
+        <td style={{ padding: "12px 16px", fontSize: 14, fontFamily: "monospace", color: "var(--text-tertiary)" }}>
           {formatDuration(job.startedAt, job.completedAt)}
         </td>
-        <td className="px-4 py-3 text-center">
+        <td style={{ padding: "12px 16px", textAlign: "center" }}>
           {job.status === "queued" && job.mode === "silent" && undoSecondsLeft > 0 ? (
             <div className="flex flex-col items-center gap-0.5">
               <button
@@ -342,7 +339,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
           ) : null}
         </td>
         
-        <td className="px-4 py-3 text-right">
+        <td style={{ padding: "12px 16px", textAlign: "right" }}>
           {job.log ? (
             <span style={{ color: "var(--text-tertiary)" }}>
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -355,7 +352,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         const lines = logStr.split("\n");
         return (
           <tr style={{ background: "color-mix(in srgb, var(--page-bg) 80%, transparent)", borderBottom: "1px solid var(--border-hairline)" }}>
-            <td colSpan={10} className="px-4 pb-3 pt-2">
+            <td colSpan={10} style={{ padding: "8px 16px 12px" }}>
               {/* TL;DR summary */}
               <div className="mb-3">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "var(--text-tertiary)" }}>TL;DR</p>
@@ -599,9 +596,9 @@ function PatchesPageInner() {
   }
 
   return (
-    <div className="px-6 py-6">
+    <div style={{ padding: "24px" }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div className="flex items-center gap-3">
           <div
             className="flex h-10 w-10 items-center justify-center rounded-xl"
@@ -626,12 +623,7 @@ function PatchesPageInner() {
         <button
           onClick={fetchJobs}
           disabled={loading}
-          className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
-          style={{
-            background: "var(--surface-raised)",
-            border: "1px solid var(--border-hairline)",
-            color: "var(--text-secondary)",
-          }}
+          style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -641,11 +633,7 @@ function PatchesPageInner() {
       {/* Offline banner */}
       {agentOffline && (
         <div
-          className="mb-5 flex items-center gap-3 rounded-2xl px-4 py-3"
-          style={{
-            background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--st-outdated) 25%, transparent)",
-          }}
+          style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 12, borderRadius: 16, padding: "12px 16px", background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--st-outdated) 25%, transparent)" }}
         >
           <WifiOff className="h-4 w-4 shrink-0" style={{ color: "var(--st-outdated)" }} />
           <div>
@@ -660,7 +648,7 @@ function PatchesPageInner() {
       )}
 
       {/* Summary stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
           { label: "Total Jobs", value: String(total), color: "var(--text-primary)" },
           {
@@ -680,10 +668,9 @@ function PatchesPageInner() {
             color: "var(--text-secondary)",
           },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-2xl px-5 py-4" style={glassPanel}>
+          <div key={stat.label} style={{ ...glassPanel, borderRadius: 16, padding: "16px 20px" }}>
             <p
-              className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-1"
-              style={{ color: "var(--text-tertiary)" }}
+              style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4, color: "var(--text-tertiary)" }}
             >
               {stat.label}
             </p>
@@ -695,7 +682,7 @@ function PatchesPageInner() {
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={{ ...glassPanel, overflow: "visible", position: "relative", zIndex: 20 }}>
+      <div style={{ ...glassPanel, borderRadius: 16, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap" as const, gap: 12, alignItems: "flex-end", overflow: "visible", position: "relative", zIndex: 20 }}>
         {/* Device typeahead */}
         <div className="flex flex-col gap-1 relative" ref={deviceInputRef}>
           <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Device</label>
@@ -863,31 +850,28 @@ function PatchesPageInner() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl overflow-hidden" style={glassPanel}>
+      <div style={{ ...glassPanel, borderRadius: 16, overflow: "hidden" }}>
         <div
-          className="px-5 py-4"
-          style={{ borderBottom: "1px solid var(--border-hairline)" }}
+          style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)" }}
         >
           <p
-            className="text-[11px] font-semibold uppercase tracking-[0.1em]"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-secondary)" }}
           >
             Job Log
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+          <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
             {total} patch job{total !== 1 ? "s" : ""}{hasFilters ? " matching filters" : ""} · click a row to expand log output
           </p>
         </div>
 
         {loading && jobs.length === 0 ? (
-          <div className="flex items-center justify-center py-16">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "64px 0" }}>
             <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--accent)" }} />
           </div>
         ) : jobs.length === 0 ? (
-          <div className="text-center py-16">
+          <div style={{ textAlign: "center", padding: "64px 0" }}>
             <ClipboardList
-              className="h-8 w-8 mx-auto mb-3"
-              style={{ color: "var(--text-tertiary)" }}
+              style={{ width: 32, height: 32, margin: "0 auto 12px", color: "var(--text-tertiary)" }}
             />
             <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
               No patch jobs yet
@@ -897,8 +881,8 @@ function PatchesPageInner() {
             </p>
           </div>
         ) : filteredJobs.length === 0 && hasFilters ? (
-          <div className="text-center py-16">
-            <ClipboardList className="h-8 w-8 mx-auto mb-3" style={{ color: "var(--text-tertiary)" }} />
+          <div style={{ textAlign: "center", padding: "64px 0" }}>
+            <ClipboardList style={{ width: 32, height: 32, margin: "0 auto 12px", color: "var(--text-tertiary)" }} />
             <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>No jobs match the current filters</p>
             <button onClick={() => router.replace("/patches")} className="text-xs mt-2 underline" style={{ color: "var(--text-tertiary)" }}>Clear filters</button>
           </div>
@@ -915,8 +899,7 @@ function PatchesPageInner() {
                   {["App", "Method", "Mode", "Status", "Device", "Initiated By", "Started", "Duration", "", ""].map((h) => (
                     <th
                       key={h}
-                      className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em]"
-                      style={{ color: "var(--text-secondary)" }}
+                      style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-secondary)" }}
                     >
                       {h}
                     </th>
