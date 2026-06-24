@@ -137,8 +137,7 @@ function MethodBadge({ method }: { method?: string | null }) {
   if (!m) return <span style={{ color: "var(--text-tertiary)" }}>—</span>;
   return (
     <span
-      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
+      style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,  background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
       title={m.title}
     >
       {m.emoji} {m.label}
@@ -148,20 +147,17 @@ function MethodBadge({ method }: { method?: string | null }) {
 
 function ModeBadge({ mode }: { mode?: string | null }) {
   if (mode === "silent") return (
-    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "var(--surface-raised)", color: "var(--text-secondary)", border: "1px solid var(--border-hairline)" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,  background: "var(--surface-raised)", color: "var(--text-secondary)", border: "1px solid var(--border-hairline)" }}>
       Silent
     </span>
   );
   if (mode === "managed") return (
-    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "var(--accent-tint)", color: "var(--st-current)", border: "1px solid var(--border-accent)" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,  background: "var(--accent-tint)", color: "var(--st-current)", border: "1px solid var(--border-accent)" }}>
       Managed
     </span>
   );
   if (mode === "prompted") return (
-    <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999,  background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}>
       User Prompted
     </span>
   );
@@ -172,8 +168,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "success") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+        style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, 
           background: "var(--accent-tint)",
           color: "var(--st-current)",
           border: "1px solid var(--border-accent)",
@@ -186,8 +181,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "failed") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+        style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, 
           background: "color-mix(in srgb, var(--st-lagging) 12%, transparent)",
           color: "var(--st-lagging)",
           border: "1px solid color-mix(in srgb, var(--st-lagging) 30%, transparent)",
@@ -200,8 +194,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "running") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+        style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, 
           background: "color-mix(in srgb, var(--st-outdated) 12%, transparent)",
           color: "var(--st-outdated)",
           border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)",
@@ -214,8 +207,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "queued") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+        style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, 
           background: "var(--surface-raised)",
           color: "var(--text-secondary)",
           border: "1px solid var(--border-hairline)",
@@ -228,8 +220,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   if (status === "cancelled") {
     return (
       <span
-        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-        style={{
+        style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, 
           background: "color-mix(in srgb, var(--st-unknown) 12%, transparent)",
           color: "var(--st-unknown)",
           border: "1px solid color-mix(in srgb, var(--st-unknown) 30%, transparent)",
@@ -242,8 +233,7 @@ function StatusBadge({ status }: { status: PatchStatus }) {
   // Loud fallback — any unhandled status value renders visibly wrong on purpose
   return (
     <span
-      className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{
+      style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, 
         background: "color-mix(in srgb, var(--st-lagging) 12%, transparent)",
         color: "var(--st-lagging)",
         border: "1px solid color-mix(in srgb, var(--st-lagging) 30%, transparent)",
@@ -597,7 +587,7 @@ function PatchesPageInner() {
   return (
     <div className="px-6 py-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div className="flex items-center gap-3">
           <div
             className="flex h-10 w-10 items-center justify-center rounded-xl"
@@ -637,7 +627,7 @@ function PatchesPageInner() {
       {/* Offline banner */}
       {agentOffline && (
         <div
-          className="mb-5 flex items-center gap-3 rounded-2xl px-4 py-3"
+          style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 12, borderRadius: 16, padding: "12px 16px" }}
           style={{
             background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)",
             border: "1px solid color-mix(in srgb, var(--st-outdated) 25%, transparent)",
@@ -656,7 +646,7 @@ function PatchesPageInner() {
       )}
 
       {/* Summary stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
           { label: "Total Jobs", value: String(total), color: "var(--text-primary)" },
           {
@@ -676,7 +666,7 @@ function PatchesPageInner() {
             color: "var(--text-secondary)",
           },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-2xl px-5 py-4" style={glassPanel}>
+          <div key={stat.label} style={{ ...glassPanel, borderRadius: 16, padding: "16px 20px" }}>
             <p
               className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-1"
               style={{ color: "var(--text-tertiary)" }}
@@ -691,7 +681,7 @@ function PatchesPageInner() {
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={{ ...glassPanel, overflow: "visible", position: "relative", zIndex: 20 }}>
+      <div style={{ ...glassPanel, borderRadius: 16, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end", overflow: "visible", position: "relative", zIndex: 20 }}>
         {/* Device typeahead */}
         <div className="flex flex-col gap-1 relative" ref={deviceInputRef}>
           <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Device</label>
@@ -859,7 +849,7 @@ function PatchesPageInner() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl overflow-hidden" style={glassPanel}>
+      <div style={{ ...glassPanel, borderRadius: 16, overflow: "hidden" }}>
         <div
           className="px-5 py-4"
           style={{ borderBottom: "1px solid var(--border-hairline)" }}
