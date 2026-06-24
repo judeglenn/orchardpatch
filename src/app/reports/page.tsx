@@ -13,12 +13,13 @@ type PatchJob = {
 };
 
 const glassPanel: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  backgroundColor: "var(--surface-glass)",
+  backgroundImage: "var(--sheen)",
+  backdropFilter: "blur(20px) saturate(150%)",
+  WebkitBackdropFilter: "blur(20px) saturate(150%)",
+  border: "1px solid var(--border-hairline)",
   borderRadius: "16px",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
+  boxShadow: "var(--shadow-card)",
 };
 
 export default function ReportsPage() {
@@ -98,23 +99,19 @@ export default function ReportsPage() {
     .slice(0, 5);
 
   return (
-    <div className="px-6 py-6">
+    <div style={{ padding: "24px" }}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl"
-          style={{
-            background: "rgba(125,217,74,0.12)",
-            border: "1px solid rgba(125,217,74,0.25)",
-          }}
+          style={{ display: "flex", width: 40, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}
         >
-          <BarChart3 className="h-5 w-5" style={{ color: "#7dd94a" }} />
+          <BarChart3 className="h-5 w-5" style={{ color: "var(--accent)" }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: "#f0f8ec" }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>
             Reports
           </h1>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
             Fleet patch status and compliance overview
           </p>
         </div>
@@ -123,94 +120,77 @@ export default function ReportsPage() {
       {/* Agent offline notice */}
       {agentOffline && (
         <div
-          className="mb-5 flex items-center gap-3 rounded-2xl px-4 py-3"
-          style={{
-            background: "rgba(255,183,77,0.08)",
-            border: "1px solid rgba(255,183,77,0.25)",
-          }}
+          style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 12, borderRadius: 16, padding: "12px 16px", background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--st-outdated) 25%, transparent)" }}
         >
-          <WifiOff className="h-4 w-4 shrink-0" style={{ color: "#ffb74d" }} />
-          <p className="text-sm" style={{ color: "#ffb74d" }}>
+          <WifiOff className="h-4 w-4 shrink-0" style={{ color: "var(--st-outdated)" }} />
+          <p style={{ fontSize: 14, color: "var(--st-outdated)" }}>
             Agent offline — some data may be unavailable.
           </p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
         {/* Patch Summary */}
-        <div className="rounded-2xl overflow-hidden" style={glassPanel}>
+        <div style={{ ...glassPanel, borderRadius: 16, overflow: "hidden" }}>
           <div
-            className="px-5 py-4"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)" }}
           >
             <p
-              className="text-[11px] font-semibold uppercase tracking-[0.1em]"
-              style={{ color: "rgba(255,255,255,0.55)" }}
+              style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}
             >
               Patch Summary
             </p>
           </div>
-          <div className="px-5 py-4">
+          <div style={{ padding: "16px 20px" }}>
             {patchLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-5 w-5 animate-spin" style={{ color: "#7dd94a" }} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "32px 0" }}>
+                <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--accent)" }} />
               </div>
             ) : totalPatched === 0 ? (
-              <p className="text-sm py-6 text-center" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <p style={{ fontSize: 14, padding: "24px 0", textAlign: "center", color: "var(--text-tertiary)" }}>
                 No patch history available yet.
               </p>
             ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
                   <div
-                    className="rounded-xl px-4 py-3"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    style={{ borderRadius: 12, padding: "12px 16px", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)" }}
                   >
-                    <p className="text-[10px] uppercase tracking-[0.1em] mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <p style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, color: "var(--text-tertiary)" }}>
                       Total Patches
                     </p>
-                    <p className="text-2xl font-bold" style={{ color: "#f0f8ec" }}>
+                    <p style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>
                       {totalPatched}
                     </p>
                   </div>
                   <div
                     className="rounded-xl px-4 py-3"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)" }}
                   >
-                    <p className="text-[10px] uppercase tracking-[0.1em] mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <p style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, color: "var(--text-tertiary)" }}>
                       Success Rate
                     </p>
                     <p
-                      className="text-2xl font-bold"
-                      style={{
-                        color:
-                          successRate === null
-                            ? "rgba(255,255,255,0.4)"
-                            : successRate >= 90
-                            ? "#9fe066"
-                            : successRate >= 70
-                            ? "#ffb74d"
-                            : "#ef9a9a",
-                      }}
+                      style={{ fontSize: 24, fontWeight: 700, color: successRate === null ? "var(--text-tertiary)" : successRate >= 90 ? "var(--st-current)" : successRate >= 70 ? "var(--st-outdated)" : "var(--st-lagging)" }}
                     >
                       {successRate !== null ? `${successRate}%` : "—"}
                     </p>
                   </div>
                 </div>
                 {mostPatchedApp && (
-                  <div className="flex items-center gap-3">
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white text-[11px] font-bold ${appColorClass(mostPatchedApp)}`}
                     >
                       {appInitials(mostPatchedApp)}
                     </div>
                     <div>
-                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <p style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
                         Most patched app
                       </p>
-                      <p className="text-sm font-medium" style={{ color: "#f0f8ec" }}>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>
                         {mostPatchedApp}{" "}
-                        <span style={{ color: "rgba(255,255,255,0.4)" }}>
+                        <span style={{ color: "var(--text-tertiary)" }}>
                           ({appPatchCounts[mostPatchedApp]} jobs)
                         </span>
                       </p>
@@ -226,82 +206,69 @@ export default function ReportsPage() {
         <div className="rounded-2xl overflow-hidden" style={glassPanel}>
           <div
             className="px-5 py-4"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ borderBottom: "1px solid var(--border-hairline)" }}
           >
             <p
-              className="text-[11px] font-semibold uppercase tracking-[0.1em]"
-              style={{ color: "rgba(255,255,255,0.55)" }}
+              style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}
             >
               Fleet Health
             </p>
           </div>
-          <div className="px-5 py-4">
+          <div style={{ padding: "16px 20px" }}>
             {apps.length === 0 ? (
-              <p className="text-sm py-6 text-center" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <p style={{ fontSize: 14, padding: "24px 0", textAlign: "center", color: "var(--text-tertiary)" }}>
                 No inventory data — connect the agent to see fleet health.
               </p>
             ) : (
               <div className="space-y-4">
                 {/* Up-to-date gauge */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>
                       Apps up to date
                     </span>
-                    <span className="text-sm font-bold" style={{ color: "#9fe066" }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: "var(--st-current)" }}>
                       {pctUpToDate !== null ? `${pctUpToDate}%` : "—"}
                     </span>
                   </div>
                   <div
-                    className="h-2 rounded-full overflow-hidden"
-                    style={{ background: "rgba(255,255,255,0.08)" }}
+                    style={{ height: 8, borderRadius: 9999, overflow: "hidden", background: "var(--surface-raised)" }}
                   >
                     <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${pctUpToDate ?? 0}%`,
-                        background:
-                          (pctUpToDate ?? 0) >= 80
-                            ? "#7dd94a"
-                            : (pctUpToDate ?? 0) >= 60
-                            ? "#ffb74d"
-                            : "#ef5350",
-                      }}
+                      style={{ height: "100%", borderRadius: 9999, transition: "width 0.3s", width: `${pctUpToDate ?? 0}%`, background: (pctUpToDate ?? 0) >= 80 ? "var(--st-current)" : (pctUpToDate ?? 0) >= 60 ? "var(--st-outdated)" : "var(--st-lagging)" }}
                     />
                   </div>
-                  <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <p style={{ fontSize: 12, marginTop: 6, color: "var(--text-tertiary)" }}>
                     {upToDateApps.length} of {apps.length} apps consistent across fleet
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5"
-                    style={{ background: "rgba(125,217,74,0.06)", border: "1px solid rgba(125,217,74,0.15)" }}>
-                    <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "#9fe066" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "10px 12px", background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}>
+                    <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "var(--st-current)" }} />
                     <div>
-                      <p className="text-lg font-bold leading-none" style={{ color: "#9fe066" }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, lineHeight: 1, color: "var(--st-current)" }}>
                         {upToDateApps.length}
                       </p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <p style={{ fontSize: 10, marginTop: 2, color: "var(--text-tertiary)" }}>
                         Up to date
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5"
-                    style={{ background: "rgba(255,160,0,0.06)", border: "1px solid rgba(255,160,0,0.15)" }}>
-                    <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: "#ffb74d" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "10px 12px", background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--st-outdated) 20%, transparent)" }}>
+                    <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: "var(--st-outdated)" }} />
                     <div>
-                      <p className="text-lg font-bold leading-none" style={{ color: "#ffb74d" }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, lineHeight: 1, color: "var(--st-outdated)" }}>
                         {outdatedApps.length}
                       </p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <p style={{ fontSize: 10, marginTop: 2, color: "var(--text-tertiary)" }}>
                         With conflicts
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+                <p style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
                   {devices.length} device{devices.length !== 1 ? "s" : ""} in inventory
                 </p>
               </div>
@@ -310,48 +277,46 @@ export default function ReportsPage() {
         </div>
 
         {/* Top Outdated Apps */}
-        <div className="rounded-2xl overflow-hidden lg:col-span-2" style={glassPanel}>
+        <div style={{ ...glassPanel, borderRadius: 16, overflow: "hidden", gridColumn: "span 2" }}>
           <div
             className="px-5 py-4"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ borderBottom: "1px solid var(--border-hairline)" }}
           >
             <p
-              className="text-[11px] font-semibold uppercase tracking-[0.1em]"
-              style={{ color: "rgba(255,255,255,0.55)" }}
+              style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}
             >
               Top Outdated Apps
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
               Apps with version conflicts, ranked by install count
             </p>
           </div>
           {topOutdated.length === 0 ? (
-            <div className="text-center py-10">
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
               {apps.length === 0 ? (
                 <>
-                  <ShieldCheck className="h-8 w-8 mx-auto mb-2" style={{ color: "rgba(255,255,255,0.2)" }} />
-                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <ShieldCheck style={{ width: 32, height: 32, margin: "0 auto 8px", color: "var(--text-tertiary)" }} />
+                  <p style={{ fontSize: 14, color: "var(--text-tertiary)" }}>
                     Connect the agent to see outdated apps.
                   </p>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-8 w-8 mx-auto mb-2" style={{ color: "#7dd94a" }} />
-                  <p className="text-sm font-medium" style={{ color: "#9fe066" }}>
+                  <CheckCircle2 style={{ width: 32, height: 32, margin: "0 auto 8px", color: "var(--st-current)" }} />
+                  <p style={{ fontSize: 14, fontWeight: 500, color: "var(--st-current)" }}>
                     All apps are up to date!
                   </p>
                 </>
               )}
             </div>
           ) : (
-            <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+            <div>
               {topOutdated.map((app, idx) => (
                 <div
                   key={app.id}
-                  className="flex items-center gap-4 px-5 py-3.5"
-                  style={{ background: idx % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent" }}
+                  style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 20px", borderTop: idx > 0 ? "1px solid var(--border-hairline)" : "none", background: idx % 2 === 1 ? "color-mix(in srgb, var(--surface-glass) 50%, transparent)" : "transparent" }}
                 >
-                  <span className="text-xs w-5 text-right shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  <span style={{ fontSize: 12, width: 20, textAlign: "right", flexShrink: 0, color: "var(--text-tertiary)" }}>
                     {idx + 1}
                   </span>
                   <div
@@ -360,10 +325,10 @@ export default function ReportsPage() {
                     {appInitials(app.name)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate" style={{ color: "#f0f8ec" }}>
+                    <p style={{ fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>
                       {app.name}
                     </p>
-                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <p style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
                       {app.mostCommonVersion}
                       {(app as { latestVersion?: string }).latestVersion
                         ? ` → ${(app as { latestVersion?: string }).latestVersion}`
@@ -371,20 +336,15 @@ export default function ReportsPage() {
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-semibold" style={{ color: "#ffb74d" }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "var(--st-outdated)" }}>
                       {app.totalInstalls}
                     </p>
-                    <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    <p style={{ fontSize: 10, color: "var(--text-tertiary)" }}>
                       devices
                     </p>
                   </div>
                   <span
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                    style={{
-                      background: "rgba(255,160,0,0.12)",
-                      color: "#ffb74d",
-                      border: "1px solid rgba(255,160,0,0.3)",
-                    }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, flexShrink: 0, background: "color-mix(in srgb, var(--st-outdated) 12%, transparent)", color: "var(--st-outdated)", border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)" }}
                   >
                     <AlertTriangle className="h-3 w-3" /> Outdated
                   </span>
@@ -395,34 +355,33 @@ export default function ReportsPage() {
         </div>
 
         {/* Coverage */}
-        <div className="rounded-2xl px-5 py-5 lg:col-span-2" style={glassPanel}>
-          <div className="flex items-start gap-4">
+        <div style={{ ...glassPanel, borderRadius: 16, padding: "20px", gridColumn: "span 2" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-              style={{ background: "rgba(125,217,74,0.12)", border: "1px solid rgba(125,217,74,0.2)" }}
+              style={{ display: "flex", width: 40, height: 40, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: 12, background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}
             >
-              <ShieldCheck className="h-5 w-5" style={{ color: "#7dd94a" }} />
+              <ShieldCheck className="h-5 w-5" style={{ color: "var(--accent)" }} />
             </div>
             <div>
-              <p className="text-sm font-semibold mb-1" style={{ color: "#f0f8ec" }}>
+              <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: "var(--text-primary)" }}>
                 Installomator Coverage
               </p>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
-                <span style={{ color: "#9fe066", fontWeight: 600 }}>
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--text-secondary)" }}>
+                <span style={{ color: "var(--st-current)", fontWeight: 600 }}>
                   {apps.length > 0 ? apps.length : "—"}
                 </span>{" "}
                 of{" "}
-                <span style={{ color: "#f0f8ec", fontWeight: 600 }}>1,100+</span>{" "}
+                <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>1,100+</span>{" "}
                 supported Installomator apps detected on your fleet.{" "}
                 {apps.length > 0 && (
                   <>
-                    <span style={{ color: "#9fe066" }}>
+                    <span style={{ color: "var(--st-current)" }}>
                       {upToDateApps.length} consistent
                     </span>
                     {outdatedApps.length > 0 && (
                       <>
                         ,{" "}
-                        <span style={{ color: "#ffb74d" }}>
+                        <span style={{ color: "var(--st-outdated)" }}>
                           {outdatedApps.length} with version conflicts
                         </span>
                       </>
