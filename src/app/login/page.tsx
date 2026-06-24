@@ -35,39 +35,27 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center"
-      style={{ background: "linear-gradient(135deg, #0d1f0e 0%, #0a1a10 50%, #061209 100%)" }}
+      style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--page-bg)" }}
     >
       <div
-        className="w-full max-w-sm rounded-2xl px-8 py-10"
-        style={{
-          background: "rgba(255,255,255,0.06)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.12)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-        }}
+        style={{ width: "100%", maxWidth: 384, borderRadius: 16, padding: "40px 32px", backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
       >
         {/* Logo / branding */}
-        <div className="flex flex-col items-center mb-8">
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 32 }}>
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-2xl mb-4"
-            style={{
-              background: "rgba(125,217,74,0.15)",
-              border: "1px solid rgba(125,217,74,0.3)",
-            }}
+            style={{ display: "flex", width: 48, height: 48, alignItems: "center", justifyContent: "center", borderRadius: 16, marginBottom: 16, background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}
           >
-            <Lock className="h-6 w-6" style={{ color: "#7dd94a" }} />
+            <Lock className="h-6 w-6" style={{ color: "var(--accent)" }} />
           </div>
-          <h1 className="text-xl font-bold" style={{ color: "#f0f8ec" }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>
             OrchardPatch
           </h1>
-          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <p style={{ fontSize: 14, marginTop: 4, color: "var(--text-secondary)" }}>
             Enter your passphrase to continue
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <input
             type="password"
             placeholder="Passphrase"
@@ -75,19 +63,13 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             autoFocus
             required
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-            style={{
-              background: "rgba(0,0,0,0.35)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "#f0f8ec",
-              caretColor: "#7dd94a",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "rgba(125,217,74,0.5)")}
-            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.12)")}
+            style={{ width: "100%", borderRadius: 12, padding: "12px 16px", fontSize: 14, outline: "none", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", caretColor: "var(--accent)" }}
+            onFocus={(e) => (e.target.style.borderColor = "var(--border-accent)")}
+            onBlur={(e) => (e.target.style.borderColor = "var(--border-hairline)")}
           />
 
           {error && (
-            <p className="text-xs text-center" style={{ color: "#ef9a9a" }}>
+            <p style={{ fontSize: 12, textAlign: "center", color: "var(--st-lagging)" }}>
               {error}
             </p>
           )}
@@ -95,19 +77,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading || !password}
-            className="w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50"
-            style={{
-              background:
-                loading || !password
-                  ? "rgba(125,217,74,0.2)"
-                  : "rgba(125,217,74,0.85)",
-              color:
-                loading || !password ? "rgba(255,255,255,0.45)" : "#0d1f0e",
-              border: "1px solid rgba(125,217,74,0.4)",
-            }}
+            style={{ width: "100%", borderRadius: 12, padding: "12px 16px", fontSize: 14, fontWeight: 600, cursor: loading || !password ? "not-allowed" : "pointer", opacity: loading || !password ? 0.5 : 1, background: "var(--accent)", color: "var(--page-bg)", border: "1px solid var(--border-accent)" }}
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <Loader2 className="h-4 w-4 animate-spin" /> Signing in…
               </span>
             ) : (
