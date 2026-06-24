@@ -592,7 +592,7 @@ function PatchesPageInner() {
   }
 
   return (
-    <div className="px-6 py-6">
+    <div style={{ padding: "26px 30px 48px", maxWidth: 1480, width: "100%" }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -653,39 +653,36 @@ function PatchesPageInner() {
       )}
 
       {/* Summary stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <section style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 22 }}>
         {[
-          { label: "Total Jobs", value: String(total), color: "var(--text-primary)" },
-          {
-            label: "Success Rate",
-            value: successRate !== null ? `${successRate}%` : "—",
-            color:
-              successRate === null ? "var(--text-tertiary)" : successRate >= 90 ? "var(--st-current)" : successRate >= 70 ? "var(--st-outdated)" : "var(--st-lagging)",
-          },
-          {
-            label: "Running",
-            value: String(running),
-            color: running > 0 ? "var(--st-outdated)" : "var(--text-secondary)",
-          },
-          {
-            label: "Last Patch",
-            value: lastJob ? formatDateTime(lastJob.startedAt) : "—",
-            color: "var(--text-secondary)",
-          },
+          { label: "Total Jobs",   value: String(total),    numColor: "var(--text-primary)",    foot: "All time" },
+          { label: "Success Rate", value: successRate !== null ? `${successRate}%` : "—", numColor: successRate === null ? "var(--text-tertiary)" : successRate >= 90 ? "var(--st-current-text)" : successRate >= 70 ? "var(--st-outdated-text)" : "var(--st-lagging)", foot: "Patches completed" },
+          { label: "Running",      value: String(running),  numColor: running > 0 ? "var(--st-outdated-text)" : "var(--text-secondary)", foot: "In progress" },
+          { label: "Last Patch",   value: lastJob ? formatDateTime(lastJob.startedAt) : "—", numColor: "var(--text-secondary)", foot: "Most recent job" },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-2xl px-5 py-4" style={glassPanel}>
-            <p
-              className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-1"
-              style={{ color: "var(--text-tertiary)" }}
-            >
+          <div key={stat.label} style={{
+            position: "relative",
+            overflow: "hidden",
+            backgroundColor: "var(--surface-glass)",
+            backgroundImage: "var(--sheen)",
+            WebkitBackdropFilter: "blur(18px) saturate(150%)",
+            backdropFilter: "blur(18px) saturate(150%)",
+            border: "1px solid var(--border-hairline)",
+            borderRadius: "var(--r-lg)",
+            boxShadow: "var(--shadow-card)",
+            padding: "15px 17px 16px",
+            transition: "background-color 0.5s, box-shadow 0.5s",
+          }}>
+            <div style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
               {stat.label}
-            </p>
-            <p className="text-2xl font-bold" style={{ color: stat.color }}>
+            </div>
+            <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: "-0.03em", marginTop: 11, lineHeight: 1, color: stat.numColor }}>
               {stat.value}
-            </p>
+            </div>
+            <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 7 }}>{stat.foot}</div>
           </div>
         ))}
-      </div>
+      </section>
 
       {/* Filters */}
       <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={{ ...glassPanel, overflow: "visible", position: "relative", zIndex: 20 }}>
