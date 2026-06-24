@@ -109,12 +109,13 @@ const MOCK_JOBS: PatchJob[] = [
 ];
 
 const glassPanel: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  border: "1px solid rgba(255,255,255,0.12)",
-  borderRadius: "16px",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
+  backgroundColor: "var(--surface-glass)",
+  backgroundImage: "var(--sheen)",
+  backdropFilter: "blur(20px) saturate(150%)",
+  WebkitBackdropFilter: "blur(20px) saturate(150%)",
+  border: "1px solid var(--border-hairline)",
+  borderRadius: "var(--r-xl)",
+  boxShadow: "var(--shadow-card)",
 };
 
 function formatDuration(startedAt: string, completedAt?: string): string {
@@ -126,18 +127,22 @@ function formatDuration(startedAt: string, completedAt?: string): string {
 }
 
 function MethodBadge({ method }: { method?: string | null }) {
-  const cfg: Record<string, { label: string; emoji: string; bg: string; color: string; border: string; title: string }> = {
-    fruit:   { label: "Fruit",   emoji: "🍎", bg: "rgba(125,217,74,0.1)",  color: "#9fe066", border: "rgba(125,217,74,0.3)",  title: "Patch by the Fruit — single app, single device" },
-    branch:  { label: "Branch",  emoji: "🌿", bg: "rgba(100,200,100,0.1)", color: "#7dd94a", border: "rgba(100,200,100,0.3)", title: "Patch by the Branch — all outdated apps, single device" },
-    bushel:  { label: "Bushel",  emoji: "🧺", bg: "rgba(255,183,77,0.1)",  color: "#ffb74d", border: "rgba(255,183,77,0.3)",  title: "Patch by the Bushel — single app, all devices" },
-    orchard: { label: "Orchard", emoji: "🌳", bg: "rgba(100,181,246,0.1)", color: "#90caf9", border: "rgba(100,181,246,0.3)", title: "Patch by the Orchard — all outdated apps, entire fleet" },
+  const cfg: Record<string, { label: string; emoji: string; color: string; title: string }> = {
+    fruit:   { label: "Fruit",   emoji: "🍎", color: "var(--st-current)",  title: "Patch by the Fruit — single app, single device" },
+    branch:  { label: "Branch",  emoji: "🌿", color: "var(--st-current)",  title: "Patch by the Branch — all outdated apps, single device" },
+    bushel:  { label: "Bushel",  emoji: "🧺", color: "var(--st-outdated)", title: "Patch by the Bushel — single app, all devices" },
+    orchard: { label: "Orchard", emoji: "🌳", color: "var(--accent)",      title: "Patch by the Orchard — all outdated apps, entire fleet" },
   };
   const m = method && cfg[method] ? cfg[method] : null;
-  if (!m) return <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>;
+  if (!m) return <span style={{ color: "var(--text-tertiary)" }}>—</span>;
   return (
     <span
       className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
+      style={{
+        background: "color-mix(in srgb, currentColor 10%, transparent)",
+        color: m.color,
+        border: `1px solid color-mix(in srgb, currentColor 25%, transparent)`,
+      }}
       title={m.title}
     >
       {m.emoji} {m.label}
@@ -148,23 +153,23 @@ function MethodBadge({ method }: { method?: string | null }) {
 function ModeBadge({ mode }: { mode?: string | null }) {
   if (mode === "silent") return (
     <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.12)" }}>
+      style={{ background: "var(--surface-raised)", color: "var(--text-secondary)", border: "1px solid var(--border-hairline)" }}>
       Silent
     </span>
   );
   if (mode === "managed") return (
     <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066", border: "1px solid rgba(125,217,74,0.3)" }}>
+      style={{ background: "var(--accent-tint)", color: "var(--accent)", border: "1px solid var(--border-accent)" }}>
       Managed
     </span>
   );
   if (mode === "prompted") return (
     <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
-      style={{ background: "rgba(100,181,246,0.12)", color: "#90caf9", border: "1px solid rgba(100,181,246,0.3)" }}>
+      style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}>
       User Prompted
     </span>
   );
-  return <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>;
+  return <span style={{ color: "var(--text-tertiary)" }}>—</span>;
 }
 
 function StatusBadge({ status }: { status: PatchStatus }) {
@@ -173,9 +178,9 @@ function StatusBadge({ status }: { status: PatchStatus }) {
       <span
         className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
         style={{
-          background: "rgba(125,217,74,0.12)",
-          color: "#9fe066",
-          border: "1px solid rgba(125,217,74,0.3)",
+          background: "var(--accent-tint)",
+          color: "var(--st-current)",
+          border: "1px solid var(--border-accent)",
         }}
       >
         <CheckCircle2 className="h-3 w-3" /> Success
@@ -187,9 +192,9 @@ function StatusBadge({ status }: { status: PatchStatus }) {
       <span
         className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
         style={{
-          background: "rgba(244,67,54,0.12)",
-          color: "#ef9a9a",
-          border: "1px solid rgba(244,67,54,0.3)",
+          background: "color-mix(in srgb, var(--st-lagging) 12%, transparent)",
+          color: "var(--st-lagging)",
+          border: "1px solid color-mix(in srgb, var(--st-lagging) 30%, transparent)",
         }}
       >
         <XCircle className="h-3 w-3" /> Failed
@@ -201,9 +206,9 @@ function StatusBadge({ status }: { status: PatchStatus }) {
       <span
         className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
         style={{
-          background: "rgba(255,183,77,0.12)",
-          color: "#ffb74d",
-          border: "1px solid rgba(255,183,77,0.3)",
+          background: "color-mix(in srgb, var(--st-outdated) 12%, transparent)",
+          color: "var(--st-outdated)",
+          border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)",
         }}
       >
         <Loader2 className="h-3 w-3 animate-spin" /> Running
@@ -215,9 +220,9 @@ function StatusBadge({ status }: { status: PatchStatus }) {
       <span
         className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
         style={{
-          background: "rgba(255,255,255,0.06)",
-          color: "rgba(255,255,255,0.45)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: "var(--surface-raised)",
+          color: "var(--text-secondary)",
+          border: "1px solid var(--border-hairline)",
         }}
       >
         <Clock className="h-3 w-3" /> Queued
@@ -229,9 +234,9 @@ function StatusBadge({ status }: { status: PatchStatus }) {
       <span
         className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
         style={{
-          background: "rgba(148,163,184,0.12)",
-          color: "#94a3b8",
-          border: "1px solid rgba(148,163,184,0.3)",
+          background: "color-mix(in srgb, var(--st-unknown) 12%, transparent)",
+          color: "var(--st-unknown)",
+          border: "1px solid color-mix(in srgb, var(--st-unknown) 30%, transparent)",
         }}
       >
         <Ban className="h-3 w-3" /> Cancelled
@@ -243,9 +248,9 @@ function StatusBadge({ status }: { status: PatchStatus }) {
     <span
       className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
       style={{
-        background: "rgba(255,87,34,0.12)",
-        color: "#ff8a65",
-        border: "1px solid rgba(255,87,34,0.3)",
+        background: "color-mix(in srgb, var(--st-lagging) 12%, transparent)",
+        color: "var(--st-lagging)",
+        border: "1px solid color-mix(in srgb, var(--st-lagging) 30%, transparent)",
       }}
     >
       <AlertTriangle className="h-3 w-3" /> Unknown: {status}
@@ -263,8 +268,8 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
       <tr
         className="border-b transition-colors"
         style={{
-          background: index % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-          borderColor: "rgba(255,255,255,0.06)",
+          background: index % 2 === 1 ? "color-mix(in srgb, var(--surface-glass) 50%, transparent)" : "transparent",
+          borderColor: "var(--border-hairline)",
           cursor: job.log ? "pointer" : "default",
         }}
         onClick={() => job.log && setExpanded((e) => !e)}
@@ -276,7 +281,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
             >
               {initials}
             </div>
-            <span className="text-sm font-medium" style={{ color: "#f0f8ec" }}>
+            <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
               {job.appName}
             </span>
           </div>
@@ -290,16 +295,16 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         <td className="px-4 py-3">
           <StatusBadge status={job.status} />
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-secondary)" }}>
           {job.deviceName}
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
-          {job.initiatedBy ?? <span style={{ color: "rgba(255,255,255,0.2)" }}>—</span>}
+        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-tertiary)" }}>
+          {job.initiatedBy ?? <span style={{ color: "var(--text-tertiary)" }}>—</span>}
         </td>
-        <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+        <td className="px-4 py-3 text-sm" style={{ color: "var(--text-secondary)" }}>
           {formatDateTime(job.startedAt)}
         </td>
-        <td className="px-4 py-3 text-sm font-mono" style={{ color: "rgba(255,255,255,0.45)" }}>
+        <td className="px-4 py-3 text-sm font-mono" style={{ color: "var(--text-tertiary)" }}>
           {formatDuration(job.startedAt, job.completedAt)}
         </td>
         <td className="px-4 py-3 text-center">
@@ -313,14 +318,14 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
                 disabled={cancellingId === job.jobId}
                 className="text-xs font-medium transition-all hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed px-2 py-0.5 rounded"
                 style={{
-                  color: cancellingId === job.jobId ? "rgba(255,255,255,0.3)" : "#fbbf24",
-                  border: "1px solid rgba(251,191,36,0.4)",
-                  background: "rgba(251,191,36,0.08)",
+                  color: cancellingId === job.jobId ? "var(--text-tertiary)" : "var(--st-outdated)",
+                  border: "1px solid color-mix(in srgb, var(--st-outdated) 40%, transparent)",
+                  background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)",
                 }}
               >
                 {cancellingId === job.jobId ? "Cancelling..." : "Undo (" + undoSecondsLeft + "s)"}
               </button>
-              <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
                 Silent patch
               </span>
             </div>
@@ -333,17 +338,17 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
               disabled={cancellingId === job.jobId}
               className="text-xs font-medium transition-all hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                color: cancellingId === job.jobId ? "rgba(255,255,255,0.3)" : "rgba(255,107,107,0.8)",
+                color: cancellingId === job.jobId ? "var(--text-tertiary)" : "var(--st-lagging)",
               }}
             >
               {cancellingId === job.jobId ? "Cancelling..." : "Cancel"}
             </button>
           ) : null}
         </td>
-        
+
         <td className="px-4 py-3 text-right">
           {job.log ? (
-            <span style={{ color: "rgba(255,255,255,0.35)" }}>
+            <span style={{ color: "var(--text-tertiary)" }}>
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </span>
           ) : null}
@@ -353,29 +358,29 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         const logStr = Array.isArray(job.log) ? (job.log as string[]).join("\n") : (job.log as string);
         const lines = logStr.split("\n");
         return (
-          <tr style={{ background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <tr style={{ background: "color-mix(in srgb, var(--page-bg) 80%, transparent)", borderBottom: "1px solid var(--border-hairline)" }}>
             <td colSpan={10} className="px-4 pb-3 pt-2">
               {/* TL;DR summary */}
               <div className="mb-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>TL;DR</p>
-                <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.75)" }}>{getJobSummary(job.status, job.exitCode ?? null)}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "var(--text-tertiary)" }}>TL;DR</p>
+                <p className="text-[12px]" style={{ color: "var(--text-secondary)" }}>{getJobSummary(job.status, job.exitCode ?? null)}</p>
               </div>
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginBottom: "8px" }} />
+              <div style={{ borderTop: "1px solid var(--border-hairline)", marginBottom: "8px" }} />
               <div
                 className="text-[11px] font-mono leading-relaxed rounded-lg px-4 py-3"
                 style={{
-                  background: "rgba(0,0,0,0.4)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "color-mix(in srgb, var(--page-bg) 60%, transparent)",
+                  border: "1px solid var(--border-hairline)",
                   maxHeight: "320px",
                   overflowY: "auto",
                 }}
               >
                 {lines.map((line, i) => {
                   const u = line.toUpperCase();
-                  let color = "rgba(255,255,255,0.7)";
-                  if (/ERROR|FAILED|EXIT CODE [^0]|EXITED WITH/.test(u)) color = "#ef9a9a";
-                  else if (/WARNING|WARN/.test(u)) color = "#ffb74d";
-                  else if (/SUCCESS|SUCCESSFULLY/.test(u)) color = "#9fe066";
+                  let color = "var(--text-secondary)";
+                  if (/ERROR|FAILED|EXIT CODE [^0]|EXITED WITH/.test(u)) color = "var(--st-lagging)";
+                  else if (/WARNING|WARN/.test(u)) color = "var(--st-outdated)";
+                  else if (/SUCCESS|SUCCESSFULLY/.test(u)) color = "var(--st-current)";
                   return (
                     <div key={i} style={{ color, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                       {line || "\u00a0"}
@@ -423,7 +428,6 @@ function PatchesPageInner() {
 
   // ─── Filter state (URL-driven) ──────────────────────────────────────────────
   const filterDevice = searchParams.get("device_id") ?? "";
-  // Keep typeahead input in sync with URL param (e.g. redirect from Branch modal)
   const filterDeviceHostname = useMemo(
     () => devices.find((d) => d.id === filterDevice)?.hostname ?? "",
     [devices, filterDevice]
@@ -434,7 +438,6 @@ function PatchesPageInner() {
   const filterDate = searchParams.get("date") ?? "all";
   const filterApp = searchParams.get("app") ?? "";
 
-  // Click-outside to close device dropdown
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (deviceInputRef.current && !deviceInputRef.current.contains(e.target as Node)) {
@@ -445,7 +448,6 @@ function PatchesPageInner() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Sync typeahead display with URL param
   useEffect(() => {
     if (!deviceDropdownOpen) {
       setDeviceQuery(filterDeviceHostname);
@@ -516,7 +518,6 @@ function PatchesPageInner() {
     fetchJobs();
   }, [fetchJobs]);
 
-  // 1-second tick to keep undo countdown live while any silent queued jobs are in-window
   useEffect(() => {
     const hasWindowJob = jobs.some(j =>
       j.status === "queued" &&
@@ -533,7 +534,6 @@ function PatchesPageInner() {
     return Math.max(0, Math.ceil(15 - elapsed));
   };
 
-  // ─── Filtered jobs ──────────────────────────────────────────────────────────
   const filteredJobs = useMemo(() => {
     const filtered = jobs.filter((j) => {
       if (filterDevice && j.deviceId !== filterDevice) return false;
@@ -545,7 +545,6 @@ function PatchesPageInner() {
           !j.label?.toLowerCase().includes(filterApp.toLowerCase())) return false;
       return true;
     });
-    // Sort by startedAt descending (createdAt fallback for queued/cancelled jobs)
     return filtered.sort((a, b) => {
       const aT = new Date(a.startedAt || a.createdAt).getTime();
       const bT = new Date(b.startedAt || b.createdAt).getTime();
@@ -582,7 +581,6 @@ function PatchesPageInner() {
         return;
       }
 
-      // Re-fetch jobs from server to get authoritative state
       setCancellingId(null);
       setTimeout(() => {
         fetchJobs();
@@ -601,17 +599,17 @@ function PatchesPageInner() {
           <div
             className="flex h-10 w-10 items-center justify-center rounded-xl"
             style={{
-              background: "rgba(125,217,74,0.12)",
-              border: "1px solid rgba(125,217,74,0.25)",
+              background: "var(--accent-tint)",
+              border: "1px solid var(--border-accent)",
             }}
           >
-            <ClipboardList className="h-5 w-5" style={{ color: "#7dd94a" }} />
+            <ClipboardList className="h-5 w-5" style={{ color: "var(--accent)" }} />
           </div>
           <div>
-            <h1 className="text-xl font-bold" style={{ color: "#f0f8ec" }}>
+            <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
               Patch History
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
               {lastRefresh
                 ? `Last updated ${formatRelativeDate(lastRefresh.toISOString())}`
                 : "Loading..."}
@@ -623,9 +621,9 @@ function PatchesPageInner() {
           disabled={loading}
           className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
           style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            color: "rgba(255,255,255,0.7)",
+            background: "var(--surface-raised)",
+            border: "1px solid var(--border-hairline)",
+            color: "var(--text-secondary)",
           }}
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -638,16 +636,16 @@ function PatchesPageInner() {
         <div
           className="mb-5 flex items-center gap-3 rounded-2xl px-4 py-3"
           style={{
-            background: "rgba(255,183,77,0.08)",
-            border: "1px solid rgba(255,183,77,0.25)",
+            background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--st-outdated) 25%, transparent)",
           }}
         >
-          <WifiOff className="h-4 w-4 shrink-0" style={{ color: "#ffb74d" }} />
+          <WifiOff className="h-4 w-4 shrink-0" style={{ color: "var(--st-outdated)" }} />
           <div>
-            <p className="text-sm font-semibold" style={{ color: "#ffb74d" }}>
+            <p className="text-sm font-semibold" style={{ color: "var(--st-outdated)" }}>
               Agent offline — showing sample data
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,183,77,0.7)" }}>
+            <p className="text-xs mt-0.5" style={{ color: "color-mix(in srgb, var(--st-outdated) 70%, transparent)" }}>
               Start the OrchardPatch agent to see real patch history.
             </p>
           </div>
@@ -657,28 +655,28 @@ function PatchesPageInner() {
       {/* Summary stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Jobs", value: String(total), color: "#f0f8ec" },
+          { label: "Total Jobs", value: String(total), color: "var(--text-primary)" },
           {
             label: "Success Rate",
             value: successRate !== null ? `${successRate}%` : "—",
             color:
-              successRate === null ? "rgba(255,255,255,0.35)" : successRate >= 90 ? "#9fe066" : successRate >= 70 ? "#ffb74d" : "#ef9a9a",
+              successRate === null ? "var(--text-tertiary)" : successRate >= 90 ? "var(--st-current)" : successRate >= 70 ? "var(--st-outdated)" : "var(--st-lagging)",
           },
           {
             label: "Running",
             value: String(running),
-            color: running > 0 ? "#ffb74d" : "rgba(255,255,255,0.45)",
+            color: running > 0 ? "var(--st-outdated)" : "var(--text-secondary)",
           },
           {
             label: "Last Patch",
             value: lastJob ? formatDateTime(lastJob.startedAt) : "—",
-            color: "rgba(255,255,255,0.7)",
+            color: "var(--text-secondary)",
           },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl px-5 py-4" style={glassPanel}>
             <p
               className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-1"
-              style={{ color: "rgba(255,255,255,0.4)" }}
+              style={{ color: "var(--text-tertiary)" }}
             >
               {stat.label}
             </p>
@@ -693,7 +691,7 @@ function PatchesPageInner() {
       <div className="rounded-2xl px-5 py-4 mb-4 flex flex-wrap gap-3 items-end" style={{ ...glassPanel, overflow: "visible", position: "relative", zIndex: 20 }}>
         {/* Device typeahead */}
         <div className="flex flex-col gap-1 relative" ref={deviceInputRef}>
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Device</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Device</label>
           <input
             type="text"
             value={deviceDropdownOpen ? deviceQuery : (filterDeviceHostname || deviceQuery)}
@@ -716,9 +714,9 @@ function PatchesPageInner() {
             }}
             className="rounded-lg px-3 py-1.5 text-xs font-medium w-44"
             style={{
-              background: "rgba(255,255,255,0.07)",
-              border: filterDevice ? "1px solid rgba(125,217,74,0.4)" : "1px solid rgba(255,255,255,0.12)",
-              color: "#f0f8ec",
+              background: "var(--surface-raised)",
+              border: filterDevice ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)",
+              color: "var(--text-primary)",
               outline: "none",
             }}
           />
@@ -729,9 +727,11 @@ function PatchesPageInner() {
                 top: dropdownAnchor.top,
                 left: dropdownAnchor.left,
                 width: "208px",
-                background: "rgba(18,32,12,0.98)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4)",
+                background: "var(--surface-glass)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                border: "1px solid var(--border-hairline)",
+                boxShadow: "var(--shadow-card)",
                 maxHeight: "200px",
                 overflowY: "auto",
                 zIndex: 9999,
@@ -740,7 +740,7 @@ function PatchesPageInner() {
             >
               <button
                 className="w-full text-left px-3 py-2 text-xs transition-colors hover:bg-white/5"
-                style={{ color: !filterDevice ? "#9fe066" : "rgba(255,255,255,0.45)" }}
+                style={{ color: !filterDevice ? "var(--accent)" : "var(--text-tertiary)" }}
                 onMouseDown={() => { setFilter("device_id", ""); setDeviceQuery(""); setDeviceDropdownOpen(false); }}
               >
                 All Devices
@@ -749,14 +749,14 @@ function PatchesPageInner() {
                 <button
                   key={d.id}
                   className="w-full text-left px-3 py-2 text-xs transition-colors hover:bg-white/5"
-                  style={{ color: filterDevice === d.id ? "#9fe066" : "#f0f8ec" }}
+                  style={{ color: filterDevice === d.id ? "var(--accent)" : "var(--text-primary)" }}
                   onMouseDown={() => { setFilter("device_id", d.id); setDeviceQuery(d.hostname); setDeviceDropdownOpen(false); }}
                 >
                   {d.hostname}
                 </button>
               ))}
               {filteredDevices.length === 0 && (
-                <p className="px-3 py-2 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>No devices match</p>
+                <p className="px-3 py-2 text-xs" style={{ color: "var(--text-tertiary)" }}>No devices match</p>
               )}
             </div>,
             document.body
@@ -765,12 +765,12 @@ function PatchesPageInner() {
 
         {/* Method filter */}
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Method</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Method</label>
           <select
             value={filterMethod}
             onChange={(e) => setFilter("method", e.target.value)}
             className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "rgba(255,255,255,0.07)", border: filterMethod ? "1px solid rgba(125,217,74,0.4)" : "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+            style={{ background: "var(--surface-raised)", border: filterMethod ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           >
             <option value="">All Methods</option>
             <option value="fruit">🍎 Fruit</option>
@@ -782,12 +782,12 @@ function PatchesPageInner() {
 
         {/* Mode filter */}
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Mode</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Mode</label>
           <select
             value={filterMode}
             onChange={(e) => setFilter("mode", e.target.value)}
             className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "rgba(255,255,255,0.07)", border: filterMode ? "1px solid rgba(125,217,74,0.4)" : "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+            style={{ background: "var(--surface-raised)", border: filterMode ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           >
             <option value="">All Modes</option>
             <option value="silent">Silent</option>
@@ -798,12 +798,12 @@ function PatchesPageInner() {
 
         {/* Status filter */}
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Status</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Status</label>
           <select
             value={filterStatus}
             onChange={(e) => setFilter("status", e.target.value)}
             className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+            style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           >
             <option value="">All Statuses</option>
             <option value="success">Success</option>
@@ -816,12 +816,12 @@ function PatchesPageInner() {
 
         {/* Date range filter */}
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>Date Range</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Date Range</label>
           <select
             value={filterDate}
             onChange={(e) => setFilter("date", e.target.value)}
             className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+            style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           >
             <option value="all">All Time</option>
             <option value="24h">Last 24h</option>
@@ -832,14 +832,14 @@ function PatchesPageInner() {
 
         {/* App search */}
         <div className="flex flex-col gap-1 flex-1 min-w-[140px]">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>App / Label</label>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>App / Label</label>
           <input
             type="text"
             value={filterApp}
             onChange={(e) => setFilter("app", e.target.value)}
             placeholder="Search apps…"
             className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f8ec", outline: "none" }}
+            style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           />
         </div>
 
@@ -848,7 +848,7 @@ function PatchesPageInner() {
           <button
             onClick={() => router.replace("/patches")}
             className="rounded-lg px-3 py-1.5 text-xs font-medium transition-all hover:opacity-80"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}
+            style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-tertiary)" }}
           >
             Clear filters ×
           </button>
@@ -859,41 +859,41 @@ function PatchesPageInner() {
       <div className="rounded-2xl overflow-hidden" style={glassPanel}>
         <div
           className="px-5 py-4"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ borderBottom: "1px solid var(--border-hairline)" }}
         >
           <p
             className="text-[11px] font-semibold uppercase tracking-[0.1em]"
-            style={{ color: "rgba(255,255,255,0.55)" }}
+            style={{ color: "var(--text-secondary)" }}
           >
             Job Log
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
             {total} patch job{total !== 1 ? "s" : ""}{hasFilters ? " matching filters" : ""} · click a row to expand log output
           </p>
         </div>
 
         {loading && jobs.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#7dd94a" }} />
+            <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--accent)" }} />
           </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-16">
             <ClipboardList
               className="h-8 w-8 mx-auto mb-3"
-              style={{ color: "rgba(255,255,255,0.2)" }}
+              style={{ color: "var(--text-tertiary)" }}
             />
-            <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
               No patch jobs yet
             </p>
-            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
               Patch jobs will appear here once you start deploying updates.
             </p>
           </div>
         ) : filteredJobs.length === 0 && hasFilters ? (
           <div className="text-center py-16">
-            <ClipboardList className="h-8 w-8 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.2)" }} />
-            <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>No jobs match the current filters</p>
-            <button onClick={() => router.replace("/patches")} className="text-xs mt-2 underline" style={{ color: "rgba(255,255,255,0.35)" }}>Clear filters</button>
+            <ClipboardList className="h-8 w-8 mx-auto mb-3" style={{ color: "var(--text-tertiary)" }} />
+            <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>No jobs match the current filters</p>
+            <button onClick={() => router.replace("/patches")} className="text-xs mt-2 underline" style={{ color: "var(--text-tertiary)" }}>Clear filters</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -901,15 +901,15 @@ function PatchesPageInner() {
               <thead>
                 <tr
                   style={{
-                    borderBottom: "1px solid rgba(255,255,255,0.08)",
-                    background: "rgba(0,0,0,0.2)",
+                    borderBottom: "1px solid var(--border-hairline)",
+                    background: "color-mix(in srgb, var(--page-bg) 40%, transparent)",
                   }}
                 >
                   {["App", "Method", "Mode", "Status", "Device", "Initiated By", "Started", "Duration", "", ""].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em]"
-                      style={{ color: "rgba(255,255,255,0.45)" }}
+                      style={{ color: "var(--text-secondary)" }}
                     >
                       {h}
                     </th>
@@ -933,7 +933,7 @@ export default function PatchesPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#7dd94a" }} />
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--accent)" }} />
       </div>
     }>
       <PatchesPageInner />
