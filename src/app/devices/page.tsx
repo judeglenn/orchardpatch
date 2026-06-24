@@ -89,11 +89,11 @@ export default function DevicesPage() {
         <div
           style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", padding: "12px 16px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", background: "color-mix(in srgb, var(--page-bg) 40%, transparent)", borderBottom: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
         >
-          <div className="col-span-4">Device Name</div>
+          <div style={{ gridColumn: "span 4" }}>Device Name</div>
           <div style={{ gridColumn: "span 2" }}>Model</div>
-          <div className="col-span-2">macOS</div>
-          <div className="col-span-2">Apps Installed</div>
-          <div className="col-span-2">Last Inventory</div>
+          <div style={{ gridColumn: "span 2" }}>macOS</div>
+          <div style={{ gridColumn: "span 2" }}>Apps Installed</div>
+          <div style={{ gridColumn: "span 2" }}>Last Inventory</div>
         </div>
 
         {sorted.map((device, i) => (
@@ -113,7 +113,7 @@ export default function DevicesPage() {
               </span>
             </div>
             <div style={{ gridColumn: "span 2", fontSize: 14, color: "var(--text-secondary)" }}>{device.model}</div>
-            <div className="col-span-2">
+            <div style={{ gridColumn: "span 2" }}>
               <span style={{ display: "inline-block", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}>
                 {macOSName(device.osVersion) ? `${macOSName(device.osVersion)} ${device.osVersion}` : device.osVersion}
               </span>

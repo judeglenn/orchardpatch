@@ -164,8 +164,7 @@ export default function ReportsPage() {
                     </p>
                   </div>
                   <div
-                    className="rounded-xl px-4 py-3"
-                    style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)" }}
+                    style={{ borderRadius: 12, padding: "12px 16px", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)" }}
                   >
                     <p style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, color: "var(--text-tertiary)" }}>
                       Success Rate
@@ -203,10 +202,9 @@ export default function ReportsPage() {
         </div>
 
         {/* Fleet Health */}
-        <div className="rounded-2xl overflow-hidden" style={glassPanel}>
+        <div style={{ ...glassPanel, borderRadius: 16, overflow: "hidden" }}>
           <div
-            className="px-5 py-4"
-            style={{ borderBottom: "1px solid var(--border-hairline)" }}
+            style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)" }}
           >
             <p
               style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}
@@ -220,7 +218,7 @@ export default function ReportsPage() {
                 No inventory data — connect the agent to see fleet health.
               </p>
             ) : (
-              <div className="space-y-4">
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {/* Up-to-date gauge */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
@@ -243,7 +241,7 @@ export default function ReportsPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "10px 12px", background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}>
                     <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "var(--st-current)" }} />
                     <div>
@@ -279,8 +277,7 @@ export default function ReportsPage() {
         {/* Top Outdated Apps */}
         <div style={{ ...glassPanel, borderRadius: 16, overflow: "hidden", gridColumn: "span 2" }}>
           <div
-            className="px-5 py-4"
-            style={{ borderBottom: "1px solid var(--border-hairline)" }}
+            style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)" }}
           >
             <p
               style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}

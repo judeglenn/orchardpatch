@@ -184,7 +184,7 @@ export default function SettingsPage() {
             Configure OrchardPatch for your organization
           </p>
         </div>
-        <SearchBar value={search} onChange={setSearch} placeholder="Search settings…" className="w-64" />
+        <SearchBar value={search} onChange={setSearch} placeholder="Search settings…" style={{ width: 256 }} />
       </div>
 
       {search && (

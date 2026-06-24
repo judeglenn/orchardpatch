@@ -647,7 +647,7 @@ export default function HomePageInner() {
                     onClick={() => setPatchMode(key)}
                     style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, borderRadius: 12, padding: "10px 12px", textAlign: "left", cursor: "pointer", border: patchMode === key ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", background: patchMode === key ? "var(--accent-tint)" : "var(--surface-raised)" }}
                   >
-                    <div className="flex items-center gap-1.5" style={{ color: patchMode === key ? "var(--accent)" : "var(--text-secondary)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: patchMode === key ? "var(--accent)" : "var(--text-secondary)" }}>
                       {icon}
                       <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
                       {recommended && <span style={{ fontSize: 9, padding: "2px 4px", borderRadius: 4, fontWeight: 500, background: "var(--accent-tint)", color: "var(--accent)" }}>✓</span>}

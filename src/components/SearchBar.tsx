@@ -9,11 +9,12 @@ interface SearchBarProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function SearchBar({ value, onChange, placeholder = "Search...", className }: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder = "Search...", className, style }: SearchBarProps) {
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative", className)} style={style}>
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
       <Input
         value={value}
