@@ -2,83 +2,195 @@ import { Link2, Shield, Webhook, GitBranch, ChevronRight } from "lucide-react";
 
 const FEATURES = [
   {
-    icon: <Link2 className="h-5 w-5" style={{ color: "#2d5016" }} />,
+    icon: <Link2 className="h-5 w-5" style={{ color: "var(--accent)" }} />,
     title: "Jamf Pro",
     description: "Pull real device inventory and app data directly from your Jamf Pro instance. No agents, no CSV uploads — live data from your MDM.",
-    bg: "#f0f7e8",
-    status: "In Development",
+    bg: "var(--accent-tint)",
+    statusLabel: "In Development",
+    statusBg: "color-mix(in srgb, var(--st-current) 12%, transparent)",
+    statusColor: "var(--st-current)",
   },
   {
-    icon: <Shield className="h-5 w-5" style={{ color: "#1565c0" }} />,
+    icon: <Shield className="h-5 w-5" style={{ color: "var(--text-secondary)" }} />,
     title: "Microsoft Intune",
     description: "Support for Intune-enrolled macOS devices. Bring cross-platform fleet visibility into a single pane of glass.",
-    bg: "#e3f2fd",
-    status: "Planned",
+    bg: "var(--surface-raised)",
+    statusLabel: "Planned",
+    statusBg: "var(--surface-raised)",
+    statusColor: "var(--text-tertiary)",
   },
   {
-    icon: <Webhook className="h-5 w-5" style={{ color: "#6a1b9a" }} />,
+    icon: <Webhook className="h-5 w-5" style={{ color: "var(--text-secondary)" }} />,
     title: "Outbound Webhooks",
     description: "Send patch events, alerts, and inventory changes to any endpoint. Works with Zapier, Make, ServiceNow, PagerDuty, and more.",
-    bg: "#f3e5f5",
-    status: "Planned",
+    bg: "var(--surface-raised)",
+    statusLabel: "Planned",
+    statusBg: "var(--surface-raised)",
+    statusColor: "var(--text-tertiary)",
   },
   {
-    icon: <GitBranch className="h-5 w-5" style={{ color: "#e65100" }} />,
+    icon: <GitBranch className="h-5 w-5" style={{ color: "var(--text-secondary)" }} />,
     title: "API Access",
     description: "Full REST API for building your own integrations. Query inventory, trigger patches, and subscribe to events programmatically.",
-    bg: "#fff3e0",
-    status: "Planned",
+    bg: "var(--surface-raised)",
+    statusLabel: "Planned",
+    statusBg: "var(--surface-raised)",
+    statusColor: "var(--text-tertiary)",
   },
 ];
 
 export default function IntegrationsPage() {
   return (
-    <div className="px-6 py-6 max-w-3xl">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl" style={{ background: "#f0f7e8" }}>
+    <div style={{ padding: "24px", maxWidth: 768 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              width: 48,
+              height: 48,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 12,
+              fontSize: 24,
+              background: "var(--accent-tint)",
+              border: "1px solid var(--border-accent)",
+            }}
+          >
             🔗
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold" style={{ color: "#1a1a2e" }}>Integrations</h1>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "#fff3e0", color: "#e65100" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>Integrations</h1>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 9999,
+                  background: "color-mix(in srgb, var(--st-outdated) 12%, transparent)",
+                  color: "var(--st-outdated)",
+                  border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)",
+                }}
+              >
                 Coming Soon
               </span>
             </div>
-            <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Connect OrchardPatch to your existing stack</p>
+            <p style={{ fontSize: 14, marginTop: 2, color: "var(--text-secondary)" }}>Connect OrchardPatch to your existing stack</p>
           </div>
         </div>
-        <div className="rounded-xl px-5 py-4" style={{ background: "#f0f7e8", border: "1px solid #c5e1a5" }}>
-          <p className="text-sm leading-relaxed" style={{ color: "#2d5016" }}>
+        <div
+          style={{
+            borderRadius: 12,
+            padding: "16px 20px",
+            background: "var(--accent-tint)",
+            border: "1px solid var(--border-accent)",
+          }}
+        >
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--text-secondary)" }}>
             OrchardPatch is designed to augment your MDM, not replace it. Integrations connect your existing tools so data flows automatically — no manual syncs, no duplicate work.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      {/* Feature cards */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: 16,
+          marginBottom: 32,
+        }}
+      >
         {FEATURES.map((f) => (
-          <div key={f.title} className="rounded-xl border bg-white p-5" style={{ borderColor: "#e2e4e7", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: f.bg }}>{f.icon}</div>
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: f.status === "In Development" ? "#e8f5e9" : "#eef0f2", color: f.status === "In Development" ? "#2e7d32" : "#9ca3af" }}>
-                {f.status}
+          <div
+            key={f.title}
+            style={{
+              borderRadius: 12,
+              padding: 20,
+              background: "var(--surface-glass)",
+              backgroundImage: "var(--sheen)",
+              backdropFilter: "blur(20px) saturate(150%)",
+              WebkitBackdropFilter: "blur(20px) saturate(150%)",
+              border: "1px solid var(--border-hairline)",
+              boxShadow: "var(--shadow-card)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+              <div
+                style={{
+                  display: "flex",
+                  width: 36,
+                  height: 36,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 8,
+                  background: f.bg,
+                  border: "1px solid var(--border-hairline)",
+                }}
+              >
+                {f.icon}
+              </div>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: "2px 6px",
+                  borderRadius: 9999,
+                  background: f.statusBg,
+                  color: f.statusColor,
+                  border: "1px solid var(--border-hairline)",
+                }}
+              >
+                {f.statusLabel}
               </span>
             </div>
-            <p className="text-sm font-semibold mb-1.5" style={{ color: "#1a1a2e" }}>{f.title}</p>
-            <p className="text-xs leading-relaxed" style={{ color: "#6b7280" }}>{f.description}</p>
+            <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 6, color: "var(--text-primary)" }}>{f.title}</p>
+            <p style={{ fontSize: 12, lineHeight: 1.6, color: "var(--text-tertiary)" }}>{f.description}</p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl border px-5 py-4 flex items-center justify-between" style={{ background: "#1a2e0d", borderColor: "#2d5016" }}>
+      {/* CTA banner */}
+      <div
+        style={{
+          borderRadius: 12,
+          padding: "16px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: "var(--surface-glass)",
+          backgroundImage: "var(--sheen)",
+          backdropFilter: "blur(20px) saturate(150%)",
+          WebkitBackdropFilter: "blur(20px) saturate(150%)",
+          border: "1px solid var(--border-accent)",
+          boxShadow: "var(--shadow-card)",
+        }}
+      >
         <div>
-          <p className="text-sm font-semibold text-white mb-0.5">Available on all paid plans</p>
-          <p className="text-xs" style={{ color: "#a0c878" }}>Join the waitlist and tell us which integration you need most.</p>
+          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 2, color: "var(--text-primary)" }}>Available on all paid plans</p>
+          <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>Join the waitlist and tell us which integration you need most.</p>
         </div>
-        <a href="https://orchardpatch.com" target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1.5 shrink-0 ml-4 rounded-lg px-3 py-2 text-xs font-semibold"
-          style={{ background: "#2d5016", color: "white" }}>
+        <a
+          href="https://orchardpatch.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            flexShrink: 0,
+            marginLeft: 16,
+            borderRadius: 8,
+            padding: "8px 12px",
+            fontSize: 12,
+            fontWeight: 600,
+            background: "var(--accent)",
+            color: "var(--page-bg)",
+            textDecoration: "none",
+          }}
+        >
           Join Waitlist <ChevronRight className="h-3.5 w-3.5" />
         </a>
       </div>

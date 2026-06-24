@@ -19,17 +19,19 @@ function CustomTooltip({ active, payload }: any) {
   if (active && payload && payload.length) {
     return (
       <div
-        className="rounded-lg px-3 py-2 text-sm shadow-lg"
         style={{
-          background: "#ffffff",
-          border: "1px solid #e2e4e7",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          borderRadius: 8,
+          padding: "8px 12px",
+          fontSize: 14,
+          background: "var(--surface-glass)",
+          border: "1px solid var(--border-hairline)",
+          boxShadow: "var(--shadow-card)",
         }}
       >
-        <p className="font-mono text-xs mb-0.5" style={{ color: "#6b7280" }}>
+        <p style={{ fontFamily: "monospace", fontSize: 12, marginBottom: 2, color: "var(--text-tertiary)" }}>
           {payload[0].name}
         </p>
-        <p className="font-semibold" style={{ color: "#1a1a2e" }}>
+        <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>
           {payload[0].value} device{payload[0].value !== 1 ? "s" : ""}
         </p>
       </div>
@@ -47,7 +49,7 @@ export function VersionChart({ versions }: VersionChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="relative">
+    <div style={{ position: "relative" }}>
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
           <Pie
@@ -74,13 +76,21 @@ export function VersionChart({ versions }: VersionChartProps) {
       </ResponsiveContainer>
       {/* Center label */}
       <div
-        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
-        style={{ top: 0 }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          top: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
       >
-        <span className="text-2xl font-bold" style={{ color: "#1a1a2e" }}>
+        <span style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>
           {total}
         </span>
-        <span className="text-xs font-medium" style={{ color: "#6b7280" }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)" }}>
           devices
         </span>
       </div>

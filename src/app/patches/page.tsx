@@ -259,10 +259,9 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
   return (
     <>
       <tr
-        className="border-b transition-colors"
         style={{
           background: index % 2 === 1 ? "color-mix(in srgb, var(--surface-glass) 50%, transparent)" : "transparent",
-          borderColor: "var(--border-hairline)",
+          borderBottom: "1px solid var(--border-hairline)",
           cursor: job.log ? "pointer" : "default",
         }}
         onClick={() => job.log && setExpanded((e) => !e)}
@@ -270,11 +269,12 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         <td style={{ padding: "12px 16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
-              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${colorClass}`}
+              className={colorClass}
+              style={{ display: "flex", width: 28, height: 28, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: "50%", color: "white", fontSize: 10, fontWeight: 700 }}
             >
               {initials}
             </div>
-            <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>
               {job.appName}
             </span>
           </div>
@@ -302,23 +302,28 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
         </td>
         <td style={{ padding: "12px 16px", textAlign: "center" }}>
           {job.status === "queued" && job.mode === "silent" && undoSecondsLeft > 0 ? (
-            <div className="flex flex-col items-center gap-0.5">
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onCancel(job.jobId);
                 }}
                 disabled={cancellingId === job.jobId}
-                className="text-xs font-medium transition-all hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed px-2 py-0.5 rounded"
                 style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  padding: "2px 8px",
+                  borderRadius: 4,
+                  cursor: "pointer",
                   color: cancellingId === job.jobId ? "var(--text-tertiary)" : "var(--st-outdated)",
                   border: "1px solid color-mix(in srgb, var(--st-outdated) 40%, transparent)",
                   background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)",
+                  opacity: cancellingId === job.jobId ? 0.5 : 1,
                 }}
               >
                 {cancellingId === job.jobId ? "Cancelling..." : "Undo (" + undoSecondsLeft + "s)"}
               </button>
-              <span className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
+              <span style={{ fontSize: 10, color: "var(--text-tertiary)" }}>
                 Silent patch
               </span>
             </div>
@@ -329,9 +334,12 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
                 onCancel(job.jobId);
               }}
               disabled={cancellingId === job.jobId}
-              className="text-xs font-medium transition-all hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: "pointer",
                 color: cancellingId === job.jobId ? "var(--text-tertiary)" : "var(--st-lagging)",
+                opacity: cancellingId === job.jobId ? 0.5 : 1,
               }}
             >
               {cancellingId === job.jobId ? "Cancelling..." : "Cancel"}
@@ -354,9 +362,9 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
           <tr style={{ background: "color-mix(in srgb, var(--page-bg) 80%, transparent)", borderBottom: "1px solid var(--border-hairline)" }}>
             <td colSpan={10} style={{ padding: "8px 16px 12px" }}>
               {/* TL;DR summary */}
-              <div className="mb-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "var(--text-tertiary)" }}>TL;DR</p>
-                <p className="text-[12px]" style={{ color: "var(--text-secondary)" }}>{getJobSummary(job.status, job.exitCode ?? null)}</p>
+              <div style={{ marginBottom: 12 }}>
+                <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, color: "var(--text-tertiary)" }}>TL;DR</p>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>{getJobSummary(job.status, job.exitCode ?? null)}</p>
               </div>
               <div style={{ borderTop: "1px solid var(--border-hairline)", marginBottom: "8px" }} />
               <div
@@ -684,8 +692,8 @@ function PatchesPageInner() {
       {/* Filters */}
       <div style={{ ...glassPanel, borderRadius: 16, padding: "16px 20px", marginBottom: 16, display: "flex", flexWrap: "wrap" as const, gap: 12, alignItems: "flex-end", overflow: "visible", position: "relative", zIndex: 20 }}>
         {/* Device typeahead */}
-        <div className="flex flex-col gap-1 relative" ref={deviceInputRef}>
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Device</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, position: "relative" }} ref={deviceInputRef}>
+          <label style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-tertiary)" }}>Device</label>
           <input
             type="text"
             value={deviceDropdownOpen ? deviceQuery : (filterDeviceHostname || deviceQuery)}
@@ -706,8 +714,12 @@ function PatchesPageInner() {
                 setDeviceQuery("");
               }
             }}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium w-44"
             style={{
+              borderRadius: 8,
+              padding: "6px 12px",
+              fontSize: 12,
+              fontWeight: 500,
+              width: 176,
               background: "var(--surface-raised)",
               border: filterDevice ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)",
               color: "var(--text-primary)",
@@ -733,8 +745,7 @@ function PatchesPageInner() {
               }}
             >
               <button
-                className="w-full text-left px-3 py-2 text-xs transition-colors hover:bg-white/5"
-                style={{ color: !filterDevice ? "var(--accent)" : "var(--text-tertiary)" }}
+                style={{ width: "100%", textAlign: "left", padding: "8px 12px", fontSize: 12, cursor: "pointer", background: "transparent", color: !filterDevice ? "var(--accent)" : "var(--text-tertiary)" }}
                 onMouseDown={() => { setFilter("device_id", ""); setDeviceQuery(""); setDeviceDropdownOpen(false); }}
               >
                 All Devices
@@ -742,15 +753,14 @@ function PatchesPageInner() {
               {filteredDevices.map((d) => (
                 <button
                   key={d.id}
-                  className="w-full text-left px-3 py-2 text-xs transition-colors hover:bg-white/5"
-                  style={{ color: filterDevice === d.id ? "var(--accent)" : "var(--text-primary)" }}
+                  style={{ width: "100%", textAlign: "left", padding: "8px 12px", fontSize: 12, cursor: "pointer", background: "transparent", color: filterDevice === d.id ? "var(--accent)" : "var(--text-primary)" }}
                   onMouseDown={() => { setFilter("device_id", d.id); setDeviceQuery(d.hostname); setDeviceDropdownOpen(false); }}
                 >
                   {d.hostname}
                 </button>
               ))}
               {filteredDevices.length === 0 && (
-                <p className="px-3 py-2 text-xs" style={{ color: "var(--text-tertiary)" }}>No devices match</p>
+                <p style={{ padding: "8px 12px", fontSize: 12, color: "var(--text-tertiary)" }}>No devices match</p>
               )}
             </div>,
             document.body
@@ -758,13 +768,12 @@ function PatchesPageInner() {
         </div>
 
         {/* Method filter */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Method</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <label style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-tertiary)" }}>Method</label>
           <select
             value={filterMethod}
             onChange={(e) => setFilter("method", e.target.value)}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "var(--surface-raised)", border: filterMethod ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
+            style={{ borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 500, background: "var(--surface-raised)", border: filterMethod ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           >
             <option value="">All Methods</option>
             <option value="fruit">🍎 Fruit</option>
@@ -775,13 +784,12 @@ function PatchesPageInner() {
         </div>
 
         {/* Mode filter */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Mode</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <label style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-tertiary)" }}>Mode</label>
           <select
             value={filterMode}
             onChange={(e) => setFilter("mode", e.target.value)}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "var(--surface-raised)", border: filterMode ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
+            style={{ borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 500, background: "var(--surface-raised)", border: filterMode ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           >
             <option value="">All Modes</option>
             <option value="silent">Silent</option>
@@ -791,13 +799,12 @@ function PatchesPageInner() {
         </div>
 
         {/* Status filter */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Status</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <label style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-tertiary)" }}>Status</label>
           <select
             value={filterStatus}
             onChange={(e) => setFilter("status", e.target.value)}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
+            style={{ borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 500, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           >
             <option value="">All Statuses</option>
             <option value="success">Success</option>
@@ -809,13 +816,12 @@ function PatchesPageInner() {
         </div>
 
         {/* Date range filter */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>Date Range</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <label style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-tertiary)" }}>Date Range</label>
           <select
             value={filterDate}
             onChange={(e) => setFilter("date", e.target.value)}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
+            style={{ borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 500, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           >
             <option value="all">All Time</option>
             <option value="24h">Last 24h</option>
@@ -825,15 +831,14 @@ function PatchesPageInner() {
         </div>
 
         {/* App search */}
-        <div className="flex flex-col gap-1 flex-1 min-w-[140px]">
-          <label className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-tertiary)" }}>App / Label</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 140 }}>
+          <label style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-tertiary)" }}>App / Label</label>
           <input
             type="text"
             value={filterApp}
             onChange={(e) => setFilter("app", e.target.value)}
             placeholder="Search apps…"
-            className="rounded-lg px-3 py-1.5 text-xs font-medium"
-            style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
+            style={{ borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 500, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)", outline: "none" }}
           />
         </div>
 
@@ -841,8 +846,7 @@ function PatchesPageInner() {
         {hasFilters && (
           <button
             onClick={() => router.replace("/patches")}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium transition-all hover:opacity-80"
-            style={{ background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-tertiary)" }}
+            style={{ borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 500, cursor: "pointer", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-tertiary)" }}
           >
             Clear filters ×
           </button>
@@ -887,8 +891,8 @@ function PatchesPageInner() {
             <button onClick={() => router.replace("/patches")} className="text-xs mt-2 underline" style={{ color: "var(--text-tertiary)" }}>Clear filters</button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%" }}>
               <thead>
                 <tr
                   style={{
@@ -921,11 +925,11 @@ function PatchesPageInner() {
 
 export default function PatchesPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center py-24">
+    <Suspense fallback={(
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "96px 0" }}>
         <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--accent)" }} />
       </div>
-    }>
+    )}>
       <PatchesPageInner />
     </Suspense>
   );

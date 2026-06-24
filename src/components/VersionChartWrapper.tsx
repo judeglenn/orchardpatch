@@ -5,8 +5,17 @@ import dynamic from "next/dynamic";
 const VersionChart = dynamic(() => import("@/components/VersionChart").then(m => m.VersionChart), {
   ssr: false,
   loading: () => (
-    <div className="h-[220px] flex items-center justify-center">
-      <div className="h-8 w-8 rounded-full border-2 border-[#2d5016] border-t-transparent animate-spin" />
+    <div style={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div
+        className="animate-spin"
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: "50%",
+          border: "2px solid var(--accent)",
+          borderTopColor: "transparent",
+        }}
+      />
     </div>
   ),
 });

@@ -29,35 +29,40 @@ export function AgentBanner() {
 
   return (
     <div
-      className="flex items-center justify-between px-4 py-2 text-xs font-medium"
       style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "8px 16px",
+        fontSize: 12,
+        fontWeight: 500,
         background: "rgba(255,255,255,0.04)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderBottom: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <div className="flex items-center gap-2">
-        <WifiOff className="h-3.5 w-3.5" style={{ color: "rgba(255,255,255,0.35)" }} />
-        <span style={{ color: "rgba(255,255,255,0.55)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <WifiOff className="h-3.5 w-3.5" style={{ color: "var(--text-tertiary)" }} />
+        <span style={{ color: "var(--text-secondary)" }}>
           {status === "no-devices" ? (
             <>
               No devices enrolled yet ·{" "}
-              <a href="/settings/enrollment" className="underline" style={{ color: "#7dd94a" }}>
+              <a href="/settings/enrollment" style={{ textDecoration: "underline", color: "var(--accent)" }}>
                 Connect your fleet
               </a>
             </>
           ) : (
             <>
               No fleet data ·{" "}
-              <a href="/settings/enrollment" className="underline" style={{ color: "#7dd94a" }}>
+              <a href="/settings/enrollment" style={{ textDecoration: "underline", color: "var(--accent)" }}>
                 Connect your fleet
               </a>
             </>
           )}
         </span>
       </div>
-      <button onClick={() => setDismissed(true)} style={{ color: "rgba(255,255,255,0.35)" }}>
+      <button onClick={() => setDismissed(true)} style={{ color: "var(--text-tertiary)", cursor: "pointer" }}>
         <X className="h-3.5 w-3.5" />
       </button>
     </div>

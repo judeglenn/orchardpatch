@@ -317,20 +317,19 @@ export default function HomePageInner() {
             value={search}
             onChange={setSearch}
             placeholder="Search apps..."
-            className="w-60"
+            style={{ width: 240 }}
           />
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "h-9 gap-1.5 text-sm"
+                buttonVariants({ variant: "outline", size: "sm" })
               )}
-              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)" }}
+              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", height: 36, gap: 6, fontSize: 14 }}
             >
               {selectedCategory === CATEGORY_ALL ? "Category" : selectedCategory}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="max-h-72 overflow-y-auto">
+            <DropdownMenuContent align="end" style={{ maxHeight: 288, overflowY: "auto" }}>
               {categories.map((cat) => (
                 <DropdownMenuItem
                   key={cat}
@@ -345,10 +344,9 @@ export default function HomePageInner() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "h-9 gap-1.5 text-sm"
+                buttonVariants({ variant: "outline", size: "sm" })
               )}
-              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)" }}
+              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", height: 36, gap: 6, fontSize: 14 }}
             >
               {SORT_LABELS[sortBy]}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
@@ -368,7 +366,6 @@ export default function HomePageInner() {
           <Button
             variant={(patchStatusFilter === "outdated" || conflictsOnly) ? "default" : "outline"}
             size="sm"
-            className="h-9 gap-1.5 text-sm"
             style={
               (patchStatusFilter === "outdated" || conflictsOnly)
                 ? { background: "var(--accent)", color: "var(--page-bg)", borderColor: "var(--accent)" }
@@ -491,12 +488,12 @@ export default function HomePageInner() {
           <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}>
             Applications
             {filtered.length !== apps.length && (
-              <span className="ml-2 normal-case tracking-normal font-normal">
+              <span style={{ marginLeft: 8, textTransform: "none", letterSpacing: "normal", fontWeight: 400 }}>
                 - {filtered.length} of {apps.length}
               </span>
             )}
             {filtered.length === apps.length && (
-              <span className="ml-2 normal-case tracking-normal font-normal">
+              <span style={{ marginLeft: 8, textTransform: "none", letterSpacing: "normal", fontWeight: 400 }}>
                 - {apps.length}
               </span>
             )}
@@ -506,8 +503,7 @@ export default function HomePageInner() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 text-xs"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--text-secondary)", height: 24, fontSize: 12 }}
             onClick={() => {
               setSearch("");
               setConflictsOnly(false);

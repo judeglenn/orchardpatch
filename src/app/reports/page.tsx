@@ -179,7 +179,8 @@ export default function ReportsPage() {
                 {mostPatchedApp && (
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white text-[11px] font-bold ${appColorClass(mostPatchedApp)}`}
+                      className={appColorClass(mostPatchedApp)}
+                      style={{ display: "flex", width: 32, height: 32, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: "50%", color: "white", fontSize: 11, fontWeight: 700 }}
                     >
                       {appInitials(mostPatchedApp)}
                     </div>
@@ -317,11 +318,12 @@ export default function ReportsPage() {
                     {idx + 1}
                   </span>
                   <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white text-[11px] font-bold ${appColorClass(app.name)}`}
+                    className={appColorClass(app.name)}
+                      style={{ display: "flex", width: 32, height: 32, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: "50%", color: "white", fontSize: 11, fontWeight: 700 }}
                   >
                     {appInitials(app.name)}
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <p style={{ fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>
                       {app.name}
                     </p>
@@ -332,7 +334,7 @@ export default function ReportsPage() {
                         : ""}
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <p style={{ fontSize: 14, fontWeight: 600, color: "var(--st-outdated)" }}>
                       {app.totalInstalls}
                     </p>
