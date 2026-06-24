@@ -2,41 +2,27 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAppById, getAppInstallations } from "@/lib/mockData";
 import { getAgentApp, getAgentStore } from "@/lib/agentStore";
-import { VersionChartWrapper } from "@/components/VersionChartWrapper";
-import { appInitials, appColorClass, formatDate, formatRelativeDate } from "@/lib/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ChevronLeft, AlertTriangle, Monitor, CheckCircle2, Clock, Zap, BellOff, Bell, MessageSquare, X } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
+import { Topbar } from "@/components/Topbar";
+import { X } from "lucide-react";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-const COLORS = ["#7dd94a", "#ff9800", "#4caf50", "#64b5f6", "#f44336", "#90caf9", "#ab47bc", "#26a69a"];
-
 type PatchMode = "silent" | "managed" | "prompted";
 
 const INSTALLOMATOR_LABELS: Record<string, string> = {
-  // Browsers
   "org.mozilla.firefox": "firefoxpkg",
   "org.mozilla.firefoxpkg": "firefoxpkg",
   "com.google.Chrome": "googlechromepkg",
   "com.microsoft.edgemac": "microsoftedge",
   "com.brave.Browser": "brave",
   "com.operasoftware.Opera": "opera",
-  "com.apple.Safari": "safari", // via softwareupdate
-
-  // Communication
+  "com.apple.Safari": "safari",
   "us.zoom.xos": "zoom",
   "com.tinyspeck.slackmacgap": "slack",
   "com.microsoft.teams2": "microsoftteams",
@@ -46,8 +32,6 @@ const INSTALLOMATOR_LABELS: Record<string, string> = {
   "com.skype.skype": "skype",
   "ru.keepcoder.Telegram": "telegram",
   "com.loom.desktop": "loom",
-
-  // Microsoft Office
   "com.microsoft.Word": "microsoftword",
   "com.microsoft.Excel": "microsoftexcel",
   "com.microsoft.Powerpoint": "microsoftpowerpoint",
@@ -55,8 +39,6 @@ const INSTALLOMATOR_LABELS: Record<string, string> = {
   "com.microsoft.onenote.mac": "microsoftonenote",
   "com.microsoft.OneDrive": "onedrive",
   "com.microsoft.rdc.macos": "microsoftremotedesktop",
-
-  // Development
   "com.microsoft.VSCode": "visualstudiocode",
   "com.todesktop.230313mzl4w4u92": "cursor",
   "com.docker.docker": "docker",
@@ -69,8 +51,6 @@ const INSTALLOMATOR_LABELS: Record<string, string> = {
   "com.postmanlabs.mac": "postman",
   "com.tinyapp.TablePlus": "tableplus",
   "com.useinsomnia.insomnia": "insomnia",
-
-  // Productivity
   "com.figma.Desktop": "figma",
   "notion.id": "notion",
   "com.agilebits.onepassword7": "1password7",
@@ -87,8 +67,6 @@ const INSTALLOMATOR_LABELS: Record<string, string> = {
   "com.culturedcode.ThingsMac": "things3",
   "com.flexibits.fantastical2.mac": "fantastical",
   "com.tunnelbear.TunnelBear": "tunnelbear",
-
-  // Utilities
   "com.knollsoft.Rectangle": "rectangle",
   "com.runningwithcrayons.Alfred": "alfred",
   "com.hegenberg.BetterTouchTool": "bettertouchtool",
@@ -106,6 +84,60 @@ function getInstallomatorLabel(bundleId: string): string | null {
   return INSTALLOMATOR_LABELS[bundleId] ?? null;
 }
 
+function displayVersion(v: string) { return v ? v.split(",")[0] : v; }
+
+// ---- Style helpers ----
+const cardStyle: React.CSSProperties = {
+  position: "relative",
+  overflow: "hidden",
+  backgroundColor: "var(--surface-glass)",
+  backgroundImage: "var(--sheen)",
+  WebkitBackdropFilter: "blur(20px) saturate(150%)",
+  backdropFilter: "blur(20px) saturate(150%)",
+  border: "1px solid var(--border-hairline)",
+  borderRadius: "var(--r-xl)",
+  boxShadow: "var(--shadow-card)",
+  padding: "24px",
+  marginBottom: 18,
+  transition: "background-color 0.5s, box-shadow 0.5s",
+};
+
+const cardHead: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: 18,
+};
+
+function StatusPill({ status }: { status: "current" | "patchable" | "unknown" | "lagging" }) {
+  const configs = {
+    current:  { bg: "var(--st-current-tint)",  text: "var(--st-current-text)",  dot: "var(--st-current)",  label: "Up to date" },
+    patchable:{ bg: "var(--st-outdated-tint)", text: "var(--st-outdated-text)", dot: "var(--st-outdated)", label: "Patchable" },
+    lagging:  { bg: "var(--st-lagging-tint)",  text: "var(--st-lagging-text)",  dot: "var(--st-lagging)",  label: "Lagging" },
+    unknown:  { bg: "var(--st-unknown-tint)",  text: "var(--st-unknown-text)",  dot: "var(--st-unknown)",  label: "Unknown" },
+  };
+  const c = configs[status];
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      fontSize: 12, fontWeight: 600, padding: "4px 11px",
+      borderRadius: "var(--r-pill)",
+      background: c.bg, color: c.text,
+    }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
+      {c.label}
+    </span>
+  );
+}
+
+function DeviceStatusPill({ status }: { status: string }) {
+  if (status === "outdated") return <StatusPill status="patchable" />;
+  if (status === "current")  return <StatusPill status="current" />;
+  if (status === "unknown")  return <StatusPill status="unknown" />;
+  return null;
+}
+
+// ---- Main page ----
 export default function AppDetailPage({ params }: Props) {
   const { id } = use(params);
   const router = useRouter();
@@ -115,6 +147,7 @@ export default function AppDetailPage({ params }: Props) {
   const [fleetLoaded, setFleetLoaded] = useState(false);
   const [agentLoaded, setAgentLoaded] = useState(false);
   const [agentFetched, setAgentFetched] = useState(false);
+  const [patchHistory, setPatchHistory] = useState<any[]>([]);
 
   // Try fleet server first
   useEffect(() => {
@@ -130,7 +163,7 @@ export default function AppDetailPage({ params }: Props) {
       .finally(() => setFleetLoaded(true));
   }, [id]);
 
-  // If not in mock data, try loading from agent (fallback)
+  // Agent fallback
   useEffect(() => {
     if (!getAppById(id) && !getAgentApp(id) && !agentFetched) {
       setAgentFetched(true);
@@ -152,29 +185,41 @@ export default function AppDetailPage({ params }: Props) {
     }
   }, [id]);
 
-  // All hooks must be before any conditional returns
+  // Load recent patch history for this app
+  useEffect(() => {
+    fetch(`/api/patch-jobs?limit=10`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.jobs) {
+          // Filter to this app by bundle ID or name match
+          const appId = id.replace(/-/g, ".").toLowerCase();
+          const filtered = data.jobs.filter((j: any) =>
+            (j.bundleId || "").toLowerCase() === appId ||
+            (j.label || "").toLowerCase().includes(id.replace(/-/g, "").toLowerCase())
+          ).slice(0, 5);
+          setPatchHistory(filtered);
+        }
+      })
+      .catch(() => {});
+  }, [id]);
+
+  // Modal state
   const [showPatchModal, setShowPatchModal] = useState(false);
   const [patchMode, setPatchMode] = useState<PatchMode>("managed");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [patchDeviceId, setPatchDeviceId] = useState<string | null>(null);
-  const [activeJobId, setActiveJobId] = useState<string | null>(null);
-
-  // Bushel (Patch All) modal state
   const [showBushelModal, setShowBushelModal] = useState(false);
   const [bushelMode, setBushelMode] = useState<PatchMode>("managed");
   const [bushelLoading, setBushelLoading] = useState(false);
 
-  // Fleet data takes priority, then mock/agent fallback
+  // Resolve app data
   let app = fleetApp ?? getAppById(id) ?? getAgentApp(id);
   if (!app && id.includes("-")) {
-    // ID might be a bundle ID with dots replaced (e.g. "ru-keepcoder-Telegram")
-    // Try to find by searching mock apps for matching bundle ID
     const bundleIdPattern = id.replace(/-/g, ".");
     const { apps: mockApps } = require("@/lib/mockData");
     app = mockApps.find((a: any) => a.bundleId.toLowerCase() === bundleIdPattern.toLowerCase());
   }
 
-  // Fleet installations take priority over mock/agent data
   const agentStore = getAgentStore();
   const installations = fleetInstallations ?? (
     getAppInstallations(id).length > 0
@@ -187,8 +232,8 @@ export default function AppDetailPage({ params }: Props) {
               deviceName: d.name,
               version: a.version,
               lastInventory: d.lastInventory,
-              isOutdated: false, // Mock data doesn't have outdated flag, use app.hasVersionConflict instead
-              label: undefined, // Mock data doesn't have live label
+              isOutdated: false,
+              label: undefined,
             }))
         )
   );
@@ -201,612 +246,597 @@ export default function AppDetailPage({ params }: Props) {
   async function handleConfirmPatch() {
     setShowPatchModal(false);
     if (!app) return;
-
-    // FIX: Use live label from installations instead of hardcoded map (Fruit label bug fix)
     let label: string | null = null;
-    
     if (patchDeviceId && fleetInstallations) {
-      // Single device patch - pull label from that device's installation
       const inst = fleetInstallations.find(i => i.deviceId === patchDeviceId);
-      if (inst && inst.label) {
-        label = inst.label;
-      }
-    } else if (fleetInstallations && fleetInstallations.length > 0) {
-      // Multi-device patch - pull label from first installation
-      const firstInst = fleetInstallations.find(i => i.label);
-      if (firstInst) {
-        label = firstInst.label;
-      }
+      if (inst?.label) label = inst.label;
+    } else if (fleetInstallations?.length) {
+      const first = fleetInstallations.find(i => i.label);
+      if (first) label = first.label;
     }
-
-    // Fallback to hardcoded map if live label not available (for mock data)
-    if (!label) {
-      label = getInstallomatorLabel(app.bundleId);
-    }
-
-    if (!label) {
-      showToast(`⚠️ No Installomator label found for ${app.name}`);
-      return;
-    }
-
-    const target = patchDeviceId ? `1 device` : `all ${installations.length} device${installations.length !== 1 ? "s" : ""}`;
-    showToast(`🌳 Queuing ${patchMode} patch for ${app.name}...`);
-
+    if (!label) label = getInstallomatorLabel(app.bundleId);
+    if (!label) { showToast(`No Installomator label found for ${app.name}`); return; }
+    showToast(`Queuing ${patchMode} patch for ${app.name}…`);
     try {
       const res = await fetch("/api/patch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bundleId: app.bundleId,
-          label,
-          appName: app.name,
-          mode: patchMode,
-          deviceId: patchDeviceId || undefined,
-        }),
+        body: JSON.stringify({ bundleId: app.bundleId, label, appName: app.name, mode: patchMode, deviceId: patchDeviceId || undefined }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        showToast(`❌ ${data.error || "Patch failed to queue"}`);
-        return;
-      }
-
-      setActiveJobId(data.jobId);
-      showToast(`✅ Patch job queued (${target}) — redirecting...`);
+      if (!res.ok) { showToast(`${data.error || "Patch failed to queue"}`); return; }
+      showToast(`Patch job queued — redirecting…`);
       setTimeout(() => {
-        const params = new URLSearchParams();
-        params.set('method', 'fruit');
-        if (patchDeviceId) params.set('device_id', patchDeviceId);
-        router.push(`/patches?${params.toString()}`);
+        const p = new URLSearchParams();
+        p.set("method", "fruit");
+        if (patchDeviceId) p.set("device_id", patchDeviceId);
+        router.push(`/patches?${p.toString()}`);
       }, 800);
     } catch {
-      showToast(`❌ Agent not reachable — is it running?`);
+      showToast(`Agent not reachable — is it running?`);
     }
-
     setPatchDeviceId(null);
   }
 
   async function handleConfirmBushelPatch() {
     setShowBushelModal(false);
     if (!app) return;
-
-    // Filter to only outdated devices
     const outdatedDevices = installations.filter(i => i.isOutdated);
-    if (outdatedDevices.length === 0) {
-      showToast(`⚠️ No outdated devices for ${app.name}`);
-      return;
-    }
-
-    // Use live label from first outdated installation
+    if (!outdatedDevices.length) { showToast(`No outdated devices for ${app.name}`); return; }
     let label: string | null = null;
     const firstOutdated = fleetInstallations?.find(i => i.isOutdated);
-    if (firstOutdated && firstOutdated.label) {
-      label = firstOutdated.label;
-    }
-
-    // Fallback to hardcoded map
-    if (!label) {
-      label = getInstallomatorLabel(app.bundleId);
-    }
-
-    if (!label) {
-      showToast(`⚠️ No Installomator label found for ${app.name}`);
-      return;
-    }
-
-    showToast(`🧺 Queuing ${bushelMode} patch for ${app.name} on ${outdatedDevices.length} device${outdatedDevices.length !== 1 ? "s" : ""}...`);
-
+    if (firstOutdated?.label) label = firstOutdated.label;
+    if (!label) label = getInstallomatorLabel(app.bundleId);
+    if (!label) { showToast(`No Installomator label found for ${app.name}`); return; }
+    showToast(`Queuing ${bushelMode} patch for ${app.name} on ${outdatedDevices.length} device${outdatedDevices.length !== 1 ? "s" : ""}…`);
     try {
       setBushelLoading(true);
       const res = await fetch("/api/patch-jobs/bushel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          label,
-          mode: bushelMode,
-        }),
+        body: JSON.stringify({ label, mode: bushelMode }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        showToast(`❌ ${data.error || "Patch failed to queue"}`);
-        return;
-      }
-
-      showToast(`✅ Patch jobs queued (${data.queued} device${data.queued !== 1 ? "s" : ""}) — redirecting...`);
+      if (!res.ok) { showToast(`${data.error || "Patch failed to queue"}`); return; }
+      showToast(`Patch jobs queued (${data.queued} device${data.queued !== 1 ? "s" : ""}) — redirecting…`);
       setTimeout(() => {
-        window.location.href = `/patches?method=bushel&label=${encodeURIComponent(label)}`;
+        window.location.href = `/patches?method=bushel&label=${encodeURIComponent(label!)}`;
       }, 800);
-    } catch (err) {
-      showToast(`❌ Server error — could not queue patches`);
+    } catch {
+      showToast(`Server error — could not queue patches`);
     } finally {
       setBushelLoading(false);
     }
   }
 
-  function pollJobStatus(jobId: string) {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/patch/${jobId}`);
-        const job = await res.json();
-        if (job.status === "success") {
-          clearInterval(interval);
-          setActiveJobId(null);
-          showToast(`✅ ${app?.name} patched successfully!`);
-        } else if (job.status === "failed") {
-          clearInterval(interval);
-          setActiveJobId(null);
-          showToast(`❌ Patch failed: ${job.error || "unknown error"}`);
-        }
-      } catch {
-        clearInterval(interval);
-        setActiveJobId(null);
-      }
-    }, 2500);
-    setTimeout(() => clearInterval(interval), 5 * 60 * 1000);
-  }
-
-  const glassPanel: React.CSSProperties = {
-    background: "rgba(255,255,255,0.06)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-  };
-
-  // Show loading until we have app data or fleet loading finishes
+  // Loading state
   if (!app && !fleetLoaded) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="h-8 w-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "#7dd94a", borderTopColor: "transparent" }} />
-      </div>
+      <>
+        <Topbar type="app-detail" appName="Loading…" />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, color: "var(--text-tertiary)" }}>
+          Loading…
+        </div>
+      </>
     );
   }
 
-  // Show "not found" only after loading is done
+  // Not found
   if (!app) {
     return (
-      <div className="px-6 py-6">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
-          <ChevronLeft className="h-4 w-4" /> App Inventory
-        </Link>
-        <div className="text-center py-20">
-          <p className="text-lg font-semibold" style={{ color: "#f0f8ec" }}>App not found</p>
-          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>This app may not be in the current inventory.</p>
+      <>
+        <Topbar type="app-detail" appName="Not found" />
+        <div style={{ padding: "26px 30px", textAlign: "center" }}>
+          <p style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>App not found</p>
+          <p style={{ fontSize: 13, marginTop: 4, color: "var(--text-secondary)" }}>This app may not be in the current inventory.</p>
         </div>
-      </div>
+      </>
     );
   }
 
-  const initials = appInitials(app.name);
-  const colorClass = appColorClass(app.name);
+  const initials = app.name.charAt(0).toUpperCase();
+  const outdatedDevices = installations.filter((i: any) => i.isOutdated);
+  const patchableVersion = displayVersion(app.latestVersion || "");
 
-  // Calculate outdated devices for Bushel button
-  const outdatedDevices = installations.filter(i => i.isOutdated);
+  // Determine overall version status
+  type VersionState = "current" | "patchable" | "unknown";
+  let versionState: VersionState = "unknown";
+  if (installations.length > 0) {
+    if (app.hasVersionConflict) versionState = "patchable";
+    else if (installations.every((i: any) => i.patchStatus === "current" || (!i.patchStatus && !i.isOutdated))) versionState = "current";
+    else if (installations.some((i: any) => i.patchStatus === "unknown")) versionState = "unknown";
+    else versionState = "current";
+  }
+
+  // Installed version display: single if uniform, range if diverged
+  const uniqueVersions = [...new Set(installations.map((i: any) => displayVersion(i.version)))];
+  const installedDisplay = uniqueVersions.length === 1
+    ? uniqueVersions[0]
+    : uniqueVersions.length > 1
+      ? `${uniqueVersions[uniqueVersions.length - 1]}–${uniqueVersions[0]}`
+      : "—";
+
+  // Installomator label chip text
+  const installomatorLabel = app.label || getInstallomatorLabel(app.bundleId) || null;
 
   return (
-    <div className="px-6 py-6">
-      {/* Back button */}
-      <div className="mb-5">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm transition-colors" style={{ color: "rgba(255,255,255,0.55)" }}>
-          <ChevronLeft className="h-4 w-4" />
-          App Inventory
-        </Link>
-      </div>
+    <>
+      <Topbar type="app-detail" appName={app.name} />
 
-      {/* App header */}
-      <div className="flex items-center gap-5 mb-6 rounded-2xl px-6 py-5" style={glassPanel}>
-        <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-white text-xl font-bold shadow-sm ${colorClass}`}>
-          {initials}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-3 mb-1">
-            <h1 className="text-xl font-bold" style={{ color: "#f0f8ec" }}>{app.name}</h1>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066", border: "1px solid rgba(125,217,74,0.3)" }}>{app.category}</span>
-            {app.hasVersionConflict ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,160,0,0.12)", border: "1px solid rgba(255,160,0,0.35)", color: "#ffb74d" }}>
-                <AlertTriangle className="h-3 w-3" />
-                Outdated
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(125,217,74,0.12)", border: "1px solid rgba(125,217,74,0.35)", color: "#9fe066" }}>
-                <CheckCircle2 className="h-3 w-3" />
-                No Conflicts
-              </span>
-            )}
-          </div>
-          <p className="text-xs font-mono mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>{app.bundleId}</p>
-          <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-            <span className="flex items-center gap-1.5">
-              <Monitor className="h-3.5 w-3.5" />
-              <strong style={{ color: "#f0f8ec" }}>{app.totalInstalls}</strong>&nbsp;installs
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              Last seen {formatRelativeDate(app.lastSeen)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Outdated / No Conflicts banner */}
-      {app.hasVersionConflict ? (
-        <div className="mb-6 flex items-start gap-3 rounded-2xl px-4 py-3.5" style={{ background: "rgba(255,160,0,0.08)", border: "1px solid rgba(255,160,0,0.25)" }}>
-          <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#ffb74d" }} />
-          <div>
-            <p className="text-sm font-semibold" style={{ color: "#ffb74d" }}>Outdated version detected</p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,183,77,0.8)" }}>
-              Installed version is <strong className="font-mono">{app.mostCommonVersion}</strong>.
-              {(app as any).latestVersion && (
-                <> Latest available is <strong className="font-mono">{(app as any).latestVersion}</strong>.</>
-              )}
-              {" "}Consider patching.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="mb-6 flex items-start gap-3 rounded-2xl px-4 py-3.5" style={{ background: "rgba(125,217,74,0.08)", border: "1px solid rgba(125,217,74,0.25)" }}>
-          <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#7dd94a" }} />
-          <div>
-            <p className="text-sm font-semibold" style={{ color: "#9fe066" }}>No version conflicts</p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(159,224,102,0.8)" }}>
-              All {app.totalInstalls} device{app.totalInstalls !== 1 ? "s" : ""} are running <strong className="font-mono">{app.mostCommonVersion}</strong>.
-            </p>
-          </div>
+      {/* Toast */}
+      {toastMsg && (
+        <div style={{
+          position: "fixed", bottom: 24, right: 24, zIndex: 100,
+          background: "var(--surface-solid)",
+          border: "1px solid var(--border-hairline)",
+          borderRadius: "var(--r-md)",
+          boxShadow: "var(--shadow-card)",
+          padding: "12px 16px",
+          fontSize: 13, color: "var(--text-primary)",
+          maxWidth: 360,
+        }}>
+          {toastMsg}
         </div>
       )}
 
-      {/* Patch This App */}
-      <div className="mb-6 rounded-2xl overflow-hidden" style={glassPanel}>
-        <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4" style={{ color: "#7dd94a" }} />
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.55)" }}>Patch Policies</p>
+      <div style={{ padding: "26px 30px 48px", maxWidth: 1180, width: "100%" }}>
+
+        {/* Identity header */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 18, marginBottom: 22 }}>
+          {/* Avatar */}
+          <div style={{
+            width: 58, height: 58, borderRadius: 15, flexShrink: 0,
+            display: "grid", placeItems: "center",
+            fontSize: 24, fontWeight: 600,
+            color: "var(--accent)",
+            background: "var(--accent-tint)",
+            boxShadow: "inset 0 1px 0 var(--rim-top), inset 0 0 0 1px rgba(98,184,106,0.14)",
+          }}>
+            {initials}
           </div>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
-            Choose how updates are deployed to devices running {app.name}.
-          </p>
+
+          {/* Info */}
+          <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
+            <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>{app.name}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" as const, marginTop: 8 }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: 12.5, color: "var(--text-tertiary)" }}>{app.bundleId}</span>
+              {app.bundleId && <span style={{ width: 3, height: 3, borderRadius: "50%", background: "var(--text-tertiary)", opacity: 0.5, display: "inline-block" }} />}
+              {installomatorLabel && (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  fontSize: 12, fontWeight: 500, padding: "4px 10px",
+                  borderRadius: "var(--r-pill)",
+                  background: "var(--surface-glass)",
+                  border: "1px solid var(--border-hairline)",
+                  color: "var(--text-secondary)",
+                }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                    <path d="M4 7h16M4 12h16M4 17h10"/>
+                  </svg>
+                  {installomatorLabel}
+                </span>
+              )}
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 12, fontWeight: 500, padding: "4px 10px",
+                borderRadius: "var(--r-pill)",
+                background: "var(--surface-glass)",
+                border: "1px solid var(--border-hairline)",
+                color: "var(--accent)",
+              }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                  <path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>
+                </svg>
+                via Installomator
+              </span>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 12, fontWeight: 500, padding: "4px 10px",
+                borderRadius: "var(--r-pill)",
+                background: "var(--surface-glass)",
+                border: "1px solid var(--border-hairline)",
+                color: "var(--text-secondary)",
+              }}>
+                {installations.length} device{installations.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+            {app.hasVersionConflict && outdatedDevices.length > 0 && (
+              <button
+                onClick={() => { setBushelMode("managed"); setShowBushelModal(true); }}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 9,
+                  fontSize: 14, fontWeight: 600, color: "#fff",
+                  letterSpacing: "-0.005em",
+                  background: "var(--accent-grad)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  borderRadius: "var(--r-md)",
+                  padding: "11px 18px",
+                  boxShadow: "var(--shadow-accent)",
+                  cursor: "pointer",
+                  transition: "filter 0.14s, transform 0.08s",
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                  <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
+                </svg>
+                Patch all outdated
+              </button>
+            )}
+            <button
+              aria-label="More"
+              style={{
+                width: 40, height: 40,
+                borderRadius: "var(--r-md)",
+                display: "grid", placeItems: "center",
+                background: "var(--surface-glass)",
+                border: "1px solid var(--border-hairline)",
+                boxShadow: "inset 0 1px 0 var(--rim-top)",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                transition: "background 0.14s",
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
+                <circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>
+              </svg>
+            </button>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-          {[
-            {
-              key: "silent" as PatchMode,
-              icon: <BellOff className="h-4 w-4" />,
-              label: "Silent",
-              description: "No notifications. App is force-quit if open and updated silently. Best for overnight deployments.",
-              flags: "NOTIFY=silent · BLOCKING=kill",
-              active: app.hasVersionConflict,
-            },
-            {
-              key: "managed" as PatchMode,
-              icon: <Bell className="h-4 w-4" style={{ color: "#7dd94a" }} />,
-              label: "Managed",
-              description: "Notifies the user the app must quit to update. User must comply. Balanced for most enterprise use cases.",
-              flags: "NOTIFY=success · BLOCKING=tell_user",
-              recommended: true,
-              active: app.hasVersionConflict,
-            },
-            {
-              key: "prompted" as PatchMode,
-              icon: <MessageSquare className="h-4 w-4" />,
-              label: "User Prompted",
-              description: "User sees a \"Quit and Update\" or \"Not Now\" dialog. They control when the update happens. If the app is already closed, Installomator installs silently regardless of this setting.",
-              flags: "NOTIFY=all · BLOCKING=prompt_user",
-              active: app.hasVersionConflict,
-            },
-          ].map(({ key, icon, label, description, flags, recommended, active }) => (
-            <div key={key} className="p-5 flex flex-col gap-3" style={{ background: key === "managed" ? "rgba(125,217,74,0.04)" : undefined }}>
-              <div className="flex items-center gap-2">
-                <span style={{ color: key === "managed" ? "#7dd94a" : "rgba(255,255,255,0.55)" }}>{icon}</span>
-                <span className="text-sm font-semibold" style={{ color: "#f0f8ec" }}>{label}</span>
-                {recommended && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: "rgba(125,217,74,0.15)", color: "#9fe066" }}>Recommended</span>
+
+        {/* Version hero card */}
+        <div style={cardStyle}>
+          <div style={cardHead}>
+            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Version status</span>
+            <StatusPill status={versionState === "patchable" ? "patchable" : versionState === "current" ? "current" : "unknown"} />
+          </div>
+
+          {versionState === "unknown" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--text-tertiary)", padding: "12px 0" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22 }}>
+                <circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 6 0c0 2-3 3-3 3M12 17h.01"/>
+              </svg>
+              <span style={{ fontSize: 14 }}>Version data unavailable</span>
+            </div>
+          )}
+
+          {versionState === "current" && (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "var(--text-tertiary)" }}>Installed</span>
+                <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+                  {installedDisplay}
+                </span>
+                {installations.length > 1 && (
+                  <span style={{ fontSize: 11.5, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 2 }}>
+                    across {installations.length} devices
+                  </span>
                 )}
               </div>
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>{description}</p>
-              <div className="text-[10px] font-mono rounded px-2 py-1" style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.4)" }}>{flags}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 6, color: "var(--st-current-text)" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22 }}>
+                  <circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>
+                </svg>
+                <span style={{ fontSize: 14, fontWeight: 500 }}>Up to date</span>
+              </div>
+            </div>
+          )}
 
+          {versionState === "patchable" && (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "var(--text-tertiary)" }}>Installed</span>
+                <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+                  {installedDisplay}
+                </span>
+                {installations.length > 1 && (
+                  <span style={{ fontSize: 11.5, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 2 }}>
+                    across {installations.length} devices
+                  </span>
+                )}
+              </div>
+              {patchableVersion && (
+                <>
+                  <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "var(--text-tertiary)" }}>Patchable</span>
+                    <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums", color: "var(--st-outdated-text)" }}>
+                      {patchableVersion}
+                    </span>
+                    <span style={{ fontSize: 11.5, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 2 }}>newest Installomator can install</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Fleet installations card */}
+        <div style={cardStyle}>
+          <div style={cardHead}>
+            <div>
+              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>
+                Installed on {installations.length} device{installations.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>
+              Patch a single device, or use Patch all outdated above
+            </span>
+          </div>
+
+          {installations.length === 0 ? (
+            <p style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No installations found.</p>
+          ) : installations.map((inst: any) => (
+            <div key={inst.deviceId} style={{
+              display: "flex", alignItems: "center", gap: 16,
+              padding: "15px 6px",
+              borderBottom: "1px solid var(--border-hairline)",
+            }}>
+              {/* Device icon */}
+              <div style={{
+                width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                display: "grid", placeItems: "center",
+                background: "var(--surface-sunken)",
+                border: "1px solid var(--border-hairline)",
+                color: "var(--text-secondary)",
+              }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ width: 19, height: 19 }}>
+                  <rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/>
+                </svg>
+              </div>
+
+              {/* Device meta */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--text-primary)" }}>
+                  <Link href={fleetInstallations ? `/fleet/devices/${inst.deviceId}` : `/devices/${inst.deviceId}`} style={{ color: "inherit", textDecoration: "none" }}>
+                    {inst.deviceName}
+                  </Link>
+                </div>
+                {(inst.model || inst.osVersion) && (
+                  <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1 }}>
+                    {inst.model}{inst.model && inst.osVersion ? " · " : ""}{inst.osVersion}
+                  </div>
+                )}
+              </div>
+
+              {/* Version */}
+              <div style={{ fontFamily: "var(--mono)", fontSize: 13.5, fontWeight: 500, fontVariantNumeric: "tabular-nums", minWidth: 64, color: "var(--text-primary)" }}>
+                {displayVersion(inst.version)}
+              </div>
+
+              {/* Status pill */}
+              <div style={{ minWidth: 108 }}>
+                <DeviceStatusPill status={inst.patchStatus || (inst.isOutdated ? "outdated" : "current")} />
+              </div>
+
+              {/* Last checked */}
+              <div style={{ fontSize: 12, color: "var(--text-tertiary)", minWidth: 84 }}>
+                {formatDateTime(inst.lastInventory)}
+              </div>
+
+              {/* Action */}
+              <div style={{ minWidth: 142, display: "flex", justifyContent: "flex-end" }}>
+                {inst.source === "mas" ? (
+                  <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>App Store</span>
+                ) : inst.isOutdated ? (
+                  <button
+                    onClick={() => { setPatchDeviceId(inst.deviceId); setShowPatchModal(true); }}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 7,
+                      fontSize: 12.5, fontWeight: 600, color: "#fff",
+                      background: "var(--accent-grad)",
+                      border: "1px solid rgba(255,255,255,0.22)",
+                      borderRadius: "var(--r-sm)",
+                      padding: "8px 13px",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4), 0 6px 16px -8px var(--accent-glow)",
+                      cursor: "pointer",
+                      transition: "filter 0.14s, transform 0.08s",
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+                      <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
+                    </svg>
+                    Patch to {patchableVersion || "latest"}
+                  </button>
+                ) : app.hasVersionConflict ? (
+                  <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>On newest patchable</span>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>
-        <div className="px-5 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>Configure patch policies in Cultivation (coming soon)</p>
-        </div>
-      </div>
 
-      {/* Version distribution */}
-      {app.versions.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="rounded-2xl p-5" style={glassPanel}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "rgba(255,255,255,0.55)" }}>Version Distribution</p>
-            <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.35)" }}>Devices per installed version</p>
-            <VersionChartWrapper versions={app.versions} />
+        {/* Patch history card */}
+        <div style={cardStyle}>
+          <div style={cardHead}>
+            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Patch history</span>
+            <Link href="/patches" style={{ fontSize: 12.5, color: "var(--accent)", fontWeight: 500 }}>
+              View all in Patch History
+            </Link>
           </div>
-          <div className="rounded-2xl p-5" style={glassPanel}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-1" style={{ color: "rgba(255,255,255,0.55)" }}>Version Breakdown</p>
-            <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.35)" }}>{app.versions.length} version{app.versions.length !== 1 ? "s" : ""} detected</p>
-            <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-              {app.versions.map((v: { version: string; deviceCount: number }, i: number) => {
-                const pct = Math.round((v.deviceCount / app.totalInstalls) * 100);
-                return (
-                  <div key={v.version} className="flex items-center gap-3 py-2.5">
-                    <div className="h-3 w-3 shrink-0 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono text-xs font-medium" style={{ color: "#f0f8ec" }}>{v.version}</span>
-                        {i === 0 && <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066" }}>Installed</span>}
-                      </div>
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: COLORS[i % COLORS.length] }} />
-                      </div>
-                    </div>
-                    <span className="text-xs shrink-0 w-28 text-right" style={{ color: "rgba(255,255,255,0.55)" }}>
-                      {v.deviceCount} device{v.deviceCount !== 1 ? "s" : ""} · {pct}%
-                    </span>
-                  </div>
-                );
-              })}
+          {patchHistory.length === 0 ? (
+            <p style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No recent patch history for this app.</p>
+          ) : patchHistory.map((job: any) => (
+            <div key={job.jobId} style={{
+              display: "flex", alignItems: "center", gap: 14,
+              padding: "13px 6px",
+              borderBottom: "1px solid var(--border-hairline)",
+            }}>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", minWidth: 200, fontVariantNumeric: "tabular-nums" }}>
+                {formatDateTime(job.startedAt || job.createdAt)}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", flex: 1, minWidth: 0 }}>{job.deviceName}</div>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 12.5, color: "var(--text-tertiary)", minWidth: 90 }}>
+                {job.completedAt ? "→ " + (displayVersion(job.toVersion || "")) : ""}
+              </div>
+              <div style={{ minWidth: 96, display: "flex", justifyContent: "flex-end" }}>
+                <StatusPill status={job.status === "success" ? "current" : "unknown"} />
+              </div>
             </div>
-          </div>
+          ))}
         </div>
-      )}
 
-      {/* Device installations table */}
-      <div className="rounded-2xl overflow-hidden" style={glassPanel}>
-        <div className="px-5 py-4 flex items-start justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.55)" }}>Installed Devices</p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
-              {installations.length} device{installations.length !== 1 ? "s" : ""} with {app.name} installed
-            </p>
-          </div>
-          {app.hasVersionConflict && outdatedDevices.length > 0 && (
-            <button
-              onClick={() => { setBushelMode("managed"); setShowBushelModal(true); }}
-              className="ml-4 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:opacity-90 active:scale-95"
-              style={{ background: "#5aaa28", color: "white" }}
-            >
-              🧺 Patch All Outdated ({outdatedDevices.length})
-            </button>
-          )}
-        </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: "rgba(255,255,255,0.55)", background: "rgba(0,0,0,0.2)" }}>Device Name</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: "rgba(255,255,255,0.55)", background: "rgba(0,0,0,0.2)" }}>Installed Version</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: "rgba(255,255,255,0.55)", background: "rgba(0,0,0,0.2)" }}>Last Inventory</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-right" style={{ color: "rgba(255,255,255,0.55)", background: "rgba(0,0,0,0.2)" }}>Patch</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {installations.map((inst, idx) => (
-                <TableRow key={inst.deviceId} className="group" style={{ background: idx % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent", borderColor: "rgba(255,255,255,0.06)" }}>
-                  <TableCell>
-                    <Link
-                      href={fleetInstallations ? `/fleet/devices/${inst.deviceId}` : `/devices/${inst.deviceId}`}
-                      className="font-medium text-sm flex items-center gap-2 transition-colors"
-                      style={{ color: "#f0f8ec" }}
-                    >
-                      <Monitor className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(255,255,255,0.35)" }} />
-                      {inst.deviceName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded" style={
-                      app.hasVersionConflict
-                        ? { background: "rgba(255,160,0,0.12)", color: "#ffb74d", border: "1px solid rgba(255,160,0,0.3)" }
-                        : { color: "rgba(255,255,255,0.55)" }
-                    }>
-                      {inst.version}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>{formatDate(inst.lastInventory)}</TableCell>
-                  <TableCell className="text-right">
-                    {inst.source === "mas" ? (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.35)" }}>
-                        App Store
-                      </span>
-                    ) : inst.isOutdated ? (
-                      <button
-                        onClick={() => { setPatchDeviceId(inst.deviceId); setShowPatchModal(true); }}
-                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all hover:opacity-80 active:scale-95"
-                        style={{ background: "#5aaa28", color: "white" }}
-                      >
-                        🍎 Patch
-                      </button>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.35)" }}>
-                        Up to date
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
       </div>
 
-      {/* Fruit patch modal */}
+      {/* Fruit (single device) patch modal */}
       {showPatchModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowPatchModal(false); }}>
-          <div
-            className="rounded-2xl shadow-2xl w-full max-w-sm"
-            style={{
-              background: "rgba(12,22,8,0.95)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
-            }}
-          >
-            <div className="px-6 pt-6 pb-4 flex items-start justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+          onClick={e => { if (e.target === e.currentTarget) setShowPatchModal(false); }}
+        >
+          <div style={{
+            background: "var(--surface-solid)",
+            border: "1px solid var(--border-hairline)",
+            borderRadius: "var(--r-xl)",
+            boxShadow: "var(--shadow-card)",
+            width: "100%", maxWidth: 400,
+          }}>
+            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🍎</span>
-                  <h2 className="text-base font-bold" style={{ color: "#f0f8ec" }}>Patch by the Fruit</h2>
-                </div>
-                <p className="text-sm font-medium" style={{ color: "#9fe066" }}>{app.name}</p>
-                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Patch {app.name}</h2>
+                <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>
                   {patchDeviceId ? "1 device selected" : `All ${installations.length} device${installations.length !== 1 ? "s" : ""}`}
                 </p>
               </div>
-              <button onClick={() => setShowPatchModal(false)} style={{ color: "rgba(255,255,255,0.4)" }}>
-                <X className="h-4 w-4" />
+              <button onClick={() => setShowPatchModal(false)} style={{ color: "var(--text-tertiary)", background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <X size={16} />
               </button>
             </div>
-            <div className="px-6 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>Patch Mode</p>
-              <div className="flex flex-col gap-2">
-                {([
-                  { key: "silent" as PatchMode, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts", recommended: false },
-                  { key: "managed" as PatchMode, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
-                  { key: "prompted" as PatchMode, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when. If already closed, Installomator installs silently.", recommended: false },
-                ] as const).map(({ key, icon, label, sub, recommended }) => (
-                  <button key={key} onClick={() => setPatchMode(key)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
+            <div style={{ padding: "16px 24px" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 10 }}>Patch mode</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {(["silent", "managed", "prompted"] as const).map(mode => (
+                  <button
+                    key={mode}
+                    onClick={() => setPatchMode(mode)}
                     style={{
-                      border: patchMode === key ? "1px solid rgba(125,217,74,0.5)" : "1px solid rgba(255,255,255,0.12)",
-                      background: patchMode === key ? "rgba(125,217,74,0.12)" : "rgba(255,255,255,0.04)",
-                      boxShadow: patchMode === key ? "0 0 0 1px rgba(125,217,74,0.3)" : "none",
-                    }}>
-                    <div style={{ color: patchMode === key ? "#7dd94a" : "rgba(255,255,255,0.55)" }}>{icon}</div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold" style={{ color: "#f0f8ec" }}>{label}</span>
-                        {recommended && <span className="text-[9px] px-1 py-0.5 rounded font-medium" style={{ background: "rgba(125,217,74,0.2)", color: "#9fe066" }}>✓ Recommended</span>}
-                      </div>
-                      <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{sub}</span>
-                    </div>
+                      display: "flex", alignItems: "center", gap: 12,
+                      padding: "10px 14px",
+                      borderRadius: "var(--r-md)",
+                      border: `1px solid ${patchMode === mode ? "var(--accent)" : "var(--border-hairline)"}`,
+                      background: patchMode === mode ? "var(--accent-tint)" : "var(--surface-glass)",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", textTransform: "capitalize" }}>{mode}</span>
+                    {mode === "managed" && <span style={{ fontSize: 11, color: "var(--accent)", marginLeft: "auto" }}>recommended</span>}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="flex gap-3 px-6 pb-6">
-              <button onClick={() => setShowPatchModal(false)}
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95"
-                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.04)" }}>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setShowPatchModal(false)} style={{ padding: "9px 16px", borderRadius: "var(--r-md)", border: "1px solid var(--border-hairline)", background: "var(--surface-glass)", color: "var(--text-primary)", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
                 Cancel
               </button>
-              <button onClick={handleConfirmPatch}
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95"
-                style={{ background: "#5aaa28", color: "white" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#6abf32")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#5aaa28")}
+              <button
+                onClick={handleConfirmPatch}
+                style={{
+                  padding: "9px 18px",
+                  borderRadius: "var(--r-md)",
+                  background: "var(--accent-grad)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  color: "#fff",
+                  fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  boxShadow: "var(--shadow-accent)",
+                }}
               >
-                Deploy {patchMode === "silent" ? "Silent" : patchMode === "managed" ? "Managed" : "User Prompted"} 🍎
+                Patch now
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Bushel patch modal */}
+      {/* Bushel (all outdated) patch modal */}
       {showBushelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowBushelModal(false); }}>
-          <div
-            className="rounded-2xl shadow-2xl w-full max-w-lg"
-            style={{
-              background: "rgba(12,22,8,0.95)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
-            }}
-          >
-            <div className="px-6 pt-6 pb-4 flex items-start justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+          onClick={e => { if (e.target === e.currentTarget) setShowBushelModal(false); }}
+        >
+          <div style={{
+            background: "var(--surface-solid)",
+            border: "1px solid var(--border-hairline)",
+            borderRadius: "var(--r-xl)",
+            boxShadow: "var(--shadow-card)",
+            width: "100%", maxWidth: 480,
+            maxHeight: "90vh", display: "flex", flexDirection: "column",
+          }}>
+            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🧺</span>
-                  <h2 className="text-base font-bold" style={{ color: "#f0f8ec" }}>Patch by the Bushel</h2>
-                </div>
-                <p className="text-sm font-medium" style={{ color: "#9fe066" }}>{app.name}</p>
-                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Patch all outdated — {app.name}</h2>
+                <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>
                   {outdatedDevices.length} outdated device{outdatedDevices.length !== 1 ? "s" : ""}
                 </p>
               </div>
-              <button onClick={() => setShowBushelModal(false)} style={{ color: "rgba(255,255,255,0.4)" }}>
-                <X className="h-4 w-4" />
+              <button onClick={() => setShowBushelModal(false)} style={{ color: "var(--text-tertiary)", background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <X size={16} />
               </button>
             </div>
 
-            {/* Affected devices list */}
-            <div className="px-6 py-4 max-h-48 overflow-y-auto" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>Affected Devices</p>
-              <div className="space-y-2">
-                {outdatedDevices.map((inst) => (
-                  <div key={inst.deviceId} className="flex items-center justify-between rounded px-3 py-2" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: "#f0f8ec" }}>{inst.deviceName}</p>
-                      <p className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.55)" }}>Current: {inst.version}</p>
-                    </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px", display: "flex", flexDirection: "column", gap: 8 }}>
+              {outdatedDevices.map((inst: any) => (
+                <div key={inst.deviceId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--r-md)", background: "var(--surface-sunken)", border: "1px solid var(--border-hairline)" }}>
+                  <div>
+                    <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-primary)" }}>{inst.deviceName}</p>
+                    <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontFamily: "var(--mono)" }}>v{displayVersion(inst.version)}</p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
 
-            {/* Mode selector */}
-            <div className="px-6 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>Patch Mode</p>
-              <div className="flex flex-col gap-2">
-                {([
-                  { key: "silent" as PatchMode, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts", recommended: false },
-                  { key: "managed" as PatchMode, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
-                  { key: "prompted" as PatchMode, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when. If already closed, Installomator installs silently.", recommended: false },
-                ] as const).map(({ key, icon, label, sub, recommended }) => (
-                  <button key={key} onClick={() => setBushelMode(key)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
+            <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 10 }}>Patch mode</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {(["silent", "managed", "prompted"] as const).map(mode => (
+                  <button
+                    key={mode}
+                    onClick={() => setBushelMode(mode)}
                     style={{
-                      border: bushelMode === key ? "1px solid rgba(125,217,74,0.5)" : "1px solid rgba(255,255,255,0.12)",
-                      background: bushelMode === key ? "rgba(125,217,74,0.12)" : "rgba(255,255,255,0.04)",
-                      boxShadow: bushelMode === key ? "0 0 0 1px rgba(125,217,74,0.3)" : "none",
-                    }}>
-                    <div style={{ color: bushelMode === key ? "#7dd94a" : "rgba(255,255,255,0.55)" }}>{icon}</div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold" style={{ color: "#f0f8ec" }}>{label}</span>
-                        {recommended && <span className="text-[9px] px-1 py-0.5 rounded font-medium" style={{ background: "rgba(125,217,74,0.2)", color: "#9fe066" }}>✓ Recommended</span>}
-                      </div>
-                      <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{sub}</span>
-                    </div>
+                      display: "flex", alignItems: "center", gap: 12,
+                      padding: "10px 14px",
+                      borderRadius: "var(--r-md)",
+                      border: `1px solid ${bushelMode === mode ? "var(--accent)" : "var(--border-hairline)"}`,
+                      background: bushelMode === mode ? "var(--accent-tint)" : "var(--surface-glass)",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", textTransform: "capitalize" }}>{mode}</span>
+                    {mode === "managed" && <span style={{ fontSize: 11, color: "var(--accent)", marginLeft: "auto" }}>recommended</span>}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-3 px-6 pb-6 pt-4">
-              <button onClick={() => setShowBushelModal(false)}
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95"
-                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.04)" }}>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)", display: "flex", gap: 10, justifyContent: "flex-end", background: "var(--surface-sunken)" }}>
+              <button onClick={() => setShowBushelModal(false)} style={{ padding: "9px 16px", borderRadius: "var(--r-md)", border: "1px solid var(--border-hairline)", background: "var(--surface-glass)", color: "var(--text-primary)", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
                 Cancel
               </button>
-              <button onClick={handleConfirmBushelPatch}
+              <button
+                onClick={handleConfirmBushelPatch}
                 disabled={bushelLoading}
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95"
-                style={{ background: bushelLoading ? "rgba(125,217,74,0.5)" : "#5aaa28", color: "white", cursor: bushelLoading ? "wait" : "pointer" }}
-                onMouseEnter={(e) => !bushelLoading && (e.currentTarget.style.background = "#6abf32")}
-                onMouseLeave={(e) => !bushelLoading && (e.currentTarget.style.background = "#5aaa28")}
+                style={{
+                  padding: "9px 18px",
+                  borderRadius: "var(--r-md)",
+                  background: "var(--accent-grad)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  color: "#fff",
+                  fontSize: 13, fontWeight: 600,
+                  cursor: bushelLoading ? "wait" : "pointer",
+                  opacity: bushelLoading ? 0.7 : 1,
+                  boxShadow: "var(--shadow-accent)",
+                }}
               >
-                {bushelLoading ? "⏳ Queuing..." : `Deploy ${bushelMode === "silent" ? "Silent" : bushelMode === "managed" ? "Managed" : "User Prompted"} 🧺`}
+                {bushelLoading ? "Queuing…" : `Patch ${outdatedDevices.length} device${outdatedDevices.length !== 1 ? "s" : ""}`}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Toast */}
-      <div className="fixed top-4 right-4 z-[60] flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg"
-        style={{ background: "#5aaa28", transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)", opacity: toastMsg ? 1 : 0, transform: toastMsg ? "translateY(0)" : "translateY(-120%)", pointerEvents: toastMsg ? "auto" : "none" }}>
-        <span>🌳</span>
-        {toastMsg}
-      </div>
-    </div>
+    </>
   );
 }
