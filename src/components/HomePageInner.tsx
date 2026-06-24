@@ -412,10 +412,9 @@ export default function HomePageInner() {
                       setPatchStatusFilter(active ? null : pill.status);
                       setConflictsOnly(false);
                     }}
-                    style={{ borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                     style={active
-                      ? { background: pill.activeBg, color: pill.activeColor, border: `1px solid ${pill.activeBorder}` }
-                      : { background: "transparent", color: "var(--text-secondary)", border: "1px solid transparent" }
+                      ? { borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", background: pill.activeBg, color: pill.activeColor, border: `1px solid ${pill.activeBorder}` }
+                      : { borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", background: "transparent", color: "var(--text-secondary)", border: "1px solid transparent" }
                     }
                   >
                     {pill.emoji} {pill.count} {pill.label}
@@ -478,10 +477,6 @@ export default function HomePageInner() {
           >
             <div
               style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${allFilteredSelected ? "var(--accent)" : someFilteredSelected ? "var(--accent)" : "var(--text-tertiary)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: allFilteredSelected ? "var(--accent)" : "var(--surface-raised)" }}
-              style={{
-                borderColor: "transparent",
-                background: "transparent",
-              }}
             >
               {allFilteredSelected && (
                 <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
@@ -556,12 +551,7 @@ export default function HomePageInner() {
 
       {/* Floating action bar */}
       <div
-        style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: 24, paddingTop: 16, pointerEvents: "none" }}
-        style={{
-          transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-          opacity: selectedIds.size > 0 ? 1 : 0,
-          transform: selectedIds.size > 0 ? "translateY(0)" : "translateY(120%)",
-        }}
+        style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: 24, paddingTop: 16, pointerEvents: "none", transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)", opacity: selectedIds.size > 0 ? 1 : 0, transform: selectedIds.size > 0 ? "translateY(0)" : "translateY(120%)" }}
       >
         <div
           style={{ pointerEvents: "auto", display: "flex", alignItems: "center", gap: 16, borderRadius: 16, padding: "16px 24px", backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(24px) saturate(150%)", WebkitBackdropFilter: "blur(24px) saturate(150%)", border: "1px solid var(--border-accent)", boxShadow: "var(--shadow-card)" }}
