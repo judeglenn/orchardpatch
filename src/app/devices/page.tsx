@@ -39,15 +39,15 @@ export default function DevicesPage() {
   const sorted = [...devices].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="p-8">
+    <div style={{ padding: 32 }}>
       {/* Page header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div style={{ marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: "#f0f8ec" }}>Devices</h1>
-          <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>Devices</h1>
+          <p style={{ marginTop: 4, fontSize: 14, color: "var(--text-secondary)" }}>
             {stats.totalDevices.toLocaleString()} device{stats.totalDevices !== 1 ? "s" : ""} in fleet
             {dataSource === "agent" && lastSync && (
-              <span className="ml-2" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <span style={{ marginLeft: 8, color: "var(--text-tertiary)" }}>
                 · synced {formatRelativeDate(lastSync)}
               </span>
             )}
@@ -57,12 +57,7 @@ export default function DevicesPage() {
           <button
             onClick={loadAgentData}
             disabled={syncing}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all"
-            style={{
-              background: "rgba(125,217,74,0.12)",
-              color: "#9fe066",
-              border: "1px solid rgba(125,217,74,0.35)",
-            }}
+            style={{ display: "flex", alignItems: "center", gap: 6, borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", background: "var(--accent-tint)", color: "var(--accent)", border: "1px solid var(--border-accent)" }}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
             {syncing ? "Syncing…" : "Sync Now"}
@@ -71,7 +66,7 @@ export default function DevicesPage() {
       </div>
 
       {/* Stats bar */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      <div style={{ marginBottom: 24, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
         {[
           { label: "Total Devices", value: stats.totalDevices },
           { label: "macOS Versions", value: new Set(devices.map(d => d.osVersion)).size },
@@ -79,38 +74,23 @@ export default function DevicesPage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl px-5 py-4"
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-            }}
+            style={{ borderRadius: 16, padding: "16px 20px", backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
           >
-            <div className="text-2xl font-bold" style={{ color: "#f0f8ec" }}>{stat.value.toLocaleString()}</div>
-            <div className="mt-0.5 text-xs font-medium uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.55)" }}>{stat.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>{stat.value.toLocaleString()}</div>
+            <div style={{ marginTop: 2, fontSize: 11, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Device table */}
       <div
-        className="rounded-2xl overflow-hidden"
-        style={{
-          background: "rgba(255,255,255,0.06)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.12)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-        }}
+        style={{ borderRadius: 16, overflow: "hidden", backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
       >
         <div
-          className="grid grid-cols-12 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide"
-          style={{ background: "rgba(0,0,0,0.2)", borderBottom: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)" }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", padding: "12px 16px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", background: "color-mix(in srgb, var(--page-bg) 40%, transparent)", borderBottom: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
         >
           <div className="col-span-4">Device Name</div>
-          <div className="col-span-2">Model</div>
+          <div style={{ gridColumn: "span 2" }}>Model</div>
           <div className="col-span-2">macOS</div>
           <div className="col-span-2">Apps Installed</div>
           <div className="col-span-2">Last Inventory</div>
@@ -120,33 +100,29 @@ export default function DevicesPage() {
           <Link
             key={device.id}
             href={`/devices/${device.id}`}
-            className="grid grid-cols-12 px-4 py-3 items-center transition-colors"
-            style={{
-              borderBottom: i < sorted.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
-              background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent")}
+            style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", padding: "12px 16px", alignItems: "center", borderBottom: i < sorted.length - 1 ? "1px solid var(--border-hairline)" : "none", background: i % 2 === 1 ? "color-mix(in srgb, var(--surface-glass) 50%, transparent)" : "transparent" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "color-mix(in srgb, var(--surface-glass) 80%, transparent)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = i % 2 === 1 ? "color-mix(in srgb, var(--surface-glass) 50%, transparent)" : "transparent")}
           >
-            <div className="col-span-4 flex items-center gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded" style={{ background: "rgba(255,255,255,0.08)" }}>
-                <Laptop className="h-4 w-4" style={{ color: "rgba(255,255,255,0.55)" }} />
+            <div style={{ gridColumn: "span 4", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", width: 32, height: 32, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: 6, background: "var(--surface-raised)" }}>
+                <Laptop style={{ width: 16, height: 16, color: "var(--text-secondary)" }} />
               </div>
-              <span className="text-sm font-semibold" style={{ color: "#f0f8ec" }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
                 {device.name}
               </span>
             </div>
-            <div className="col-span-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>{device.model}</div>
+            <div style={{ gridColumn: "span 2", fontSize: 14, color: "var(--text-secondary)" }}>{device.model}</div>
             <div className="col-span-2">
-              <span className="inline-block rounded px-2 py-0.5 text-xs font-medium" style={{ background: "rgba(100,181,246,0.12)", color: "#64b5f6", border: "1px solid rgba(100,181,246,0.25)" }}>
+              <span style={{ display: "inline-block", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}>
                 {macOSName(device.osVersion) ? `${macOSName(device.osVersion)} ${device.osVersion}` : device.osVersion}
               </span>
             </div>
-            <div className="col-span-2 text-sm font-medium" style={{ color: "#f0f8ec" }}>
+            <div style={{ gridColumn: "span 2", fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>
               {device.apps.length}
-              <span className="font-normal text-xs ml-1" style={{ color: "rgba(255,255,255,0.55)" }}>apps</span>
+              <span style={{ fontWeight: 400, fontSize: 12, marginLeft: 4, color: "var(--text-secondary)" }}>apps</span>
             </div>
-            <div className="col-span-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+            <div style={{ gridColumn: "span 2", fontSize: 14, color: "var(--text-secondary)" }}>
               {formatRelativeDate(device.lastInventory)}
             </div>
           </Link>
