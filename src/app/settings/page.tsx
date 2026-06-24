@@ -154,9 +154,9 @@ const SETTINGS = [
 ];
 
 const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
-  "Live": { bg: "rgba(125,217,74,0.15)", color: "#4a9e1a" },
-  "In Development": { bg: "#e8f5e9", color: "#2e7d32" },
-  "Planned": { bg: "#eef0f2", color: "#9ca3af" },
+  "Live": { bg: "var(--accent-tint)", color: "var(--accent)" },
+  "In Development": { bg: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--st-current)" },
+  "Planned": { bg: "var(--surface-raised)", color: "var(--text-tertiary)" },
 };
 
 export default function SettingsPage() {
@@ -175,12 +175,12 @@ export default function SettingsPage() {
   const totalVisible = filtered.reduce((sum, s) => sum + s.items.length, 0);
 
   return (
-    <div className="px-6 py-6 max-w-4xl">
+    <div style={{ padding: "24px", maxWidth: "56rem" }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: "#1a1a2e" }}>Settings</h1>
-          <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>Settings</h1>
+          <p style={{ fontSize: 14, marginTop: 2, color: "var(--text-secondary)" }}>
             Configure OrchardPatch for your organization
           </p>
         </div>
@@ -188,44 +188,37 @@ export default function SettingsPage() {
       </div>
 
       {search && (
-        <p className="text-xs mb-4" style={{ color: "#9ca3af" }}>
+        <p style={{ fontSize: 12, marginBottom: 16, color: "var(--text-tertiary)" }}>
           {totalVisible} setting{totalVisible !== 1 ? "s" : ""} found
         </p>
       )}
 
-      <div className="flex flex-col gap-8">
+      <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
         {filtered.map((section) => (
           <div key={section.category}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-3" style={{ color: "#6b7280" }}>
+            <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12, color: "var(--text-tertiary)" }}>
               {section.category}
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
               {section.items.map((item) => (
                 <Link
                   key={item.title}
                   href={item.href}
-                  className="group flex flex-col gap-3 rounded-xl border bg-white p-5 transition-all hover:shadow-md hover:border-[#c5e1a5]"
-                  style={{ borderColor: "#e2e4e7", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
+                  style={{ display: "flex", flexDirection: "column", gap: 12, borderRadius: 12, padding: 20, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)", transition: "border-color 0.15s" }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-lg"
-                      style={{ background: item.bg }}
-                    >
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 8, background: item.bg }}>
                       {item.icon}
                     </div>
-                    <span
-                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                      style={STATUS_STYLE[item.status]}
-                    >
+                    <span style={{ display: "inline-flex", alignItems: "center", fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 9999, ...STATUS_STYLE[item.status] }}>
                       {item.status}
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold mb-1 group-hover:text-[#2d5016] transition-colors" style={{ color: "#1a1a2e" }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: "var(--text-primary)" }}>
                       {item.title}
                     </p>
-                    <p className="text-xs leading-relaxed" style={{ color: "#6b7280" }}>
+                    <p style={{ fontSize: 12, lineHeight: 1.6, color: "var(--text-secondary)" }}>
                       {item.description}
                     </p>
                   </div>
