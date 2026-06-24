@@ -300,18 +300,18 @@ export default function HomePageInner() {
   }, [selectedIds.size, showToast]);
 
   return (
-    <div className="px-6 py-6">
+    <div style={{ padding: "24px" }}>
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: "#f0f8ec" }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>
             App Inventory
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <p style={{ fontSize: 14, marginTop: 2, color: "var(--text-secondary)" }}>
             Software inventory across your entire device fleet
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
 
           <SearchBar
             value={search}
@@ -325,7 +325,7 @@ export default function HomePageInner() {
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "h-9 gap-1.5 text-sm"
               )}
-              style={{ background: "rgba(255,255,255,0.06)", color: "#f0f8ec", borderColor: "rgba(255,255,255,0.12)" }}
+              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)" }}
             >
               {selectedCategory === CATEGORY_ALL ? "Category" : selectedCategory}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
@@ -348,7 +348,7 @@ export default function HomePageInner() {
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "h-9 gap-1.5 text-sm"
               )}
-              style={{ background: "rgba(255,255,255,0.06)", color: "#f0f8ec", borderColor: "rgba(255,255,255,0.12)" }}
+              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)" }}
             >
               {SORT_LABELS[sortBy]}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
@@ -371,8 +371,8 @@ export default function HomePageInner() {
             className="h-9 gap-1.5 text-sm"
             style={
               (patchStatusFilter === "outdated" || conflictsOnly)
-                ? { background: "#5aaa28", color: "white", borderColor: "#5aaa28" }
-                : { background: "rgba(255,255,255,0.06)", color: "#f0f8ec", borderColor: "rgba(255,255,255,0.12)" }
+                ? { background: "var(--accent)", color: "var(--page-bg)", borderColor: "var(--accent)" }
+                : { background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)" }
             }
             onClick={() => {
               const isActive = patchStatusFilter === "outdated" || conflictsOnly;
@@ -390,33 +390,32 @@ export default function HomePageInner() {
       {statusSummary && (() => {
         type Pill = { status: PatchStatus; emoji: string; label: string; count: number; activeColor: string; activeBg: string; activeBorder: string };
         const pills: Pill[] = [
-          { status: "outdated", emoji: "🔴", label: "outdated",  count: statusSummary.outdated, activeColor: "#ef5350",               activeBg: "rgba(239,83,80,0.15)",    activeBorder: "rgba(239,83,80,0.5)" },
-          { status: "current",  emoji: "✅", label: "current",   count: statusSummary.current,  activeColor: "#9fe066",               activeBg: "rgba(125,217,74,0.15)",   activeBorder: "rgba(125,217,74,0.5)" },
-          { status: "unknown",  emoji: "🟡", label: "Unknown",   count: statusSummary.unknown,  activeColor: "rgba(255,255,255,0.7)", activeBg: "rgba(255,255,255,0.08)",  activeBorder: "rgba(255,255,255,0.25)" },
-          { status: "na",       emoji: "⚙️",  label: "System",    count: statusSummary.na,       activeColor: "rgba(255,255,255,0.4)", activeBg: "rgba(255,255,255,0.06)",  activeBorder: "rgba(255,255,255,0.15)" },
-          { status: "mas",      emoji: "🍎", label: "App Store", count: statusSummary.mas,       activeColor: "rgba(100,180,255,0.9)", activeBg: "rgba(100,180,255,0.12)",  activeBorder: "rgba(100,180,255,0.4)" },
+          { status: "outdated", emoji: "🔴", label: "outdated",  count: statusSummary.outdated, activeColor: "var(--st-lagging)", activeBg: "color-mix(in srgb, var(--st-lagging) 15%, transparent)", activeBorder: "color-mix(in srgb, var(--st-lagging) 50%, transparent)" },
+          { status: "current",  emoji: "✅", label: "current",   count: statusSummary.current,  activeColor: "var(--st-current)", activeBg: "var(--accent-tint)", activeBorder: "var(--border-accent)" },
+          { status: "unknown",  emoji: "🟡", label: "Unknown",   count: statusSummary.unknown,  activeColor: "var(--text-secondary)", activeBg: "var(--surface-raised)", activeBorder: "var(--border-hairline)" },
+          { status: "na",       emoji: "⚙️",  label: "System",    count: statusSummary.na,       activeColor: "var(--text-tertiary)", activeBg: "var(--surface-raised)", activeBorder: "var(--border-hairline)" },
+          { status: "mas",      emoji: "🍎", label: "App Store", count: statusSummary.mas,       activeColor: "var(--accent)", activeBg: "var(--accent-tint)", activeBorder: "var(--border-accent)" },
         ];
         return (
           <div
-            className="flex items-center gap-2 rounded-xl px-4 py-2 mb-4"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "8px 16px", marginBottom: 16, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)" }}
           >
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] mr-1" style={{ color: "rgba(255,255,255,0.3)" }}>Patch Status</span>
+            <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginRight: 4, color: "var(--text-tertiary)" }}>Patch Status</span>
             {pills.map((pill, i) => {
               const active = patchStatusFilter === pill.status;
               return (
                 <>
-                  {i > 0 && <span key={`sep-${i}`} style={{ color: "rgba(255,255,255,0.15)" }}>·</span>}
+                  {i > 0 && <span key={`sep-${i}`} style={{ color: "var(--text-tertiary)" }}>·</span>}
                   <button
                     key={pill.status}
                     onClick={() => {
                       setPatchStatusFilter(active ? null : pill.status);
                       setConflictsOnly(false);
                     }}
-                    className="rounded-lg px-2.5 py-1 text-xs font-semibold transition-all"
+                    style={{ borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                     style={active
                       ? { background: pill.activeBg, color: pill.activeColor, border: `1px solid ${pill.activeBorder}` }
-                      : { background: "transparent", color: "rgba(255,255,255,0.5)", border: "1px solid transparent" }
+                      : { background: "transparent", color: "var(--text-secondary)", border: "1px solid transparent" }
                     }
                   >
                     {pill.emoji} {pill.count} {pill.label}
@@ -426,8 +425,7 @@ export default function HomePageInner() {
             })}
             {patchStatusFilter && (
               <button
-                className="ml-auto text-[10px] rounded px-1.5 py-0.5 transition-colors"
-                style={{ color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.06)" }}
+                style={{ marginLeft: "auto", fontSize: 10, borderRadius: 4, padding: "2px 6px", cursor: "pointer", color: "var(--text-tertiary)", background: "var(--surface-raised)" }}
                 onClick={() => { setPatchStatusFilter(null); setConflictsOnly(false); }}
               >
                 clear
@@ -438,51 +436,51 @@ export default function HomePageInner() {
       })()}
 
       {/* Stats bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
         <StatCard
-          icon={<Package className="h-5 w-5" style={{ color: "#7dd94a" }} />}
+          icon={<Package className="h-5 w-5" style={{ color: "var(--accent)" }} />}
           label="Total Apps"
           value={stats.totalApps.toLocaleString()}
-          iconBg="rgba(125,217,74,0.12)"
+          iconBg="var(--accent-tint)"
         />
         <StatCard
-          icon={<Monitor className="h-5 w-5" style={{ color: "#4caf50" }} />}
+          icon={<Monitor className="h-5 w-5" style={{ color: "var(--st-current)" }} />}
           label="Total Devices"
           value={stats.totalDevices.toLocaleString()}
-          iconBg="rgba(76,175,80,0.12)"
+          iconBg="color-mix(in srgb, var(--st-current) 12%, transparent)"
         />
         <StatCard
-          icon={<AlertTriangle className="h-5 w-5" style={{ color: "#ffb74d" }} />}
+          icon={<AlertTriangle className="h-5 w-5" style={{ color: "var(--st-outdated)" }} />}
           label="Version Conflicts"
           value={stats.appsWithVersionConflicts.toLocaleString()}
-          iconBg="rgba(255,160,0,0.12)"
+          iconBg="color-mix(in srgb, var(--st-outdated) 12%, transparent)"
           onClick={() => setConflictsOnly((v) => !v)}
           active={conflictsOnly}
-          activeColor="#ffb74d"
+          activeColor="var(--st-outdated)"
         />
         <StatCard
-          icon={<RefreshCw className="h-5 w-5" style={{ color: "rgba(255,255,255,0.55)" }} />}
+          icon={<RefreshCw className="h-5 w-5" style={{ color: "var(--text-secondary)" }} />}
           label="Last Synced"
           value={formatRelativeDate(agentSyncTime ?? lastSynced)}
-          iconBg="rgba(255,255,255,0.06)"
+          iconBg="var(--surface-raised)"
           isText
         />
       </div>
 
       {/* Section label + result count + select all */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {/* Select All checkbox */}
           <button
-            className="flex items-center gap-2 group"
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
             onClick={toggleAll}
             aria-label="Select all apps"
           >
             <div
-              className="h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-150 flex-shrink-0"
+              style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${allFilteredSelected ? "var(--accent)" : someFilteredSelected ? "var(--accent)" : "var(--text-tertiary)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: allFilteredSelected ? "var(--accent)" : "var(--surface-raised)" }}
               style={{
-                borderColor: allFilteredSelected ? "#7dd94a" : someFilteredSelected ? "#7dd94a" : "rgba(255,255,255,0.3)",
-                background: allFilteredSelected ? "#5aaa28" : "rgba(255,255,255,0.05)",
+                borderColor: "transparent",
+                background: "transparent",
               }}
             >
               {allFilteredSelected && (
@@ -491,11 +489,11 @@ export default function HomePageInner() {
                 </svg>
               )}
               {someFilteredSelected && !allFilteredSelected && (
-                <div className="h-0.5 w-2 rounded-full" style={{ background: "#7dd94a" }} />
+                <div style={{ height: 2, width: 8, borderRadius: 9999, background: "var(--accent)" }} />
               )}
             </div>
           </button>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}>
             Applications
             {filtered.length !== apps.length && (
               <span className="ml-2 normal-case tracking-normal font-normal">
@@ -514,7 +512,7 @@ export default function HomePageInner() {
             variant="ghost"
             size="sm"
             className="h-6 text-xs"
-            style={{ color: "rgba(255,255,255,0.55)" }}
+            style={{ color: "var(--text-secondary)" }}
             onClick={() => {
               setSearch("");
               setConflictsOnly(false);
@@ -529,7 +527,7 @@ export default function HomePageInner() {
 
       {/* App list */}
       {filtered.length > 0 ? (
-        <div className="flex flex-col gap-2">
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {filtered.map((app) => (
             <AppCard
               key={app.id}
@@ -544,19 +542,13 @@ export default function HomePageInner() {
         </div>
       ) : (
         <div
-          className="flex flex-col items-center justify-center py-20 text-center rounded-2xl"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.12)",
-          }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0", textAlign: "center", borderRadius: 16, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)" }}
         >
-          <Package className="h-12 w-12 mb-4" style={{ color: "rgba(255,255,255,0.2)" }} />
-          <p className="text-base font-semibold" style={{ color: "#f0f8ec" }}>
+          <Package style={{ width: 48, height: 48, marginBottom: 16, color: "var(--text-tertiary)" }} />
+          <p style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>
             No apps found
           </p>
-          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <p style={{ fontSize: 14, marginTop: 4, color: "var(--text-secondary)" }}>
             Try adjusting your search or filters
           </p>
         </div>
@@ -564,7 +556,7 @@ export default function HomePageInner() {
 
       {/* Floating action bar */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-center pb-6 pt-4 pointer-events-none"
+        style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: 24, paddingTop: 16, pointerEvents: "none" }}
         style={{
           transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
           opacity: selectedIds.size > 0 ? 1 : 0,
@@ -572,34 +564,20 @@ export default function HomePageInner() {
         }}
       >
         <div
-          className="pointer-events-auto flex items-center gap-4 rounded-2xl px-6 py-4"
-          style={{
-            background: "rgba(5,15,3,0.85)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            border: "1px solid rgba(125,217,74,0.25)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
-            color: "white",
-          }}
+          style={{ pointerEvents: "auto", display: "flex", alignItems: "center", gap: 16, borderRadius: 16, padding: "16px 24px", backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(24px) saturate(150%)", WebkitBackdropFilter: "blur(24px) saturate(150%)", border: "1px solid var(--border-accent)", boxShadow: "var(--shadow-card)" }}
         >
-          <span className="text-sm font-medium" style={{ color: "#9fe066" }}>
+          <span style={{ fontSize: 14, fontWeight: 500, color: "var(--st-current)" }}>
             {selectedIds.size} app{selectedIds.size !== 1 ? "s" : ""} selected
           </span>
-          <div className="h-4 w-px" style={{ background: "rgba(255,255,255,0.15)" }} />
+          <div style={{ width: 1, height: 16, background: "var(--border-hairline)" }} />
           <button
-            className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-150 active:scale-95"
-            style={{ background: "#5aaa28", color: "white" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#6abf32")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#5aaa28")}
+            style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "8px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", background: "var(--accent)", color: "var(--page-bg)" }}
             onClick={() => setShowModal(true)}
           >
             Patch by the Bushel 🧺
           </button>
           <button
-            className="text-xs transition-colors duration-150"
-            style={{ color: "rgba(255,255,255,0.55)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#9fe066")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
+            style={{ fontSize: 12, cursor: "pointer", color: "var(--text-secondary)" }}
             onClick={() => setSelectedIds(new Set())}
           >
             Clear selection
@@ -610,52 +588,43 @@ export default function HomePageInner() {
       {/* Confirmation modal */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
         >
           <div
-            className="rounded-2xl shadow-2xl w-full max-w-md"
-            style={{
-              background: "rgba(12,22,8,0.95)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
-            }}
+            style={{ borderRadius: 16, width: "100%", maxWidth: 448, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
           >
             {/* Modal header */}
-            <div className="px-6 pt-6 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="flex items-center gap-3 mb-1">
+            <div style={{ padding: "24px 24px 16px", borderBottom: "1px solid var(--border-hairline)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
                 <div
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
-                  style={{ background: "rgba(125,217,74,0.15)" }}
+                  style={{ display: "flex", width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, background: "var(--accent-tint)" }}
                 >
                   🧺
                 </div>
-                <h2 className="text-lg font-bold" style={{ color: "#f0f8ec" }}>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
                   Patch by the Bushel
                 </h2>
               </div>
-              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>
+              <p style={{ fontSize: 14, marginTop: 4, color: "var(--text-secondary)" }}>
                 Review the apps queued for patching
               </p>
             </div>
 
             {/* App list */}
-            <div className="px-6 py-4 max-h-60 overflow-y-auto">
-              <div className="flex flex-col gap-2">
+            <div style={{ padding: "16px 24px", maxHeight: 240, overflowY: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {selectedApps.map((app) => (
-                  <div key={app.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
+                  <div key={app.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                       {app.hasVersionConflict && (
-                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" style={{ color: "#ffb74d" }} />
+                        <AlertTriangle style={{ width: 14, height: 14, flexShrink: 0, color: "var(--st-outdated)" }} />
                       )}
-                      <span className="text-sm font-medium truncate" style={{ color: "#f0f8ec" }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>
                         {app.name}
                       </span>
                     </div>
-                    <span className="text-xs shrink-0 ml-3" style={{ color: "rgba(255,255,255,0.55)" }}>
+                    <span style={{ fontSize: 12, flexShrink: 0, marginLeft: 12, color: "var(--text-secondary)" }}>
                       {app.totalInstalls.toLocaleString()} device{app.totalInstalls !== 1 ? "s" : ""}
                     </span>
                   </div>
@@ -665,20 +634,19 @@ export default function HomePageInner() {
 
             {/* Total */}
             <div
-              className="mx-6 mb-4 rounded-xl px-4 py-3"
-              style={{ background: "rgba(125,217,74,0.1)", border: "1px solid rgba(125,217,74,0.2)" }}
+              style={{ margin: "0 24px 16px", borderRadius: 12, padding: "12px 16px", background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}
             >
-              <p className="text-sm font-semibold" style={{ color: "#9fe066" }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--accent)" }}>
                 {selectedIds.size} app{selectedIds.size !== 1 ? "s" : ""} across {totalDevicesAffected.toLocaleString()} devices
               </p>
             </div>
 
             {/* Patch mode selector */}
-            <div className="px-6 mb-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>
+            <div style={{ padding: "0 24px", marginBottom: 16 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8, color: "var(--text-secondary)" }}>
                 Patch Mode
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
                 {[
                   { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts" },
                   { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
@@ -687,19 +655,19 @@ export default function HomePageInner() {
                   <button
                     key={key}
                     onClick={() => setPatchMode(key)}
-                    className="flex flex-col items-start gap-1 rounded-xl px-3 py-2.5 text-left transition-all duration-150"
+                    style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, borderRadius: 12, padding: "10px 12px", textAlign: "left", cursor: "pointer" }}
                     style={{
-                      border: patchMode === key ? "1px solid rgba(125,217,74,0.5)" : "1px solid rgba(255,255,255,0.12)",
-                      background: patchMode === key ? "rgba(125,217,74,0.12)" : "rgba(255,255,255,0.04)",
-                      boxShadow: patchMode === key ? "0 0 0 1px rgba(125,217,74,0.3)" : "none",
+                      border: patchMode === key ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)",
+                      background: patchMode === key ? "var(--accent-tint)" : "var(--surface-raised)",
+                      boxShadow: "none",
                     }}
                   >
-                    <div className="flex items-center gap-1.5" style={{ color: patchMode === key ? "#7dd94a" : "rgba(255,255,255,0.55)" }}>
+                    <div className="flex items-center gap-1.5" style={{ color: patchMode === key ? "var(--accent)" : "var(--text-secondary)" }}>
                       {icon}
-                      <span className="text-xs font-semibold">{label}</span>
-                      {recommended && <span className="text-[9px] px-1 py-0.5 rounded font-medium" style={{ background: "rgba(125,217,74,0.2)", color: "#9fe066" }}>✓</span>}
+                      <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
+                      {recommended && <span style={{ fontSize: 9, padding: "2px 4px", borderRadius: 4, fontWeight: 500, background: "var(--accent-tint)", color: "var(--accent)" }}>✓</span>}
                     </div>
-                    <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{sub}</span>
+                    <span style={{ fontSize: 10, color: "var(--text-tertiary)" }}>{sub}</span>
                   </button>
                 ))}
               </div>
@@ -707,31 +675,24 @@ export default function HomePageInner() {
 
             {/* Warning */}
             <div
-              className="mx-6 mb-5 flex items-start gap-2 rounded-xl px-4 py-3"
-              style={{ background: "rgba(255,160,0,0.08)", border: "1px solid rgba(255,160,0,0.25)" }}
+              style={{ margin: "0 24px 20px", display: "flex", alignItems: "flex-start", gap: 8, borderRadius: 12, padding: "12px 16px", background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--st-outdated) 25%, transparent)" }}
             >
-              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#ffb74d" }} />
-              <p className="text-xs leading-relaxed" style={{ color: "rgba(255,183,77,0.9)" }}>
+              <AlertTriangle style={{ width: 16, height: 16, marginTop: 2, flexShrink: 0, color: "var(--st-outdated)" }} />
+              <p style={{ fontSize: 12, lineHeight: 1.6, color: "var(--st-outdated)" }}>
                 This will deploy patches to all affected devices via Installomator. No MDM changes required.
               </p>
             </div>
 
             {/* Buttons */}
-            <div className="flex gap-3 px-6 pb-6">
+            <div style={{ display: "flex", gap: 12, padding: "0 24px 24px" }}>
               <button
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-95"
-                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.04)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+                style={{ flex: 1, borderRadius: 12, padding: "10px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)", background: "var(--surface-raised)" }}
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <button
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 active:scale-95"
-                style={{ background: "#5aaa28", color: "white" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#6abf32")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#5aaa28")}
+                style={{ flex: 1, borderRadius: 12, padding: "10px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", background: "var(--accent)", color: "var(--page-bg)" }}
                 onClick={handleConfirmPatch}
               >
                 Start Patching 🌳
@@ -743,10 +704,7 @@ export default function HomePageInner() {
 
       {/* Success toast */}
       <div
-        className="fixed top-4 right-4 z-[60] flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg"
-        style={{
-          background: "#5aaa28",
-          boxShadow: "0 8px 24px rgba(90,170,40,0.4)",
+        style={{ position: "fixed", top: 16, right: 16, zIndex: 60, display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "12px 16px", fontSize: 14, fontWeight: 500, color: "var(--page-bg)", background: "var(--accent)",
           transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
           opacity: toastMsg ? 1 : 0,
           transform: toastMsg ? "translateY(0)" : "translateY(-120%)",
@@ -776,33 +734,21 @@ interface StatCardProps {
 function StatCard({ icon, label, value, iconBg, onClick, active, activeColor, isText }: StatCardProps) {
   return (
     <div
-      className="flex items-center gap-4 rounded-2xl px-4 py-4 transition-all"
-      style={{
-        background: "rgba(255,255,255,0.06)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        border: active ? `1px solid ${activeColor}60` : "1px solid rgba(255,255,255,0.12)",
-        boxShadow: active
-          ? `0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px ${activeColor}30, inset 0 1px 0 rgba(255,255,255,0.08)`
-          : "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-        cursor: onClick ? "pointer" : "default",
-      }}
+      style={{ display: "flex", alignItems: "center", gap: 16, borderRadius: 16, padding: 16, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: active ? `1px solid ${activeColor}60` : "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)", cursor: onClick ? "pointer" : "default" }}
       onClick={onClick}
     >
       <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-        style={{ background: iconBg }}
+        style={{ display: "flex", width: 40, height: 40, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: 8, background: iconBg }}
       >
         {icon}
       </div>
-      <div className="min-w-0">
+      <div style={{ minWidth: 0 }}>
         <p
-          className={`font-bold leading-tight ${isText ? "text-lg" : "text-2xl"}`}
-          style={{ color: "#f0f8ec" }}
+          style={{ fontWeight: 700, lineHeight: 1.2, fontSize: isText ? 18 : 24, color: "var(--text-primary)" }}
         >
           {value}
         </p>
-        <p className="text-xs font-medium mt-0.5" style={{ color: "rgba(255,255,255,0.55)" }}>
+        <p style={{ fontSize: 12, fontWeight: 500, marginTop: 2, color: "var(--text-secondary)" }}>
           {label}
         </p>
       </div>
