@@ -27,10 +27,10 @@ export default function RootLayout({
       <body>
         <div style={{ display: "flex", minHeight: "100vh" }}>
           <Sidebar />
-          <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", marginLeft: "248px" }}>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
             <AgentBanner />
             {children}
-          </main>
+          </div>
         </div>
       </body>
     </html>
