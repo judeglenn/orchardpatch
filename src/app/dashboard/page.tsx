@@ -3,15 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
-import { Trees, AlertCircle } from 'lucide-react';
-import { Sidebar } from '@/components/Sidebar';
+import { Topbar } from '@/components/Topbar';
 
 interface AppStatus {
   id: string;
@@ -19,7 +11,7 @@ interface AppStatus {
   name: string;
   version: string;
   latest_version: string | null;
-  patch_status: 'outdated' | 'current' | 'unknown' | 'na';
+  patch_status: 'outdated' | 'current' | 'unknown' | 'na' | 'store';
   label?: string;
 }
 
@@ -43,25 +35,22 @@ export default function DashboardPage() {
   const [allAppsStatus, setAllAppsStatus] = useState<AppStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOrchardModal, setShowOrchardModal] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<'silent' | 'managed' | 'prompted'>('managed');
+  const [selectedMode, setSelectedMode] = useState<'silent' | 'managed' | 'prompted'>('silent');
   const [confirmCheckbox, setConfirmCheckbox] = useState(false);
   const [orchardLoading, setOrchardLoading] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       try {
-        // Fetch stats
         const statsRes = await fetch('/api/stats');
         const statsData = await statsRes.json();
         setStats(statsData);
 
-        // Fetch devices list
         const devicesRes = await fetch('/api/devices');
         const devicesData = await devicesRes.json();
         const deviceList = devicesData.devices || [];
         setDevices(deviceList);
 
-        // Fetch app status for each device and aggregate
         const allApps: AppStatus[] = [];
         for (const device of deviceList) {
           const statusRes = await fetch(`/api/apps/status?device_id=${device.id}`);
@@ -75,26 +64,25 @@ export default function DashboardPage() {
         setLoading(false);
       }
     }
-
     loadData();
   }, []);
 
-  // Calculate status counts
   const statusCounts = {
     outdated: allAppsStatus.filter(a => a.patch_status === 'outdated').length,
     current: allAppsStatus.filter(a => a.patch_status === 'current').length,
     unknown: allAppsStatus.filter(a => a.patch_status === 'unknown').length,
     system: allAppsStatus.filter(a => a.patch_status === 'na').length,
+    store: allAppsStatus.filter(a => a.patch_status === 'store').length,
   };
 
-  // Derive top outdated apps
-  const outdatedByLabel = new Map<string, { label: string; name: string; devices: Set<string> }>();
+  // Top outdated apps aggregated by label
+  const outdatedByLabel = new Map<string, { label: string; name: string; devices: Set<string>; version: string; latest: string | null }>();
   allAppsStatus
     .filter(a => a.patch_status === 'outdated')
     .forEach(app => {
-      const key = app.label || 'unknown';
+      const key = app.label || app.name;
       if (!outdatedByLabel.has(key)) {
-        outdatedByLabel.set(key, { label: key, name: app.name, devices: new Set() });
+        outdatedByLabel.set(key, { label: key, name: app.name, devices: new Set(), version: app.version, latest: app.latest_version });
       }
       outdatedByLabel.get(key)!.devices.add(app.device_id);
     });
@@ -104,21 +92,14 @@ export default function DashboardPage() {
       label: item.label,
       name: item.name,
       deviceCount: item.devices.size,
+      version: item.version,
+      latest: item.latest,
     }))
     .sort((a, b) => b.deviceCount - a.deviceCount)
     .slice(0, 6);
 
-  // Donut chart data
-  const chartData = [
-    { name: 'Outdated', value: statusCounts.outdated, fill: '#ef4444' },
-    { name: 'Current', value: statusCounts.current, fill: '#22c55e' },
-    { name: 'Unknown', value: statusCounts.unknown, fill: '#f59e0b' },
-    { name: 'System', value: statusCounts.system, fill: '#9ca3af' },
-  ].filter(d => d.value > 0);
-
   const handleOrchardConfirm = async () => {
     if (!confirmCheckbox) return;
-
     setOrchardLoading(true);
     try {
       const res = await fetch('/api/patch-jobs/orchard', {
@@ -126,14 +107,11 @@ export default function DashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: selectedMode }),
       });
-
       const data = await res.json();
       if (!res.ok) {
         alert(`Error: ${data.error || 'Failed to queue jobs'}`);
         return;
       }
-
-      // Success — redirect to patch history
       setShowOrchardModal(false);
       router.push(`/patches?method=orchard`);
     } catch (err) {
@@ -143,286 +121,386 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen">
-        <Sidebar />
-        <main className="flex-1 p-6">
-          <p>Loading...</p>
-        </main>
-      </div>
-    );
-  }
+  // Donut segments (percentages)
+  const total = statusCounts.outdated + statusCounts.current + statusCounts.unknown + statusCounts.system;
+  const pOut = total > 0 ? (statusCounts.outdated / total) * 100 : 0;
+  const pCur = total > 0 ? (statusCounts.current / total) * 100 : 0;
+  const pUnk = total > 0 ? (statusCounts.unknown / total) * 100 : 0;
+  const pSys = 100 - pOut - pCur - pUnk;
+  const donutGrad = total > 0
+    ? `conic-gradient(var(--st-outdated) 0 ${pOut}%, var(--st-current) ${pOut}% ${pOut + pCur}%, var(--st-unknown) ${pOut + pCur}% ${pOut + pCur + pUnk}%, var(--st-system) ${pOut + pCur + pUnk}% 100%)`
+    : `conic-gradient(var(--st-unknown) 0 100%)`;
 
-  const totalOutdated = topOutdated.reduce((sum, a) => sum + a.deviceCount, 0);
+  function displayVersion(v: string) { return v ? v.split(',')[0] : v; }
+
+  const cardStyle: React.CSSProperties = {
+    position: "relative",
+    overflow: "hidden",
+    backgroundColor: "var(--surface-glass)",
+    backgroundImage: "var(--sheen)",
+    WebkitBackdropFilter: "blur(20px) saturate(150%)",
+    backdropFilter: "blur(20px) saturate(150%)",
+    border: "1px solid var(--border-hairline)",
+    borderRadius: "var(--r-xl)",
+    boxShadow: "var(--shadow-card)",
+    padding: "22px 24px",
+    transition: "background-color 0.5s, box-shadow 0.5s",
+  };
+
+  const cardHead: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 18,
+  };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        {/* Header */}
-        <div className="p-6 border-b">
-          <h1 className="text-3xl font-bold text-gray-900">Fleet Dashboard</h1>
-          <p className="text-gray-600 mt-1">Monitor your device fleet and manage patches</p>
-        </div>
+    <>
+      <Topbar type="dashboard" title="Fleet Dashboard" subtitle="Monitor your device fleet and manage patches" />
 
-        <div className="p-6 space-y-6">
-          {/* Stat Pills */}
-          <div className="flex gap-4 items-center flex-wrap">
-            <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-xs text-gray-600 uppercase tracking-wide">Outdated</p>
-              <p className="text-2xl font-bold text-red-600">{statusCounts.outdated}</p>
-            </div>
-            <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-xs text-gray-600 uppercase tracking-wide">Current</p>
-              <p className="text-2xl font-bold text-green-600">{statusCounts.current}</p>
-            </div>
-            <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-xs text-gray-600 uppercase tracking-wide">Unknown</p>
-              <p className="text-2xl font-bold text-amber-600">{statusCounts.unknown}</p>
-            </div>
-            <div className="px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg">
-              <p className="text-xs text-gray-600 uppercase tracking-wide">System</p>
-              <p className="text-2xl font-bold text-gray-700">{statusCounts.system}</p>
-            </div>
-            <div className="ml-auto text-sm text-gray-600">
-              Synced {stats?.lastCheckin ? 'today' : 'never'}
-            </div>
-          </div>
+      <div style={{ padding: "26px 30px 48px", maxWidth: 1480, width: "100%" }}>
 
-          {/* Two-column grid */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Left: Donut Chart */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">Fleet Health</h2>
-              <div className="relative h-64 flex items-center justify-center">
-                {chartData.length > 0 ? (
-                  <>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={chartData}
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={2}
-                          dataKey="value"
-                          animationBegin={0}
-                          animationDuration={800}
-                        >
-                          {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                    {/* Center label overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <p className="text-3xl font-bold text-red-600">{statusCounts.outdated}</p>
-                        <p className="text-xs text-gray-600 mt-1">outdated</p>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-gray-400">No data</p>
-                )}
+        {/* 5 Metric cards */}
+        <section style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 22 }}>
+          {[
+            { cls: "m-outdated", glow: "var(--st-outdated-glow)", dot: "var(--st-outdated)", dotGlow: "var(--st-outdated-glow)", label: "Outdated", value: statusCounts.outdated, numColor: "var(--st-outdated-text)", foot: "Patchable now" },
+            { cls: "m-current",  glow: "var(--st-current-glow)",  dot: "var(--st-current)",  dotGlow: "var(--st-current-glow)",  label: "Current",  value: statusCounts.current,  numColor: "var(--st-current-text)",  foot: "Up to date" },
+            { cls: "m-unknown",  glow: "var(--st-unknown-glow)",  dot: "var(--st-unknown)",  dotGlow: undefined, label: "Unknown",  value: statusCounts.unknown,  numColor: "var(--text-primary)", foot: "No label yet" },
+            { cls: "m-system",   glow: "var(--st-system-glow)",   dot: "var(--st-system)",   dotGlow: undefined, label: "System",   value: statusCounts.system,   numColor: "var(--text-primary)", foot: "Apple managed" },
+            { cls: "m-store",    glow: "var(--st-store-glow)",    dot: "var(--st-store)",    dotGlow: "var(--st-store-glow)",    label: "App Store", value: statusCounts.store,    numColor: "var(--text-primary)", foot: "Mac App Store" },
+          ].map(m => (
+            <div key={m.label} style={{
+              position: "relative",
+              overflow: "hidden",
+              backgroundColor: "var(--surface-glass)",
+              backgroundImage: `radial-gradient(150px 95px at 100% -12%, ${m.glow}, transparent 70%), var(--sheen)`,
+              WebkitBackdropFilter: "blur(18px) saturate(150%)",
+              backdropFilter: "blur(18px) saturate(150%)",
+              border: "1px solid var(--border-hairline)",
+              borderRadius: "var(--r-lg)",
+              boxShadow: "var(--shadow-card)",
+              padding: "15px 17px 16px",
+              transition: "background-color 0.5s, box-shadow 0.5s",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11.5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: m.dot, boxShadow: m.dotGlow ? `0 0 9px ${m.dotGlow}` : undefined, display: "inline-block" }} />
+                {m.label}
+              </div>
+              <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: "-0.03em", marginTop: 11, lineHeight: 1, color: m.numColor }}>
+                {loading ? "—" : m.value}
+              </div>
+              <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 7 }}>{m.foot}</div>
+            </div>
+          ))}
+        </section>
+
+        {/* 2-col grid: fleet health + top outdated */}
+        <section style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 18, marginBottom: 18 }}>
+          {/* Fleet health */}
+          <div style={cardStyle}>
+            <div style={cardHead}>
+              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Fleet health</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 30 }}>
+              {/* Donut */}
+              <div style={{ position: "relative", width: 184, height: 184, flexShrink: 0 }}>
+                <div style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "50%",
+                  background: donutGrad,
+                  WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 26px), #000 calc(100% - 26px))",
+                  mask: "radial-gradient(farthest-side, transparent calc(100% - 26px), #000 calc(100% - 26px))",
+                }} />
+                <div style={{ position: "absolute", inset: 0, display: "grid", placeContent: "center", textAlign: "center" }}>
+                  <div style={{ fontSize: 38, fontWeight: 600, letterSpacing: "-0.03em", color: "var(--st-outdated-text)", lineHeight: 1 }}>
+                    {loading ? "—" : statusCounts.outdated}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 4 }}>outdated</div>
+                </div>
               </div>
               {/* Legend */}
-              <div className="mt-6 space-y-2 text-sm">
-                {chartData.map(item => (
-                  <div key={item.name} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.fill }} />
-                    <span className="text-gray-700">{item.name}: {item.value}</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 11, flex: 1 }}>
+                {[
+                  { color: "var(--st-outdated)", label: "Outdated", value: statusCounts.outdated },
+                  { color: "var(--st-current)",  label: "Current",  value: statusCounts.current },
+                  { color: "var(--st-unknown)",  label: "Unknown",  value: statusCounts.unknown },
+                  { color: "var(--st-system)",   label: "System",   value: statusCounts.system },
+                ].map(row => (
+                  <div key={row.label} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5 }}>
+                    <span style={{ width: 9, height: 9, borderRadius: 3, background: row.color, flexShrink: 0, display: "inline-block" }} />
+                    <span style={{ color: "var(--text-secondary)" }}>{row.label}</span>
+                    <span style={{ marginLeft: "auto", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                      {loading ? "—" : row.value}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Right: Top Outdated */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">Top Outdated Apps</h2>
-              <div className="space-y-3 max-h-80 overflow-y-auto">
-                {topOutdated.length > 0 ? (
-                  topOutdated.map(app => (
-                    <div key={app.label} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <div>
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orchardpatch-green to-emerald-600 flex items-center justify-center text-white text-xs font-semibold mb-2">
-                          {app.name.charAt(0).toUpperCase()}
-                        </div>
-                        <p className="text-sm font-medium text-gray-900">{app.name}</p>
-                      </div>
-                      <div className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">
-                        {app.deviceCount} device{app.deviceCount !== 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-400 text-sm">No outdated apps</p>
-                )}
-              </div>
-              <Link href="/apps" className="mt-4 text-sm text-green-700 hover:text-green-800 hover:underline inline-block">
-                View all in App Inventory →
+          {/* Top outdated apps */}
+          <div style={cardStyle}>
+            <div style={cardHead}>
+              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Top outdated apps</span>
+              <Link href="/apps" style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                View all
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+                  <path d="M5 12h14M13 6l6 6-6 6"/>
+                </svg>
               </Link>
             </div>
-          </div>
-
-          {/* Patch by the Orchard Card */}
-          <div className="bg-white rounded-lg border-2 border-amber-400 shadow p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Trees className="w-6 h-6 text-amber-600" />
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Patch by the Orchard</h3>
-                  <p className="text-sm text-gray-600">Queue patches across your entire fleet</p>
+            {loading ? (
+              <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>Loading…</div>
+            ) : topOutdated.length === 0 ? (
+              <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No outdated apps</div>
+            ) : topOutdated.map(app => (
+              <div key={app.label} style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 4px", borderBottom: "1px solid var(--border-hairline)" }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                  display: "grid", placeItems: "center",
+                  fontSize: 15, fontWeight: 600,
+                  color: "var(--accent)",
+                  background: "var(--accent-tint)",
+                  boxShadow: "inset 0 1px 0 var(--rim-top), inset 0 0 0 1px rgba(98,184,106,0.14)",
+                }}>
+                  {app.name.charAt(0).toUpperCase()}
                 </div>
-              </div>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded p-3 mb-4 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-amber-800">
-                This will queue patch jobs across every device in your fleet. Review before confirming.
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                setConfirmCheckbox(false);
-                setSelectedMode('silent');
-                setShowOrchardModal(true);
-              }}
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium"
-            >
-              Patch All Outdated ({statusCounts.outdated} apps · {devices.length} devices)
-            </button>
-          </div>
-
-          {/* Pinned Apps Section (Empty State) */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Pinned Apps</h3>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-20 bg-gray-100 rounded border border-dashed border-gray-300 flex items-center justify-center opacity-40">
-                  <div className="text-center">
-                    <Trees className="w-6 h-6 text-gray-600 mx-auto mb-1" />
-                    <p className="text-xs text-gray-700">Pin app</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 500 }}>{app.name}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontVariantNumeric: "tabular-nums" }}>
+                    {displayVersion(app.version)}{" "}
+                    {app.latest && <b style={{ color: "var(--st-outdated-text)", fontWeight: 600 }}>→ {displayVersion(app.latest)}</b>}
                   </div>
                 </div>
-              ))}
-            </div>
-            <p className="text-sm text-gray-700">
-              Pin your most critical apps for quick access and monitoring. Coming soon.
-            </p>
+                <span style={{
+                  fontSize: 12, fontWeight: 600,
+                  color: "var(--st-outdated-text)",
+                  background: "var(--st-outdated-tint)",
+                  padding: "5px 11px",
+                  borderRadius: "var(--r-pill)",
+                  whiteSpace: "nowrap",
+                }}>
+                  {app.deviceCount} device{app.deviceCount !== 1 ? "s" : ""}
+                </span>
+              </div>
+            ))}
           </div>
-        </div>
-      </main>
+        </section>
 
-      {/* Orchard Modal */}
+        {/* Patch by the Orchard */}
+        <section style={{
+          ...cardStyle,
+          marginBottom: 18,
+          padding: "22px 24px",
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 13, marginBottom: 16 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+              background: "var(--accent-tint)",
+              display: "grid", placeItems: "center",
+              boxShadow: "inset 0 1px 0 var(--rim-top)",
+            }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ width: 21, height: 21, color: "var(--accent)" }}>
+                <path d="M12 22V12"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 15c0-3.2-3-5.8-7-5.8 0 3.2 3 5.8 7 5.8z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Patch by the Orchard</h3>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 2 }}>Queue patches across your entire fleet</p>
+            </div>
+          </div>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            background: "var(--notice-bg)",
+            border: "1px solid var(--notice-border)",
+            borderRadius: "var(--r-md)",
+            padding: "11px 14px",
+            marginBottom: 16,
+            fontSize: 13,
+            color: "var(--notice-text)",
+          }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
+              <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>
+            </svg>
+            This queues patch jobs on every device in your fleet. Review before you confirm.
+          </div>
+          <button
+            onClick={() => { setConfirmCheckbox(false); setSelectedMode('silent'); setShowOrchardModal(true); }}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 9,
+              fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: "-0.005em",
+              background: "var(--accent-grad)",
+              border: "1px solid rgba(255,255,255,0.22)",
+              borderRadius: "var(--r-md)",
+              padding: "12px 20px",
+              boxShadow: "var(--shadow-accent)",
+              transition: "filter 0.14s, transform 0.08s",
+              cursor: "pointer",
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+              <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
+            </svg>
+            Patch all outdated · {statusCounts.outdated} apps · {devices.length} devices
+          </button>
+        </section>
+
+        {/* Pinned apps */}
+        <section>
+          <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", margin: "4px 0 14px" }}>Pinned apps</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 12 }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{
+                border: "1.5px dashed var(--border-strong)",
+                borderRadius: "var(--r-lg)",
+                padding: 30,
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 9,
+                color: "var(--text-tertiary)",
+              }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22, opacity: 0.8 }}>
+                  <path d="M9 4v6l-2 4h10l-2-4V4"/><path d="M12 18v3M8 4h8"/>
+                </svg>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>Pin an app</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-tertiary)" }}>
+            Pin the apps you watch most for one-tap access. Coming soon.
+          </div>
+        </section>
+      </div>
+
+      {/* Orchard confirmation modal */}
       {showOrchardModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 flex flex-col">
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div style={{
+            background: "var(--surface-solid)",
+            border: "1px solid var(--border-hairline)",
+            borderRadius: "var(--r-xl)",
+            boxShadow: "var(--shadow-card)",
+            maxWidth: 560,
+            width: "calc(100% - 32px)",
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}>
             {/* Header */}
-            <div className="p-6 border-b flex items-center gap-3">
-              <Trees className="w-6 h-6 text-amber-600" />
+            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", alignItems: "center", gap: 12 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ width: 21, height: 21, color: "var(--accent)", flexShrink: 0 }}>
+                <path d="M12 22V12"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 15c0-3.2-3-5.8-7-5.8 0 3.2 3 5.8 7 5.8z"/>
+              </svg>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Patch by the Orchard</h2>
-                <p className="text-sm text-gray-600">Review everything that will be patched</p>
+                <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>Patch by the Orchard</h2>
+                <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 1 }}>Review everything that will be patched</p>
               </div>
             </div>
 
-            {/* Scrollable List */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-3">
-              {topOutdated.length > 0 ? (
-                topOutdated.map(app => (
-                  <div key={app.label} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{app.name}</p>
-                      <p className="text-xs text-gray-600">{app.label}</p>
-                    </div>
-                    <div className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">
-                      {app.deviceCount} device{app.deviceCount !== 1 ? 's' : ''}
-                    </div>
+            {/* App list */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px", display: "flex", flexDirection: "column", gap: 8 }}>
+              {topOutdated.length > 0 ? topOutdated.map(app => (
+                <div key={app.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid var(--border-hairline)" }}>
+                  <div>
+                    <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-primary)" }}>{app.name}</p>
+                    <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontFamily: "var(--mono)" }}>{app.label}</p>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-400 text-sm">No outdated apps</p>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--st-outdated-text)", background: "var(--st-outdated-tint)", padding: "4px 10px", borderRadius: "var(--r-pill)" }}>
+                    {app.deviceCount} device{app.deviceCount !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              )) : (
+                <p style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No outdated apps</p>
               )}
             </div>
 
             {/* Summary */}
-            <div className="px-6 py-4 border-t bg-gray-50 text-sm text-gray-700">
-              <p>
-                <span className="font-semibold">{topOutdated.length} apps</span> across{' '}
-                <span className="font-semibold">{devices.length} devices</span> —{' '}
-                <span className="font-semibold">{statusCounts.outdated} total patch jobs</span>
-              </p>
+            <div style={{ padding: "12px 24px", borderTop: "1px solid var(--border-hairline)", fontSize: 13, color: "var(--text-secondary)", background: "var(--surface-sunken)" }}>
+              <strong style={{ color: "var(--text-primary)" }}>{topOutdated.length} apps</strong> across{" "}
+              <strong style={{ color: "var(--text-primary)" }}>{devices.length} devices</strong> —{" "}
+              <strong style={{ color: "var(--text-primary)" }}>{statusCounts.outdated} total patch jobs</strong>
             </div>
 
-            {/* Mode Selector */}
-            <div className="px-6 py-4 border-t space-y-3">
-              <p className="text-sm font-medium text-gray-900">Patch Mode</p>
-              <div className="grid grid-cols-3 gap-3">
+            {/* Mode selector */}
+            <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>Patch mode</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
                 {(['silent', 'managed', 'prompted'] as const).map(mode => (
                   <button
                     key={mode}
                     onClick={() => setSelectedMode(mode)}
-                    className={`p-3 rounded-lg border-2 transition ${
-                      selectedMode === mode
-                        ? 'border-orchardpatch-green bg-green-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: "var(--r-md)",
+                      border: `2px solid ${selectedMode === mode ? "var(--accent)" : "var(--border-hairline)"}`,
+                      background: selectedMode === mode ? "var(--accent-tint)" : "var(--surface-glass)",
+                      color: "var(--text-primary)",
+                      cursor: "pointer",
+                      transition: "border-color 0.14s",
+                    }}
                   >
-                    <p className="text-sm font-semibold text-gray-900 capitalize">{mode}</p>
-                    {mode === 'managed' && <p className="text-xs text-gray-600 mt-1">(recommended)</p>}
-                     {mode === 'prompted' && <p className="text-xs text-gray-600 mt-1">If already closed, Installomator installs silently.</p>}
+                    <p style={{ fontSize: 13, fontWeight: 600, textTransform: "capitalize" }}>{mode}</p>
+                    {mode === 'managed' && <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>recommended</p>}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Warning Banner */}
-            <div className="px-6 py-4 border-t bg-amber-50 border-t-amber-200">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-amber-800">This will affect your entire fleet</p>
+            {/* Notice */}
+            <div style={{ padding: "12px 24px", borderTop: "1px solid var(--border-hairline)", background: "var(--notice-bg)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--notice-text)" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15, flexShrink: 0 }}>
+                  <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>
+                </svg>
+                This will affect your entire fleet
               </div>
             </div>
 
-            {/* Confirmation Checkbox */}
-            <div className="px-6 py-4 border-t">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={confirmCheckbox}
-                  onChange={e => setConfirmCheckbox(e.target.checked)}
-                  className="w-4 h-4 border-gray-300 rounded"
-                />
-                <span className="text-sm text-gray-900">
-                  I understand this will affect my entire fleet
-                </span>
+            {/* Confirm checkbox */}
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, color: "var(--text-primary)" }}>
+                <input type="checkbox" checked={confirmCheckbox} onChange={e => setConfirmCheckbox(e.target.checked)} style={{ width: 16, height: 16 }} />
+                I understand this will affect my entire fleet
               </label>
             </div>
 
             {/* Buttons */}
-            <div className="px-6 py-4 border-t bg-gray-50 flex gap-3 justify-end">
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)", display: "flex", gap: 10, justifyContent: "flex-end", background: "var(--surface-sunken)" }}>
               <button
                 onClick={() => setShowOrchardModal(false)}
                 disabled={orchardLoading}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                style={{
+                  padding: "9px 16px", borderRadius: "var(--r-md)",
+                  border: "1px solid var(--border-hairline)",
+                  background: "var(--surface-glass)",
+                  color: "var(--text-primary)",
+                  fontSize: 13, fontWeight: 500, cursor: "pointer",
+                }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleOrchardConfirm}
                 disabled={!confirmCheckbox || orchardLoading}
-                className="px-4 py-2 bg-orchardpatch-green text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  padding: "9px 18px",
+                  borderRadius: "var(--r-md)",
+                  background: confirmCheckbox ? "var(--accent-grad)" : "var(--surface-sunken)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  color: "#fff",
+                  fontSize: 13, fontWeight: 600,
+                  cursor: confirmCheckbox ? "pointer" : "not-allowed",
+                  opacity: !confirmCheckbox || orchardLoading ? 0.6 : 1,
+                  boxShadow: confirmCheckbox ? "var(--shadow-accent)" : "none",
+                }}
               >
-                {orchardLoading ? 'Starting...' : 'Start Patching'}
+                {orchardLoading ? "Starting…" : "Start patching"}
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
