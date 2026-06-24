@@ -627,11 +627,7 @@ function PatchesPageInner() {
       {/* Offline banner */}
       {agentOffline && (
         <div
-          style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 12, borderRadius: 16, padding: "12px 16px" }}
-          style={{
-            background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--st-outdated) 25%, transparent)",
-          }}
+          style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 12, borderRadius: 16, padding: "12px 16px", background: "color-mix(in srgb, var(--st-outdated) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--st-outdated) 25%, transparent)" }}
         >
           <WifiOff className="h-4 w-4 shrink-0" style={{ color: "var(--st-outdated)" }} />
           <div>
