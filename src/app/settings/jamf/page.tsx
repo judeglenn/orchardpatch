@@ -100,41 +100,41 @@ export default function JamfSettingsPage() {
   const normalizedUrl = serverUrl.replace(/\/$/, "");
 
   return (
-    <div className="px-6 py-6 max-w-2xl">
+    <div style={{ padding: "24px", maxWidth: "42rem" }}>
       {/* Back */}
-      <div className="mb-5">
-        <Link href="/settings" className="inline-flex items-center gap-1.5 text-sm transition-colors" style={{ color: "#6b7280" }}>
+      <div style={{ marginBottom: 20 }}>
+        <Link href="/settings" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "var(--text-secondary)" }}>
           <ChevronLeft className="h-4 w-4" />
           Settings
         </Link>
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: "#f0f7e8" }}>
-          <Link2 className="h-6 w-6" style={{ color: "#2d5016" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <div style={{ display: "flex", width: 48, height: 48, alignItems: "center", justifyContent: "center", borderRadius: 12, background: "var(--accent-tint)" }}>
+          <Link2 className="h-6 w-6" style={{ color: "var(--accent)" }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: "#1a1a2e" }}>Jamf Pro</h1>
-          <p className="text-sm" style={{ color: "#6b7280" }}>Connect your Jamf Pro instance to pull live device and app inventory</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>Jamf Pro</h1>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>Connect your Jamf Pro instance to pull live device and app inventory</p>
         </div>
       </div>
 
       {/* Security note */}
-      <div className="flex items-start gap-2.5 rounded-xl px-4 py-3 mb-6" style={{ background: "#f0f7e8", border: "1px solid #c5e1a5" }}>
-        <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#2d5016" }} />
-        <p className="text-xs leading-relaxed" style={{ color: "#2d5016" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, borderRadius: 12, padding: "12px 16px", marginBottom: 24, background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}>
+        <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "var(--accent)" }} />
+        <p style={{ fontSize: 12, lineHeight: 1.6, color: "var(--text-primary)" }}>
           OrchardPatch uses <strong>read-only API access</strong>. We never write to your Jamf instance. 
           Create a dedicated API role with <strong>Read Computers</strong> permission only.
         </p>
       </div>
 
       {/* Form */}
-      <div className="rounded-xl border bg-white p-6 mb-4" style={{ borderColor: "#e2e4e7", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-        <div className="flex flex-col gap-5">
+      <div style={{ borderRadius: 12, padding: 24, marginBottom: 16, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {/* Server URL */}
           <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color: "#1a1a2e" }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "var(--text-primary)" }}>
               Jamf Pro Server URL
             </label>
             <input
@@ -142,13 +142,12 @@ export default function JamfSettingsPage() {
               value={serverUrl}
               onChange={(e) => setServerUrl(e.target.value)}
               placeholder="https://yourorg.jamfcloud.com"
-              className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-all"
-              style={{ borderColor: "#e2e4e7", color: "#1a1a2e" }}
-              onFocus={(e) => (e.target.style.borderColor = "#2d5016")}
-              onBlur={(e) => (e.target.style.borderColor = "#e2e4e7")}
+              style={{ width: "100%", borderRadius: 8, border: "1px solid var(--border-hairline)", padding: "10px 12px", fontSize: 14, outline: "none", background: "var(--surface-raised)", color: "var(--text-primary)" }}
+              onFocus={(e) => (e.target.style.borderColor = "var(--border-accent)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-hairline)")}
             />
             {normalizedUrl && (
-              <p className="text-[10px] mt-1" style={{ color: "#9ca3af" }}>
+              <p style={{ fontSize: 10, marginTop: 4, color: "var(--text-tertiary)" }}>
                 API endpoint: {normalizedUrl}/api/v1/computers-inventory
               </p>
             )}
@@ -156,7 +155,7 @@ export default function JamfSettingsPage() {
 
           {/* Client ID */}
           <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color: "#1a1a2e" }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "var(--text-primary)" }}>
               Client ID
             </label>
             <input
@@ -164,34 +163,31 @@ export default function JamfSettingsPage() {
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
               placeholder="API client ID from Jamf Pro → Settings → API roles"
-              className="w-full rounded-lg border px-3 py-2.5 text-sm font-mono outline-none transition-all"
-              style={{ borderColor: "#e2e4e7", color: "#1a1a2e" }}
-              onFocus={(e) => (e.target.style.borderColor = "#2d5016")}
-              onBlur={(e) => (e.target.style.borderColor = "#e2e4e7")}
+              style={{ width: "100%", borderRadius: 8, border: "1px solid var(--border-hairline)", padding: "10px 12px", fontSize: 14, fontFamily: "monospace", outline: "none", background: "var(--surface-raised)", color: "var(--text-primary)" }}
+              onFocus={(e) => (e.target.style.borderColor = "var(--border-accent)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-hairline)")}
             />
           </div>
 
           {/* Client Secret */}
           <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color: "#1a1a2e" }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "var(--text-primary)" }}>
               Client Secret
             </label>
-            <div className="relative">
+            <div style={{ position: "relative" }}>
               <input
                 type={showSecret ? "text" : "password"}
                 value={clientSecret}
                 onChange={(e) => setClientSecret(e.target.value)}
                 placeholder="••••••••••••••••"
-                className="w-full rounded-lg border px-3 py-2.5 pr-10 text-sm font-mono outline-none transition-all"
-                style={{ borderColor: "#e2e4e7", color: "#1a1a2e" }}
-                onFocus={(e) => (e.target.style.borderColor = "#2d5016")}
-                onBlur={(e) => (e.target.style.borderColor = "#e2e4e7")}
+                style={{ width: "100%", borderRadius: 8, border: "1px solid var(--border-hairline)", padding: "10px 40px 10px 12px", fontSize: 14, fontFamily: "monospace", outline: "none", background: "var(--surface-raised)", color: "var(--text-primary)" }}
+                onFocus={(e) => (e.target.style.borderColor = "var(--border-accent)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-hairline)")}
               />
               <button
                 type="button"
                 onClick={() => setShowSecret(!showSecret)}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-                style={{ color: "#9ca3af" }}
+                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", cursor: "pointer" }}
               >
                 {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -203,36 +199,30 @@ export default function JamfSettingsPage() {
       {/* Status banner */}
       {status !== "idle" && (
         <div
-          className="flex items-center gap-2.5 rounded-xl px-4 py-3 mb-4 text-sm"
-          style={{
-            background: status === "success" ? "#f0f7e8" : status === "error" ? "#fff3e0" : "#f3f4f6",
-            border: `1px solid ${status === "success" ? "#c5e1a5" : status === "error" ? "#ffcc80" : "#e2e4e7"}`,
-          }}
+          style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 14, background: status === "success" ? "var(--accent-tint)" : status === "error" ? "color-mix(in srgb, var(--st-outdated) 8%, transparent)" : "var(--surface-raised)", border: `1px solid ${status === "success" ? "var(--border-accent)" : status === "error" ? "color-mix(in srgb, var(--st-outdated) 30%, transparent)" : "var(--border-hairline)"}` }}
         >
-          {status === "testing" && <Loader2 className="h-4 w-4 animate-spin shrink-0" style={{ color: "#6b7280" }} />}
-          {status === "success" && <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "#2e7d32" }} />}
-          {status === "error" && <XCircle className="h-4 w-4 shrink-0" style={{ color: "#e65100" }} />}
-          <span style={{ color: status === "success" ? "#2e7d32" : status === "error" ? "#e65100" : "#6b7280" }}>
+          {status === "testing" && <Loader2 className="h-4 w-4 animate-spin shrink-0" style={{ color: "var(--text-secondary)" }} />}
+          {status === "success" && <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "var(--st-current)" }} />}
+          {status === "error" && <XCircle className="h-4 w-4 shrink-0" style={{ color: "var(--st-outdated)" }} />}
+          <span style={{ color: status === "success" ? "var(--st-current)" : status === "error" ? "var(--st-outdated)" : "var(--text-secondary)" }}>
             {status === "testing" ? "Testing connection…" : statusMessage}
           </span>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div style={{ display: "flex", gap: 12 }}>
         <button
           onClick={testConnection}
           disabled={status === "testing"}
-          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
-          style={{ background: "#f0f7e8", color: "#2d5016", border: "1px solid #c5e1a5" }}
+          style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "10px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", background: "var(--accent-tint)", color: "var(--accent)", border: "1px solid var(--border-accent)" }}
         >
           {status === "testing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
           Test Connection
         </button>
         <button
           onClick={saveConfig}
-          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95"
-          style={{ background: "#2d5016", color: "white" }}
+          style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "10px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", background: "var(--accent)", color: "var(--page-bg)" }}
         >
           {saved ? <CheckCircle2 className="h-4 w-4" /> : null}
           {saved ? "Saved!" : "Save Configuration"}
@@ -240,9 +230,9 @@ export default function JamfSettingsPage() {
       </div>
 
       {/* Setup guide */}
-      <div className="mt-8 rounded-xl border p-5" style={{ borderColor: "#e2e4e7" }}>
-        <p className="text-xs font-semibold mb-3" style={{ color: "#1a1a2e" }}>How to set up API access in Jamf Pro</p>
-        <ol className="flex flex-col gap-2">
+      <div style={{ marginTop: 32, borderRadius: 12, padding: 20, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}>
+        <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 12, color: "var(--text-primary)" }}>How to set up API access in Jamf Pro</p>
+        <ol style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {[
             "In Jamf Pro, go to Settings → System → API roles and clients",
             "Create a new API Role — name it 'OrchardPatch Read-Only', add Read Computer Inventory Collection permission",
@@ -251,10 +241,9 @@ export default function JamfSettingsPage() {
             "Copy the Client ID shown, then click Generate Secret and copy it immediately (shown only once)",
             "Paste both above and click Test Connection",
           ].map((step, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-xs" style={{ color: "#6b7280" }}>
+            <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 12, color: "var(--text-secondary)" }}>
               <span
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
-                style={{ background: "#f0f7e8", color: "#2d5016" }}
+                style={{ display: "flex", width: 20, height: 20, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: 9999, fontSize: 10, fontWeight: 700, background: "var(--accent-tint)", color: "var(--accent)" }}
               >
                 {i + 1}
               </span>

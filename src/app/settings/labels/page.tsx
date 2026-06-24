@@ -72,28 +72,21 @@ export default function LabelOverridesPage() {
 
   useEffect(() => { fetchOverrides(); }, []);
 
-  const glass = {
-    background: "rgba(255,255,255,0.06)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: "16px",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-  } as React.CSSProperties;
+  const glass: React.CSSProperties = { backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", borderRadius: "16px", boxShadow: "var(--shadow-card)" };
 
   return (
-    <div className="px-6 py-6 max-w-3xl">
+    <div style={{ padding: "24px", maxWidth: "48rem" }}>
       {/* Back */}
-      <div className="mb-5">
-        <Link href="/settings" className="inline-flex items-center gap-1.5 text-sm transition-colors" style={{ color: "rgba(255,255,255,0.5)" }}>
+      <div style={{ marginBottom: 20 }}>
+        <Link href="/settings" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "var(--text-secondary)" }}>
           <ChevronLeft className="h-4 w-4" />
           Settings
         </Link>
       </div>
 
-      <div className="mb-6">
-        <h1 className="text-xl font-bold mb-1" style={{ color: "#f0f8ec" }}>Label Overrides</h1>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, color: "var(--text-primary)" }}>Label Overrides</h1>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>
           Map bundle IDs to specific Installomator labels. Overrides take priority over auto-detection.
           Useful for apps like Microsoft Teams where multiple versions use different labels.
         </p>
@@ -101,83 +94,79 @@ export default function LabelOverridesPage() {
 
       {/* Agent status */}
       {!agentOnline && !loading && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "rgba(255,160,0,0.1)", border: "1px solid rgba(255,160,0,0.3)" }}>
-          <AlertTriangle className="h-4 w-4" style={{ color: "#ffb74d" }} />
-          <span className="text-sm" style={{ color: "#ffb74d" }}>Agent offline — changes will not be saved until agent is running</span>
+        <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderRadius: 12, background: "color-mix(in srgb, var(--st-outdated) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)" }}>
+          <AlertTriangle className="h-4 w-4" style={{ color: "var(--st-outdated)" }} />
+          <span style={{ fontSize: 14, color: "var(--st-outdated)" }}>Agent offline — changes will not be saved until agent is running</span>
         </div>
       )}
 
       {/* Add new override */}
-      <div className="mb-6 p-5" style={glass}>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>Add Override</p>
-        <div className="flex flex-col sm:flex-row gap-3">
+      <div style={{ ...glass, marginBottom: 24, padding: 20 }}>
+        <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16, color: "var(--text-secondary)" }}>Add Override</p>
+        <div style={{ display: "flex", gap: 12 }}>
           <input
             value={newBundleId}
             onChange={e => setNewBundleId(e.target.value)}
             placeholder="com.microsoft.teams2"
-            className="flex-1 px-3 py-2.5 rounded-xl text-sm outline-none"
-            style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#f0f8ec" }}
+            style={{ flex: 1, padding: "10px 12px", borderRadius: 12, fontSize: 14, outline: "none", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}
           />
           <input
             value={newLabel}
             onChange={e => setNewLabel(e.target.value)}
             placeholder="microsoftteams2"
-            className="flex-1 px-3 py-2.5 rounded-xl text-sm outline-none"
-            style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#f0f8ec" }}
+            style={{ flex: 1, padding: "10px 12px", borderRadius: 12, fontSize: 14, outline: "none", background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}
             onKeyDown={e => e.key === "Enter" && addOverride()}
           />
           <button
             onClick={addOverride}
             disabled={saving || !newBundleId.trim() || !newLabel.trim()}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-40"
-            style={{ background: "#5aaa28", color: "white" }}
+            style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", background: "var(--accent)", color: "var(--page-bg)" }}
           >
             <Plus className="h-4 w-4" />
             Add
           </button>
         </div>
-        <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.35)" }}>
-          Bundle ID: the app's identifier (e.g. <code style={{ color: "#7dd94a" }}>com.microsoft.teams2</code>) · Label: the Installomator label (e.g. <code style={{ color: "#7dd94a" }}>microsoftteams2</code>)
+        <p style={{ fontSize: 12, marginTop: 12, color: "var(--text-tertiary)" }}>
+          Bundle ID: the app's identifier (e.g. <code style={{ color: "var(--accent)" }}>com.microsoft.teams2</code>) · Label: the Installomator label (e.g. <code style={{ color: "var(--accent)" }}>microsoftteams2</code>)
         </p>
       </div>
 
       {/* Existing overrides */}
       <div style={glass}>
-        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border-hairline)" }}>
+          <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}>
             Current Overrides {overrides.length > 0 && `(${overrides.length})`}
           </p>
-          <button onClick={fetchOverrides} className="p-1.5 rounded-lg transition-colors" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <button onClick={fetchOverrides} style={{ padding: 6, borderRadius: 8, cursor: "pointer", color: "var(--text-tertiary)" }}>
             <RefreshCw className="h-3.5 w-3.5" />
           </button>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="h-6 w-6 rounded-full border-2 border-[#7dd94a] border-t-transparent animate-spin" />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 0" }}>
+            <div style={{ width: 24, height: 24, borderRadius: 9999, border: "2px solid var(--accent)", borderTopColor: "transparent" }} className="animate-spin" />
           </div>
         ) : overrides.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>No overrides yet</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>Auto-detection handles most apps. Add overrides for edge cases.</p>
+          <div style={{ padding: "48px 0", textAlign: "center" }}>
+            <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>No overrides yet</p>
+            <p style={{ fontSize: 12, marginTop: 4, color: "var(--text-tertiary)" }}>Auto-detection handles most apps. Add overrides for edge cases.</p>
           </div>
         ) : (
-          <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <div>
             {overrides.map(({ bundleId, label }) => (
-              <div key={bundleId} className="flex items-center gap-4 px-5 py-3.5">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-mono truncate" style={{ color: "#f0f8ec" }}>{bundleId}</p>
+              <div key={bundleId} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 20px", borderTop: "1px solid var(--border-hairline)" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-primary)" }}>{bundleId}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>→</span>
-                  <span className="text-sm font-mono px-2 py-0.5 rounded" style={{ background: "rgba(125,217,74,0.12)", color: "#7dd94a", border: "1px solid rgba(125,217,74,0.25)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>→</span>
+                  <span style={{ fontSize: 14, fontFamily: "monospace", padding: "2px 8px", borderRadius: 4, background: "var(--accent-tint)", color: "var(--accent)", border: "1px solid var(--border-accent)" }}>
                     {label}
                   </span>
                 </div>
                 <button
                   onClick={() => deleteOverride(bundleId)}
-                  className="p-1.5 rounded-lg transition-colors hover:bg-red-500/10"
-                  style={{ color: "rgba(255,255,255,0.3)" }}
+                  style={{ padding: 6, borderRadius: 8, cursor: "pointer", color: "var(--text-tertiary)" }}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -188,9 +177,9 @@ export default function LabelOverridesPage() {
       </div>
 
       {/* Common overrides reference */}
-      <div className="mt-6 p-5" style={{ ...glass, background: "rgba(125,217,74,0.04)" }}>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.4)" }}>Common Overrides Reference</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono" style={{ color: "rgba(255,255,255,0.5)" }}>
+      <div style={{ ...glass, marginTop: 24, padding: 20 }}>
+        <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12, color: "var(--text-secondary)" }}>Common Overrides Reference</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, fontSize: 12, fontFamily: "monospace", color: "var(--text-secondary)" }}>
           {[
             ["com.microsoft.teams2", "microsoftteams2"],
             ["com.microsoft.teams", "microsoftteams"],
@@ -199,24 +188,23 @@ export default function LabelOverridesPage() {
             ["org.mozilla.firefox", "firefoxpkg"],
             ["com.google.Chrome", "googlechromepkg"],
           ].map(([bid, label]) => (
-            <div key={bid} className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => { setNewBundleId(bid); setNewLabel(label); }}>
-              <span style={{ color: "rgba(255,255,255,0.35)" }}>{bid}</span>
-              <span style={{ color: "rgba(255,255,255,0.25)" }}>→</span>
-              <span style={{ color: "#7dd94a" }}>{label}</span>
+            <div key={bid} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => { setNewBundleId(bid); setNewLabel(label); }}>
+              <span style={{ color: "var(--text-tertiary)" }}>{bid}</span>
+              <span style={{ color: "var(--text-tertiary)" }}>→</span>
+              <span style={{ color: "var(--accent)" }}>{label}</span>
             </div>
           ))}
         </div>
-        <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.25)" }}>
+        <p style={{ fontSize: 12, marginTop: 12, color: "var(--text-tertiary)" }}>
           Click any row to pre-fill the form above. Full label list available at{" "}
-          <a href="https://github.com/Installomator/Installomator/blob/main/Labels.txt" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(125,217,74,0.7)" }} className="hover:underline">
+          <a href="https://github.com/Installomator/Installomator/blob/main/Labels.txt" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
             Installomator/Labels.txt
           </a>
         </p>
       </div>
 
       {/* Toast */}
-      <div className="fixed top-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium text-white shadow-lg"
-        style={{ background: "#2d5016", transition: "opacity 300ms, transform 300ms cubic-bezier(0.34,1.56,0.64,1)", opacity: toast ? 1 : 0, transform: toast ? "translateY(0)" : "translateY(-120%)", pointerEvents: toast ? "auto" : "none" }}>
+      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 50, padding: "12px 16px", borderRadius: 12, fontSize: 14, fontWeight: 500, color: "var(--page-bg)", background: "var(--accent)", transition: "opacity 300ms, transform 300ms cubic-bezier(0.34,1.56,0.64,1)", opacity: toast ? 1 : 0, transform: toast ? "translateY(0)" : "translateY(-120%)", pointerEvents: toast ? "auto" : "none" }}>
         {toast}
       </div>
     </div>

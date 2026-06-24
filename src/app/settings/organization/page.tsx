@@ -25,23 +25,22 @@ function CopyField({ label, value }: { label: string; value: string }) {
 
   return (
     <div>
-      <p className="text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{ color: "#6b7280" }}>
+      <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>
         {label}
       </p>
       <div
-        className="flex items-center justify-between rounded-lg border px-3 py-2.5 font-mono text-sm"
-        style={{ borderColor: "#e2e4e7", background: "#f9fafb", color: "#1a1a2e" }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 8, border: "1px solid var(--border-hairline)", padding: "10px 12px", fontFamily: "monospace", fontSize: 14, background: "var(--surface-raised)", color: "var(--text-primary)" }}
       >
         <span className="truncate">{value}</span>
         <button
           onClick={copy}
-          className="ml-3 flex-shrink-0 rounded p-1 transition-colors hover:bg-gray-200"
+          style={{ marginLeft: 12, flexShrink: 0, borderRadius: 4, padding: 4, cursor: "pointer" }}
           title="Copy"
         >
           {copied ? (
-            <Check className="h-3.5 w-3.5" style={{ color: "#4a9e1a" }} />
+            <Check className="h-3.5 w-3.5" style={{ color: "var(--st-current)" }} />
           ) : (
-            <Copy className="h-3.5 w-3.5" style={{ color: "#9ca3af" }} />
+            <Copy className="h-3.5 w-3.5" style={{ color: "var(--text-tertiary)" }} />
           )}
         </button>
       </div>
@@ -51,68 +50,64 @@ function CopyField({ label, value }: { label: string; value: string }) {
 
 export default function OrganizationPage() {
   return (
-    <div className="px-6 py-6 max-w-2xl">
+    <div style={{ padding: "24px", maxWidth: "42rem" }}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "#f0f7e8" }}>
-          <Building2 className="h-5 w-5" style={{ color: "#2d5016" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <div style={{ display: "flex", width: 40, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, background: "var(--accent-tint)" }}>
+          <Building2 className="h-5 w-5" style={{ color: "var(--accent)" }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: "#1a1a2e" }}>Organization Profile</h1>
-          <p className="text-sm" style={{ color: "#6b7280" }}>Your org details and enrollment credentials</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>Organization Profile</h1>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>Your org details and enrollment credentials</p>
         </div>
       </div>
 
       {/* Org card */}
       <div
-        className="rounded-2xl border p-6 mb-5"
-        style={{ borderColor: "#e2e4e7", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+        style={{ borderRadius: 16, padding: 24, marginBottom: 20, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
       >
-        <div className="flex items-start justify-between mb-5">
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
-            <h2 className="text-lg font-bold" style={{ color: "#1a1a2e" }}>{ORG.name}</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{ORG.name}</h2>
             <span
-              className="inline-block mt-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: "rgba(125,217,74,0.15)", color: "#4a9e1a" }}
+              style={{ display: "inline-block", marginTop: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, background: "var(--accent-tint)", color: "var(--accent)" }}
             >
               {ORG.plan}
             </span>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold" style={{ color: "#1a1a2e" }}>{ORG.devices}</p>
-            <p className="text-xs" style={{ color: "#9ca3af" }}>of {ORG.maxDevices} devices</p>
+            <p style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>{ORG.devices}</p>
+            <p style={{ fontSize: 12, color: "var(--text-tertiary)" }}>of {ORG.maxDevices} devices</p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <CopyField label="Customer ID" value={ORG.customerId} />
           <CopyField label="Enrollment Token" value={ORG.enrollmentToken} />
           <CopyField label="Fleet Server URL" value={ORG.serverUrl} />
         </div>
 
-        <p className="mt-4 text-xs" style={{ color: "#9ca3af" }}>
+        <p style={{ marginTop: 16, fontSize: 12, color: "var(--text-tertiary)" }}>
           Organization created {ORG.createdAt}
         </p>
       </div>
 
       {/* Enrollment instructions */}
       <div
-        className="rounded-2xl border p-6"
-        style={{ borderColor: "#e2e4e7", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+        style={{ borderRadius: 16, padding: 24, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
       >
-        <h3 className="text-sm font-semibold mb-1" style={{ color: "#1a1a2e" }}>Enroll a Mac</h3>
-        <p className="text-xs mb-4" style={{ color: "#6b7280" }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, color: "var(--text-primary)" }}>Enroll a Mac</h3>
+        <p style={{ fontSize: 12, marginBottom: 16, color: "var(--text-secondary)" }}>
           The agent PKG is pre-configured for your organization. Install it on any Mac and it will appear in your fleet within minutes.
         </p>
 
-        <div className="rounded-lg p-3 font-mono text-xs mb-4" style={{ background: "#f4f6f8", color: "#374151" }}>
+        <div style={{ borderRadius: 8, padding: 12, fontFamily: "monospace", fontSize: 12, marginBottom: 16, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}>
           sudo installer -pkg OrchardPatch-Agent.pkg -target /
         </div>
 
         <a
           href="/settings/enrollment"
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:opacity-90"
-          style={{ background: "#7dd94a", color: "#fff" }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 8, padding: "8px 16px", fontSize: 14, fontWeight: 600, background: "var(--accent)", color: "var(--page-bg)" }}
         >
           <Download className="h-4 w-4" />
           Download Agent PKG

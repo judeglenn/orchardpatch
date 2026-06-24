@@ -23,27 +23,26 @@ const STEPS = [
 
 export default function EnrollmentPage() {
   return (
-    <div className="px-6 py-6 max-w-2xl">
+    <div style={{ padding: "24px", maxWidth: "42rem" }}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "#e3f2fd" }}>
-          <Package className="h-5 w-5" style={{ color: "#1565c0" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <div style={{ display: "flex", width: 40, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, background: "color-mix(in srgb, var(--accent) 12%, transparent)" }}>
+          <Package className="h-5 w-5" style={{ color: "var(--accent)" }} />
         </div>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: "#1a1a2e" }}>Agent Enrollment</h1>
-          <p className="text-sm" style={{ color: "#6b7280" }}>Deploy the OrchardPatch agent to any Mac in minutes</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)" }}>Agent Enrollment</h1>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>Deploy the OrchardPatch agent to any Mac in minutes</p>
         </div>
       </div>
 
       {/* Download card */}
       <div
-        className="rounded-2xl border p-6 mb-5 flex items-center justify-between"
-        style={{ borderColor: "#c5e1a5", background: "linear-gradient(135deg, #f0f7e8 0%, #e8f5e9 100%)", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+        style={{ borderRadius: 16, padding: 24, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-accent)", boxShadow: "var(--shadow-card)" }}
       >
         <div>
-          <p className="font-bold text-base mb-0.5" style={{ color: "#1a1a2e" }}>OrchardPatch-Agent.pkg</p>
-          <p className="text-xs" style={{ color: "#6b7280" }}>macOS 12+ · Intel &amp; Apple Silicon · ~4 MB</p>
-          <p className="text-xs mt-1 font-medium" style={{ color: "#4a9e1a" }}>
+          <p style={{ fontWeight: 700, fontSize: 16, marginBottom: 2, color: "var(--text-primary)" }}>OrchardPatch-Agent.pkg</p>
+          <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>macOS 12+ · Intel &amp; Apple Silicon · ~4 MB</p>
+          <p style={{ fontSize: 12, marginTop: 4, fontWeight: 500, color: "var(--st-current)" }}>
             ✓ Pre-configured for your organization
           </p>
         </div>
@@ -51,8 +50,7 @@ export default function EnrollmentPage() {
           href="https://github.com/judeglenn/orchardpatch-agent/raw/main/OrchardPatch-Agent.pkg"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all hover:opacity-90 flex-shrink-0 ml-4"
-          style={{ background: "#7dd94a", color: "#fff" }}
+          style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "10px 20px", fontSize: 14, fontWeight: 600, flexShrink: 0, marginLeft: 16, background: "var(--accent)", color: "var(--page-bg)" }}
         >
           <Download className="h-4 w-4" />
           Download
@@ -61,24 +59,22 @@ export default function EnrollmentPage() {
 
       {/* Steps */}
       <div
-        className="rounded-2xl border p-6 mb-5"
-        style={{ borderColor: "#e2e4e7", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+        style={{ borderRadius: 16, padding: 24, marginBottom: 20, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
       >
-        <h3 className="text-sm font-semibold mb-4" style={{ color: "#1a1a2e" }}>How it works</h3>
-        <div className="flex flex-col gap-5">
+        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: "var(--text-primary)" }}>How it works</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {STEPS.map((s) => (
-            <div key={s.step} className="flex gap-4">
+            <div key={s.step} style={{ display: "flex", gap: 16 }}>
               <div
-                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                style={{ background: "#f0f7e8", color: "#2d5016" }}
+                style={{ display: "flex", width: 28, height: 28, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: 9999, fontSize: 12, fontWeight: 700, background: "var(--accent-tint)", color: "var(--accent)" }}
               >
                 {s.step}
               </div>
               <div>
-                <p className="text-sm font-semibold mb-0.5" style={{ color: "#1a1a2e" }}>{s.title}</p>
-                <p className="text-xs" style={{ color: "#6b7280" }}>{s.description}</p>
+                <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 2, color: "var(--text-primary)" }}>{s.title}</p>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>{s.description}</p>
                 {s.code && (
-                  <div className="mt-2 rounded-lg px-3 py-2 font-mono text-xs" style={{ background: "#f4f6f8", color: "#374151" }}>
+                  <div style={{ marginTop: 8, borderRadius: 8, padding: "8px 12px", fontFamily: "monospace", fontSize: 12, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}>
                     {s.code}
                   </div>
                 )}
@@ -90,21 +86,20 @@ export default function EnrollmentPage() {
 
       {/* MDM deploy note */}
       <div
-        className="rounded-2xl border p-5"
-        style={{ borderColor: "#e2e4e7", background: "#fafbfc", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+        style={{ borderRadius: 16, padding: 20, backgroundColor: "var(--surface-glass)", backgroundImage: "var(--sheen)", backdropFilter: "blur(20px) saturate(150%)", WebkitBackdropFilter: "blur(20px) saturate(150%)", border: "1px solid var(--border-hairline)", boxShadow: "var(--shadow-card)" }}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <Terminal className="h-4 w-4" style={{ color: "#6b7280" }} />
-          <p className="text-sm font-semibold" style={{ color: "#1a1a2e" }}>Deploy via Jamf Pro</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <Terminal className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
+          <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Deploy via Jamf Pro</p>
         </div>
-        <p className="text-xs leading-relaxed mb-3" style={{ color: "#6b7280" }}>
+        <p style={{ fontSize: 12, lineHeight: 1.6, marginBottom: 12, color: "var(--text-secondary)" }}>
           Upload the PKG to Jamf Pro and attach the OrchardPatch enrollment script to the same policy. Set your org token as <span className="font-mono" style={{ color: "#374151" }}>Parameter 4</span> — each device enrolls automatically with no user interaction.
         </p>
-        <div className="rounded-lg px-3 py-2 font-mono text-xs" style={{ background: "#f4f6f8", color: "#374151" }}>
-          <span style={{ color: "#9ca3af" }}>Parameter 4:</span> your-org-token<br />
-          <span style={{ color: "#9ca3af" }}>Parameter 5:</span> https://orchardpatch-server-production.up.railway.app
+        <div style={{ borderRadius: 8, padding: "8px 12px", fontFamily: "monospace", fontSize: 12, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}>
+          <span style={{ color: "var(--text-tertiary)" }}>Parameter 4:</span> your-org-token<br />
+          <span style={{ color: "var(--text-tertiary)" }}>Parameter 5:</span> https://orchardpatch-server-production.up.railway.app
         </div>
-        <p className="mt-3 text-xs" style={{ color: "#9ca3af" }}>
+        <p style={{ marginTop: 12, fontSize: 12, color: "var(--text-tertiary)" }}>
           Compatible with Jamf Pro, Kandji, Mosyle, and any MDM that supports PKG deployment with script parameters.
         </p>
       </div>
