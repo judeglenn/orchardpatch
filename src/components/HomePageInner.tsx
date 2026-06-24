@@ -645,12 +645,7 @@ export default function HomePageInner() {
                   <button
                     key={key}
                     onClick={() => setPatchMode(key)}
-                    style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, borderRadius: 12, padding: "10px 12px", textAlign: "left", cursor: "pointer" }}
-                    style={{
-                      border: patchMode === key ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)",
-                      background: patchMode === key ? "var(--accent-tint)" : "var(--surface-raised)",
-                      boxShadow: "none",
-                    }}
+                    style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, borderRadius: 12, padding: "10px 12px", textAlign: "left", cursor: "pointer", border: patchMode === key ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)", background: patchMode === key ? "var(--accent-tint)" : "var(--surface-raised)" }}
                   >
                     <div className="flex items-center gap-1.5" style={{ color: patchMode === key ? "var(--accent)" : "var(--text-secondary)" }}>
                       {icon}
