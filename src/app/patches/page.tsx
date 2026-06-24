@@ -353,8 +353,12 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
               </div>
               <div style={{ borderTop: "1px solid var(--border-hairline)", marginBottom: "8px" }} />
               <div
-                style={{ fontSize: 11, fontFamily: "monospace", lineHeight: 1.6, borderRadius: 8, padding: "12px 16px" }}
                 style={{
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                  lineHeight: 1.6,
+                  borderRadius: 8,
+                  padding: "12px 16px",
                   background: "color-mix(in srgb, var(--page-bg) 60%, transparent)",
                   border: "1px solid var(--border-hairline)",
                   maxHeight: "320px",
@@ -878,7 +882,7 @@ function PatchesPageInner() {
           </div>
         ) : filteredJobs.length === 0 && hasFilters ? (
           <div style={{ textAlign: "center", padding: "64px 0" }}>
-            <ClipboardList style={{ width: 32, height: 32, margin: "0 auto 12px" }} style={{ color: "var(--text-tertiary)" }} />
+            <ClipboardList style={{ width: 32, height: 32, margin: "0 auto 12px", color: "var(--text-tertiary)" }} />
             <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>No jobs match the current filters</p>
             <button onClick={() => router.replace("/patches")} className="text-xs mt-2 underline" style={{ color: "var(--text-tertiary)" }}>Clear filters</button>
           </div>
