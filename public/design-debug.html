@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrchardPatch — Design Token Debug</title>
+  <style>
+    /* ============================================================
+       TOKEN SYSTEM — copied verbatim from src/app/globals.css
+       ============================================================ */
+    :root {
+      /* 1. PRIMITIVES */
+      --green-700:#2a5730; --green-600:#336b39; --green-500:#3d7a42;
+      --green-400:#4d9a55; --green-300:#62b86a; --green-200:#8fd396; --green-mint:#74cc7c;
+      --ink-900:#111315; --ink-800:#1c1f1e; --ink-700:#2b302e; --ink-500:#5b6160;
+      --ink-400:#828987; --ink-300:#aab0ae; --ink-150:#d7dbd9; --ink-100:#e7eae9;
+      --ink-050:#eff2f1; --paper:#eceef1; --white:#ffffff;
+      --night-900:#0d0f0e; --night-850:#141716; --night-800:#1a1d1c;
+      --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter",system-ui,"Segoe UI",Roboto,sans-serif;
+      --mono:"SF Mono",ui-monospace,Menlo,monospace;
+      --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:22px; --r-pill:999px;
+
+      /* 2. SEMANTIC :: LIGHT */
+      --accent:var(--green-500); --accent-hover:var(--green-600); --accent-press:var(--green-700);
+      --accent-tint:#e7f0e8; --accent-grad:linear-gradient(165deg,#62b86a,#3d7a42); --accent-glow:rgba(61,122,66,0.45);
+
+      --text-primary:var(--ink-800); --text-secondary:var(--ink-500); --text-tertiary:var(--ink-400);
+
+      --page-bg:var(--paper);
+      --ambient:
+         radial-gradient(1200px 640px at 9% -8%, rgba(61,122,66,0.13), transparent 56%),
+         radial-gradient(1000px 560px at 103% -4%, rgba(70,110,150,0.07), transparent 54%),
+         radial-gradient(900px 760px at 50% 124%, rgba(61,122,66,0.05), transparent 60%);
+
+      --surface-glass:rgba(255,255,255,0.70); --surface-solid:var(--white); --surface-sunken:var(--ink-050);
+      --topbar-glass:rgba(244,246,247,0.68);
+
+      --sidebar-bg:rgba(31,58,40,0.90); --sidebar-accent:var(--green-mint);
+
+      --sheen:linear-gradient(135deg, rgba(255,255,255,0.30), rgba(255,255,255,0) 44%);
+      --border-hairline:rgba(20,30,25,0.09); --border-strong:rgba(20,30,25,0.16); --rim-top:rgba(255,255,255,0.85);
+
+      --shadow-card:inset 0 1px 0 var(--rim-top), 0 1px 2px rgba(16,24,20,0.05), 0 16px 34px -18px rgba(16,24,20,0.18);
+      --shadow-accent:inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 6px -2px rgba(20,50,24,0.4), 0 12px 28px -10px var(--accent-glow);
+
+      --st-current:#3a9b46;  --st-current-text:#2f7d3a;  --st-current-tint:#e6f2e7;  --st-current-glow:rgba(58,155,70,0.22);
+      --st-outdated:#d68a1e; --st-outdated-text:#a8680c;  --st-outdated-tint:#f7efdc; --st-outdated-glow:rgba(214,138,30,0.20);
+      --st-unknown:#8a9290;  --st-unknown-text:#6b7270;   --st-unknown-tint:#eef0ef;  --st-unknown-glow:rgba(138,146,144,0.16);
+      --st-system:#c4c9c7;   --st-system-text:#828987;    --st-system-tint:#f1f3f2;   --st-system-glow:rgba(170,176,174,0.14);
+      --st-store:#2a86d8;    --st-store-text:#1f6fb8;     --st-store-tint:#e6f0fb;    --st-store-glow:rgba(42,134,216,0.18);
+      --st-lagging:#d24b3a;  --st-lagging-text:#b23a2e;   --st-lagging-tint:#fbe9e6;
+      --notice-bg:#f7efdc; --notice-border:rgba(168,104,12,0.20); --notice-text:#7a4c08;
+    }
+
+    [data-theme="dark"] {
+      --accent:var(--green-300); --accent-hover:var(--green-200); --accent-press:var(--green-400);
+      --accent-tint:rgba(98,184,106,0.14); --accent-grad:linear-gradient(165deg,#74cc7c,#46a350); --accent-glow:rgba(98,184,106,0.55);
+
+      --text-primary:rgba(255,255,255,0.94); --text-secondary:rgba(255,255,255,0.56); --text-tertiary:rgba(255,255,255,0.38);
+
+      --page-bg:var(--night-900);
+      --ambient:
+         radial-gradient(1200px 660px at 8% -10%, rgba(98,184,106,0.15), transparent 55%),
+         radial-gradient(1000px 580px at 104% -6%, rgba(70,120,170,0.11), transparent 54%),
+         radial-gradient(900px 800px at 52% 126%, rgba(98,184,106,0.06), transparent 60%);
+
+      --surface-glass:rgba(40,44,42,0.52); --surface-solid:var(--night-800); --surface-sunken:var(--night-850);
+      --topbar-glass:rgba(18,21,20,0.62);
+
+      --sidebar-bg:rgba(18,34,23,0.80); --sidebar-accent:var(--green-mint);
+
+      --sheen:linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 42%);
+      --border-hairline:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18); --rim-top:rgba(255,255,255,0.20);
+
+      --shadow-card:inset 0 1px 0 var(--rim-top), 0 1px 2px rgba(0,0,0,0.4), 0 20px 40px -20px rgba(0,0,0,0.7);
+      --shadow-accent:inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 8px -2px rgba(0,0,0,0.5), 0 14px 34px -10px var(--accent-glow);
+
+      --st-current:#5fc26a;  --st-current-text:#7ed489;  --st-current-tint:rgba(95,194,106,0.15);  --st-current-glow:rgba(95,194,106,0.30);
+      --st-outdated:#f0ad4e; --st-outdated-text:#f4bd6e; --st-outdated-tint:rgba(240,173,78,0.15);  --st-outdated-glow:rgba(240,173,78,0.28);
+      --st-unknown:#9aa2a0;  --st-unknown-text:#aab2b0;  --st-unknown-tint:rgba(154,162,160,0.14);   --st-unknown-glow:rgba(154,162,160,0.20);
+      --st-system:#5a6260;   --st-system-text:#8a908e;   --st-system-tint:rgba(90,98,96,0.18);        --st-system-glow:rgba(90,98,96,0.20);
+      --st-store:#4aa3ea;    --st-store-text:#6cb6ee;    --st-store-tint:rgba(74,163,234,0.15);       --st-store-glow:rgba(74,163,234,0.26);
+      --st-lagging:#f06a58;  --st-lagging-text:#f4897a;  --st-lagging-tint:rgba(240,106,88,0.15);
+      --notice-bg:rgba(240,173,78,0.10); --notice-border:rgba(240,173,78,0.28); --notice-text:#f4bd6e;
+    }
+
+    /* ============================================================ PAGE */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      font-family: var(--font);
+      color: var(--text-primary);
+      background-color: var(--page-bg);
+      background-image: var(--ambient);
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      transition: background-color 0.4s ease, color 0.4s ease;
+      padding: 40px 32px 80px;
+    }
+
+    /* ============================================================ LAYOUT */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      color: var(--text-primary);
+    }
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ============================================================ THEME TOGGLE */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      background: var(--surface-glass);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      backdrop-filter: blur(12px) saturate(140%);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--r-pill);
+      padding: 3px;
+      gap: 2px;
+    }
+    .theme-toggle button {
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      padding: 5px 14px;
+      border-radius: var(--r-pill);
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .theme-toggle button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ============================================================ SECTION */
+    .section { margin-bottom: 48px; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    /* ============================================================ SWATCHES */
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .swatch-card {
+      background: var(--surface-glass);
+      -webkit-backdrop-filter: blur(12px) saturate(130%);
+      backdrop-filter: blur(12px) saturate(130%);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--r-md);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: background 0.4s ease;
+    }
+    .swatch-box {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border-hairline);
+      flex-shrink: 0;
+    }
+    .swatch-info { min-width: 0; }
+    .swatch-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .swatch-value {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+
+    /* Gradient/complex tokens — show checkerboard behind */
+    .swatch-box.is-gradient {
+      background-image: var(--swatch-value),
+        repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%);
+      background-size: cover, 8px 8px;
+      border: 1px solid var(--border-hairline);
+    }
+
+    /* ============================================================ GLASS CARD DEMO */
+    .demo-area {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+    .glass-card {
+      position: relative;
+      overflow: hidden;
+      background-color: var(--surface-glass);
+      background-image: var(--sheen);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      backdrop-filter: blur(20px) saturate(150%);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-card);
+      padding: 22px 24px;
+    }
+    .glass-card h2 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .glass-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      color: #fff;
+      background: var(--accent-grad);
+      box-shadow: var(--shadow-accent);
+      padding: 8px 18px;
+      border-radius: var(--r-pill);
+      letter-spacing: 0.01em;
+      transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+
+    .notice-card {
+      background: var(--notice-bg);
+      border: 1px solid var(--notice-border);
+      border-radius: var(--r-lg);
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--notice-text);
+      line-height: 1.5;
+    }
+    .notice-card strong { font-weight: 600; }
+
+    /* Status badge demo */
+    .status-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+    }
+    .badge-current  { background: var(--st-current-tint);  color: var(--st-current-text); }
+    .badge-outdated { background: var(--st-outdated-tint); color: var(--st-outdated-text); }
+    .badge-unknown  { background: var(--st-unknown-tint);  color: var(--st-unknown-text); }
+    .badge-system   { background: var(--st-system-tint);   color: var(--st-system-text); }
+    .badge-store    { background: var(--st-store-tint);    color: var(--st-store-text); }
+    .badge-lagging  { background: var(--st-lagging-tint);  color: var(--st-lagging-text); }
+    .badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .badge-current  .badge-dot { background: var(--st-current); }
+    .badge-outdated .badge-dot { background: var(--st-outdated); }
+    .badge-unknown  .badge-dot { background: var(--st-unknown); }
+    .badge-system   .badge-dot { background: var(--st-system); }
+    .badge-store    .badge-dot { background: var(--st-store); }
+    .badge-lagging  .badge-dot { background: var(--st-lagging); }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Design Token Debug</div>
+      <div class="page-subtitle">OrchardPatch — liquid glass token system</div>
+    </div>
+    <div class="theme-toggle" id="themeToggle">
+      <button onclick="setTheme('light')" id="btn-light">Light</button>
+      <button onclick="setTheme('dark')"  id="btn-dark">Dark</button>
+    </div>
+  </div>
+
+  <!-- ====== ACCENT ====== -->
+  <div class="section">
+    <div class="section-title">Accent</div>
+    <div class="swatch-grid" id="grid-accent"></div>
+  </div>
+
+  <!-- ====== TEXT ====== -->
+  <div class="section">
+    <div class="section-title">Text</div>
+    <div class="swatch-grid" id="grid-text"></div>
+  </div>
+
+  <!-- ====== SURFACE ====== -->
+  <div class="section">
+    <div class="section-title">Surface</div>
+    <div class="swatch-grid" id="grid-surface"></div>
+  </div>
+
+  <!-- ====== BORDER / SHADOW ====== -->
+  <div class="section">
+    <div class="section-title">Border &amp; Shadow</div>
+    <div class="swatch-grid" id="grid-border"></div>
+  </div>
+
+  <!-- ====== STATUS ====== -->
+  <div class="section">
+    <div class="section-title">Status (--st-*)</div>
+    <div class="swatch-grid" id="grid-status"></div>
+  </div>
+
+  <!-- ====== NOTICE ====== -->
+  <div class="section">
+    <div class="section-title">Notice</div>
+    <div class="swatch-grid" id="grid-notice"></div>
+  </div>
+
+  <!-- ====== DEMO COMPONENTS ====== -->
+  <div class="section">
+    <div class="section-title">Sample Components</div>
+    <div class="demo-area">
+
+      <div class="glass-card">
+        <h2>Glass card</h2>
+        <p>Backdrop blur + sheen + shadow-card. The surface-glass background, hairline border, and ambient gradient combine to produce depth on any background color.</p>
+        <button class="btn-primary">
+          <span>Primary action</span>
+        </button>
+      </div>
+
+      <div class="glass-card">
+        <h2>Status badges</h2>
+        <p>All six patch-status states rendered with tint/text tokens.</p>
+        <div class="status-badges">
+          <span class="badge badge-current"><span class="badge-dot"></span>Current</span>
+          <span class="badge badge-outdated"><span class="badge-dot"></span>Outdated</span>
+          <span class="badge badge-lagging"><span class="badge-dot"></span>Lagging</span>
+          <span class="badge badge-store"><span class="badge-dot"></span>App Store</span>
+          <span class="badge badge-unknown"><span class="badge-dot"></span>Unknown</span>
+          <span class="badge badge-system"><span class="badge-dot"></span>System</span>
+        </div>
+      </div>
+
+      <div class="notice-card">
+        <strong>Notice banner.</strong> Uses <code>--notice-bg</code>, <code>--notice-border</code>, and <code>--notice-text</code>. Amber tint in light mode, translucent in dark.
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------------------------------------------
+    // Token groups — (name, is-gradient hint)
+    // is-gradient = true  → render via background shorthand (not background-color)
+    // ----------------------------------------------------------------
+    const GROUPS = {
+      accent: [
+        ['--accent', false],
+        ['--accent-hover', false],
+        ['--accent-press', false],
+        ['--accent-tint', false],
+        ['--accent-grad', true],
+        ['--accent-glow', false],
+      ],
+      text: [
+        ['--text-primary', false],
+        ['--text-secondary', false],
+        ['--text-tertiary', false],
+      ],
+      surface: [
+        ['--page-bg', false],
+        ['--surface-glass', false],
+        ['--surface-solid', false],
+        ['--surface-sunken', false],
+        ['--topbar-glass', false],
+        ['--sidebar-bg', false],
+        ['--sidebar-accent', false],
+        ['--sheen', true],
+        ['--ambient', true],
+      ],
+      border: [
+        ['--border-hairline', false],
+        ['--border-strong', false],
+        ['--rim-top', false],
+        ['--shadow-card', 'shadow'],
+        ['--shadow-accent', 'shadow'],
+      ],
+      status: [
+        ['--st-current', false],
+        ['--st-current-text', false],
+        ['--st-current-tint', false],
+        ['--st-current-glow', false],
+        ['--st-outdated', false],
+        ['--st-outdated-text', false],
+        ['--st-outdated-tint', false],
+        ['--st-outdated-glow', false],
+        ['--st-unknown', false],
+        ['--st-unknown-text', false],
+        ['--st-unknown-tint', false],
+        ['--st-unknown-glow', false],
+        ['--st-system', false],
+        ['--st-system-text', false],
+        ['--st-system-tint', false],
+        ['--st-system-glow', false],
+        ['--st-store', false],
+        ['--st-store-text', false],
+        ['--st-store-tint', false],
+        ['--st-store-glow', false],
+        ['--st-lagging', false],
+        ['--st-lagging-text', false],
+        ['--st-lagging-tint', false],
+      ],
+      notice: [
+        ['--notice-bg', false],
+        ['--notice-border', false],
+        ['--notice-text', false],
+      ],
+    };
+
+    function getVal(name) {
+      return getComputedStyle(document.documentElement)
+        .getPropertyValue(name).trim();
+    }
+
+    function buildSwatch(name, type) {
+      // type: false = solid color, true = gradient, 'shadow' = box-shadow
+      const val = getVal(name);
+
+      const card = document.createElement('div');
+      card.className = 'swatch-card';
+      card.dataset.token = name;
+
+      const box = document.createElement('div');
+      box.className = 'swatch-box';
+
+      if (type === 'shadow') {
+        // Show a small white square with the shadow applied
+        box.style.background = 'var(--surface-solid)';
+        box.style.boxShadow = `var(${name})`;
+      } else if (type === true) {
+        box.classList.add('is-gradient');
+        box.style.setProperty('--swatch-value', `var(${name})`);
+      } else {
+        box.style.backgroundColor = `var(${name})`;
+      }
+
+      const info = document.createElement('div');
+      info.className = 'swatch-info';
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'swatch-name';
+      nameEl.textContent = name;
+
+      const valEl = document.createElement('div');
+      valEl.className = 'swatch-value';
+      valEl.dataset.tokenValue = name;
+      valEl.textContent = val || '(empty)';
+
+      info.appendChild(nameEl);
+      info.appendChild(valEl);
+      card.appendChild(box);
+      card.appendChild(info);
+      return card;
+    }
+
+    function renderGroup(groupId, tokens) {
+      const grid = document.getElementById('grid-' + groupId);
+      grid.innerHTML = '';
+      for (const [name, type] of tokens) {
+        grid.appendChild(buildSwatch(name, type));
+      }
+    }
+
+    function renderAll() {
+      for (const [group, tokens] of Object.entries(GROUPS)) {
+        renderGroup(group, tokens);
+      }
+    }
+
+    function updateComputedValues() {
+      document.querySelectorAll('[data-token-value]').forEach(el => {
+        const name = el.dataset.tokenValue;
+        const val = getVal(name);
+        el.textContent = val || '(empty)';
+      });
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('btn-light').classList.toggle('active', theme === 'light');
+      document.getElementById('btn-dark').classList.toggle('active',  theme === 'dark');
+      // Wait one rAF so CSS vars resolve before we read them
+      requestAnimationFrame(() => updateComputedValues());
+    }
+
+    // Init: detect OS preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(prefersDark ? 'dark' : 'light');
+    renderAll();
+  </script>
+</body>
+</html>
