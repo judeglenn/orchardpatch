@@ -871,7 +871,7 @@ export default function AppDetailPage({ params }: Props) {
                 Patch now
               </button>
               </div>
-              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Fruit</div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Fruit · Single App, Single Device</div>
             </div>
           </div>
         </div>
@@ -961,7 +961,7 @@ export default function AppDetailPage({ params }: Props) {
                 {bushelLoading ? "Queuing…" : `Patch ${outdatedDevices.length} device${outdatedDevices.length !== 1 ? "s" : ""}`}
               </button>
               </div>
-              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Bushel</div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Bushel · Single App, All Devices</div>
             </div>
           </div>
         </div>
