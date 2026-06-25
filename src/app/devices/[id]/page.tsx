@@ -758,7 +758,7 @@ export default function DeviceDetailPage({ params }: Props) {
                 {branchQueuing ? "Queuing…" : `Patch ${branchChecked.size} App${branchChecked.size !== 1 ? "s" : ""}`}
               </button>
               </div>
-              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Branch</div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Branch · All Outdated Apps, Single Device</div>
             </div>
           </div>
         </div>
@@ -843,7 +843,7 @@ export default function DeviceDetailPage({ params }: Props) {
                 {patching ? "Queuing…" : "Patch Now"}
               </button>
               </div>
-              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Fruit</div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Fruit · Single App, Single Device</div>
             </div>
           </div>
         </div>

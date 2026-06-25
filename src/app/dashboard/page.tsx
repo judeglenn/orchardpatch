@@ -580,7 +580,7 @@ export default function DashboardPage() {
                 {orchardLoading ? "Starting…" : "Start patching"}
               </button>
               </div>
-              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Orchard</div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Orchard · All Outdated Apps, Entire Fleet</div>
             </div>
           </div>
         </div>
