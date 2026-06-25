@@ -29,6 +29,33 @@ interface Stats {
   lastCheckin: string;
 }
 
+function LegendRow({ color, label, value, href }: { color: string; label: string; value: number | null; href: string }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Link
+      href={href}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        fontSize: 13.5,
+        textDecoration: "none",
+        cursor: "pointer",
+        opacity: hovered ? 0.7 : 1,
+        transition: "opacity 0.15s",
+      }}
+    >
+      <span style={{ width: 9, height: 9, borderRadius: 3, background: color, flexShrink: 0, display: "inline-block" }} />
+      <span style={{ color: "var(--text-secondary)" }}>{label}</span>
+      <span style={{ marginLeft: "auto", fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--text-primary)" }}>
+        {value === null ? "—" : value}
+      </span>
+    </Link>
+  );
+}
+
 function PinSlot() {
   const [hovered, setHovered] = useState(false);
   return (
@@ -96,17 +123,33 @@ export default function DashboardPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Deduplicate allAppsStatus by bundle_id (or name), keeping worst-case status
+  const statusPriority: Record<string, number> = { outdated: 4, unknown: 3, current: 2, na: 1 };
+  const deduped = new Map<string, AppStatus>();
+  for (const app of allAppsStatus) {
+    const key = app.bundle_id || app.name;
+    const existing = deduped.get(key);
+    if (!existing) {
+      deduped.set(key, app);
+    } else {
+      const existingPriority = statusPriority[existing.patch_status] ?? 0;
+      const newPriority = statusPriority[app.patch_status] ?? 0;
+      if (newPriority > existingPriority) deduped.set(key, app);
+    }
+  }
+  const dedupedApps = Array.from(deduped.values());
+
   const statusCounts = {
-    outdated: allAppsStatus.filter(a => a.patch_status === 'outdated').length,
-    current: allAppsStatus.filter(a => a.patch_status === 'current').length,
-    unknown: allAppsStatus.filter(a => a.patch_status === 'unknown').length,
-    system: allAppsStatus.filter(a => a.patch_status === 'na').length,
-    store: allAppsStatus.filter(a => a.patch_status === 'store').length,
+    outdated: dedupedApps.filter(a => a.patch_status === 'outdated').length,
+    current:  dedupedApps.filter(a => a.patch_status === 'current').length,
+    unknown:  dedupedApps.filter(a => a.patch_status === 'unknown').length,
+    system:   dedupedApps.filter(a => a.patch_status === 'na').length,
+    store:    dedupedApps.filter(a => a.patch_status === 'store').length,
   };
 
   // Top outdated apps aggregated by label
   const outdatedByLabel = new Map<string, { label: string; name: string; bundleId: string | null; devices: Set<string>; version: string; latest: string | null }>();
-  allAppsStatus
+  dedupedApps
     .filter(a => a.patch_status === 'outdated')
     .forEach(app => {
       const key = app.label || app.name;
@@ -234,9 +277,9 @@ export default function DashboardPage() {
             <div style={cardHead}>
               <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Fleet health</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 30 }}>
+            <div style={{ display: "flex", alignItems: "stretch", gap: 30, minHeight: 200 }}>
               {/* Donut */}
-              <div style={{ position: "relative", width: 184, height: 184, flexShrink: 0 }}>
+              <div style={{ position: "relative", width: 184, height: 184, flexShrink: 0, alignSelf: "center" }}>
                 <div style={{
                   width: "100%",
                   height: "100%",
@@ -253,20 +296,14 @@ export default function DashboardPage() {
                 </div>
               </div>
               {/* Legend */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 11, flex: 1 }}>
+              <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 14, flex: 1 }}>
                 {[
-                  { color: "var(--st-outdated)", label: "Outdated", value: statusCounts.outdated },
-                  { color: "var(--st-current)",  label: "Current",  value: statusCounts.current },
-                  { color: "var(--st-unknown)",  label: "Unknown",  value: statusCounts.unknown },
-                  { color: "var(--st-system)",   label: "System",   value: statusCounts.system },
+                  { color: "var(--st-outdated)", label: "Outdated", value: statusCounts.outdated, href: "/apps?status=outdated" },
+                  { color: "var(--st-current)",  label: "Current",  value: statusCounts.current,  href: "/apps?status=current" },
+                  { color: "var(--st-unknown)",  label: "Unknown",  value: statusCounts.unknown,  href: "/apps?status=unknown" },
+                  { color: "var(--st-system)",   label: "System",   value: statusCounts.system,   href: "/apps?status=system" },
                 ].map(row => (
-                  <div key={row.label} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5 }}>
-                    <span style={{ width: 9, height: 9, borderRadius: 3, background: row.color, flexShrink: 0, display: "inline-block" }} />
-                    <span style={{ color: "var(--text-secondary)" }}>{row.label}</span>
-                    <span style={{ marginLeft: "auto", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                      {loading ? "—" : row.value}
-                    </span>
-                  </div>
+                  <LegendRow key={row.label} color={row.color} label={row.label} value={loading ? null : row.value} href={row.href} />
                 ))}
               </div>
             </div>
