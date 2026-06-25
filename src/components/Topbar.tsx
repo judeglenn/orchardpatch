@@ -77,7 +77,7 @@ export function Topbar(props: TopbarProps) {
           )}
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
-          <SyncPill label={props.syncLabel ?? "Synced today"} />
+          <SyncPill label={props.syncLabel ?? "Synced Today"} />
           {props.onSyncNow && (
             <button
               onClick={props.onSyncNow}
@@ -133,7 +133,7 @@ export function Topbar(props: TopbarProps) {
           <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{props.appName}</span>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
-          <SyncPill label={props.syncLabel ?? "Synced today"} />
+          <SyncPill label={props.syncLabel ?? "Synced Today"} />
         </div>
       </header>
     );

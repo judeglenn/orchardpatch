@@ -327,8 +327,8 @@ export default function DeviceDetailPage({ params }: Props) {
             )}
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <Package className="h-3.5 w-3.5" />
-              <strong style={{ color: "var(--text-primary)" }}>{apps.length - naCount}</strong>&nbsp;apps installed
-              {naCount > 0 && <span style={{ color: "var(--text-tertiary)" }}>&nbsp;· {naCount} system</span>}
+              <strong style={{ color: "var(--text-primary)" }}>{apps.length - naCount}</strong>&nbsp;Apps Installed
+              {naCount > 0 && <span style={{ color: "var(--text-tertiary)" }}>&nbsp;· {naCount} System</span>}
             </span>
             {outdatedCount > 0 && (
               <button
@@ -343,7 +343,7 @@ export default function DeviceDetailPage({ params }: Props) {
                 }}
               >
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--st-outdated)", display: "inline-block", flexShrink: 0 }} />
-                {outdatedCount} outdated
+                {outdatedCount} Outdated
               </button>
             )}
             {outdatedCount === 0 && currentCount > 0 && (
