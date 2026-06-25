@@ -10,6 +10,7 @@ interface AppStatus {
   device_id: string;
   name: string;
   bundle_id?: string;
+  source?: string;
   version: string;
   latest_version: string | null;
   patch_status: 'outdated' | 'current' | 'unknown' | 'na' | 'store';
@@ -143,8 +144,8 @@ export default function DashboardPage() {
     outdated: dedupedApps.filter(a => a.patch_status === 'outdated').length,
     current:  dedupedApps.filter(a => a.patch_status === 'current').length,
     unknown:  dedupedApps.filter(a => a.patch_status === 'unknown').length,
-    system:   dedupedApps.filter(a => a.patch_status === 'na').length,
-    store:    dedupedApps.filter(a => a.patch_status === 'store').length,
+    system:   dedupedApps.filter(a => a.patch_status === 'na' && a.source !== 'mas').length,
+    store:    dedupedApps.filter(a => a.source === 'mas').length,
   };
 
   // Top outdated apps aggregated by label
@@ -277,7 +278,7 @@ export default function DashboardPage() {
             <div style={cardHead}>
               <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Fleet health</span>
             </div>
-            <div style={{ display: "flex", alignItems: "stretch", gap: 30, minHeight: 200 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 30 }}>
               {/* Donut */}
               <div style={{ position: "relative", width: 184, height: 184, flexShrink: 0, alignSelf: "center" }}>
                 <div style={{
