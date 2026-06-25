@@ -237,10 +237,10 @@ export default function DashboardPage() {
         {/* 5 Metric cards */}
         <section style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 22 }}>
           {[
-            { glow: "var(--st-outdated-glow)", dot: "var(--st-outdated)", dotGlow: "var(--st-outdated-glow)", label: "Outdated",  href: "/apps?status=outdated", value: statusCounts.outdated, numColor: "var(--st-outdated-text)", foot: "Patchable now" },
-            { glow: "var(--st-current-glow)",  dot: "var(--st-current)",  dotGlow: "var(--st-current-glow)",  label: "Current",   href: "/apps?status=current",  value: statusCounts.current,  numColor: "var(--st-current-text)",  foot: "Up to date" },
-            { glow: "var(--st-unknown-glow)",  dot: "var(--st-unknown)",  dotGlow: undefined,                 label: "Unknown",   href: "/apps?status=unknown",  value: statusCounts.unknown,  numColor: "var(--text-primary)",     foot: "No label yet" },
-            { glow: "var(--st-system-glow)",   dot: "var(--st-system)",   dotGlow: undefined,                 label: "System",    href: "/apps?status=system",   value: statusCounts.system,   numColor: "var(--text-primary)",     foot: "Apple managed" },
+            { glow: "var(--st-outdated-glow)", dot: "var(--st-outdated)", dotGlow: "var(--st-outdated-glow)", label: "Outdated",  href: "/apps?status=outdated", value: statusCounts.outdated, numColor: "var(--st-outdated-text)", foot: "Patchable Now" },
+            { glow: "var(--st-current-glow)",  dot: "var(--st-current)",  dotGlow: "var(--st-current-glow)",  label: "Current",   href: "/apps?status=current",  value: statusCounts.current,  numColor: "var(--st-current-text)",  foot: "Up to Date" },
+            { glow: "var(--st-unknown-glow)",  dot: "var(--st-unknown)",  dotGlow: undefined,                 label: "Unknown",   href: "/apps?status=unknown",  value: statusCounts.unknown,  numColor: "var(--text-primary)",     foot: "No Label Yet" },
+            { glow: "var(--st-system-glow)",   dot: "var(--st-system)",   dotGlow: undefined,                 label: "System",    href: "/apps?status=system",   value: statusCounts.system,   numColor: "var(--text-primary)",     foot: "Apple Managed" },
             { glow: "var(--st-store-glow)",    dot: "var(--st-store)",    dotGlow: "var(--st-store-glow)",    label: "App Store", href: "/apps?status=mas",      value: statusCounts.store,    numColor: "var(--text-primary)",     foot: "Mac App Store" },
           ].map(m => (
             <Link key={m.label} href={m.href} style={{
@@ -276,7 +276,7 @@ export default function DashboardPage() {
           {/* Fleet health */}
           <div style={cardStyle}>
             <div style={cardHead}>
-              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Fleet health</span>
+              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Fleet Health</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 30 }}>
               {/* Donut */}
@@ -314,9 +314,9 @@ export default function DashboardPage() {
           {/* Top outdated apps */}
           <div style={cardStyle}>
             <div style={cardHead}>
-              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Top outdated apps</span>
+              <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Top Outdated Apps</span>
               <Link href="/apps" style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)", display: "inline-flex", alignItems: "center", gap: 5 }}>
-                View all
+                View All
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
                   <path d="M5 12h14M13 6l6 6-6 6"/>
                 </svg>
@@ -399,7 +399,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <h3 style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Patch by the Orchard</h3>
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 2 }}>Queue patches across your entire fleet</p>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 2 }}>Queue Patches Across Your Entire Fleet</p>
             </div>
           </div>
           <div style={{

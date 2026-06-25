@@ -551,7 +551,7 @@ export default function DeviceDetailPage({ params }: Props) {
                             color: "var(--text-tertiary)",
                             fontSize: 11, fontWeight: 600,
                           }}>
-                            Up to date
+                            Up to Date
                           </span>
                         )}
                       </TableCell>
