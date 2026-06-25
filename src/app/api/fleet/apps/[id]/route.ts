@@ -55,6 +55,7 @@ export async function GET(_req: Request, { params }: Context) {
     // Aggregate version distribution and installations from status rows
     const versionMap: Record<string, number> = {};
     let latestVersion: string | null = null;
+    let latestAvailable: string | null = null;
     let lastSeen = "";
     let hasAnyOutdated = false;
 
@@ -62,6 +63,7 @@ export async function GET(_req: Request, { params }: Context) {
       const v = a.version || "unknown";
       versionMap[v] = (versionMap[v] || 0) + 1;
       if (a.latest_version && !latestVersion) latestVersion = a.latest_version;
+      if (a.latest_available && !latestAvailable) latestAvailable = a.latest_available;
       if (a.last_checked && a.last_checked > lastSeen) lastSeen = a.last_checked;
       if (a.patch_status === "outdated") hasAnyOutdated = true;
 
@@ -97,6 +99,7 @@ export async function GET(_req: Request, { params }: Context) {
       hasVersionConflict,
       lastSeen,
       latestVersion,
+      latestAvailable,
     };
 
     return NextResponse.json({ app, installations });
