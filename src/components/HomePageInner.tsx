@@ -338,7 +338,7 @@ export default function HomePageInner() {
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" })
               )}
-              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", height: 36, gap: 6, fontSize: 14 }}
+              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", height: 36, gap: 6, fontSize: 14, padding: "0px 12px", whiteSpace: "nowrap" }}
             >
               {selectedCategory === CATEGORY_ALL ? "Category" : selectedCategory}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
@@ -360,7 +360,7 @@ export default function HomePageInner() {
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" })
               )}
-              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", height: 36, gap: 6, fontSize: 14 }}
+              style={{ background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", height: 36, gap: 6, fontSize: 14, padding: "0px 12px", whiteSpace: "nowrap" }}
             >
               {SORT_LABELS[sortBy]}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
@@ -382,8 +382,8 @@ export default function HomePageInner() {
             size="sm"
             style={
               (patchStatusFilter === "outdated" || conflictsOnly)
-                ? { background: "var(--accent)", color: "var(--page-bg)", borderColor: "var(--accent)" }
-                : { background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)" }
+                ? { background: "var(--accent)", color: "var(--page-bg)", borderColor: "var(--accent)", padding: "0px 12px", gap: 6, whiteSpace: "nowrap" }
+                : { background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", padding: "0px 12px", gap: 6, whiteSpace: "nowrap" }
             }
             onClick={() => {
               const isActive = patchStatusFilter === "outdated" || conflictsOnly;
