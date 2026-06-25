@@ -322,7 +322,7 @@ export default function HomePageInner() {
             App Inventory
           </h1>
           <p style={{ fontSize: 14, marginTop: 2, color: "var(--text-secondary)" }}>
-            Fleet-Wide Software Inventory
+            Fleet-Wide Software Detection Across All Managed Devices
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
