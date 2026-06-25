@@ -93,6 +93,19 @@ function normalizeVersion(v: string | null | undefined): string | null {
   return s || null;
 }
 
+function versionGt(a: string, b: string): boolean {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const na = pa[i] ?? 0;
+    const nb = pb[i] ?? 0;
+    if (na > nb) return true;
+    if (na < nb) return false;
+  }
+  return false;
+}
+
 // ---- Style helpers ----
 const cardStyle: React.CSSProperties = {
   position: "relative",
@@ -377,13 +390,13 @@ export default function AppDetailPage({ params }: Props) {
     resolverState = "unknown";
   } else if (patchableVersion && app.hasVersionConflict) {
     // Any device is outdated vs patchable → patchable or lagging
-    if (availableVersion && availableVersion !== patchableVersion) {
+    if (availableVersion && versionGt(availableVersion, patchableVersion)) {
       resolverState = "lagging";
     } else {
       resolverState = "patchable";
     }
-  } else if (availableVersion && patchableVersion && availableVersion !== patchableVersion && installedForCompare && installedForCompare >= patchableVersion) {
-    // Installed >= patchable but vendor has gone further → lagging
+  } else if (availableVersion && patchableVersion && versionGt(availableVersion, patchableVersion) && installedForCompare && installedForCompare >= patchableVersion) {
+    // Installed >= patchable but vendor has shipped further → lagging
     resolverState = "lagging";
   } else if (patchableVersion) {
     resolverState = "current";
