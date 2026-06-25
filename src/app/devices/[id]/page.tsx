@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Cpu, HardDrive, Clock, Package, Zap, BellOff, Bell, MessageSquare, X, AlertTriangle, RefreshCw, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,6 +47,27 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const cardStyle: React.CSSProperties = {
+  position: "relative",
+  backgroundColor: "var(--surface-glass)",
+  backgroundImage: "var(--sheen)",
+  WebkitBackdropFilter: "blur(20px) saturate(150%)",
+  backdropFilter: "blur(20px) saturate(150%)",
+  border: "1px solid var(--border-hairline)",
+  borderRadius: "var(--r-xl)",
+  boxShadow: "var(--shadow-card)",
+  transition: "background-color 0.5s, box-shadow 0.5s",
+};
+
+const modalStyle: React.CSSProperties = {
+  backgroundColor: "var(--surface-solid)",
+  border: "1px solid var(--border-hairline)",
+  borderRadius: "var(--r-xl)",
+  boxShadow: "var(--shadow-card)",
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DeviceDetailPage({ params }: Props) {
@@ -78,14 +98,12 @@ export default function DeviceDetailPage({ params }: Props) {
   const [forceCheckinLoading, setForceCheckinLoading] = useState(false);
   const [forceCheckinStatus, setForceCheckinStatus] = useState<"idle" | "success" | "error">("idle");
 
-  // Outdated apps that have a label (patchable via Branch)
   const outdatedLabeledApps = useMemo(
     () => apps.filter((a) => a.patch_status === "outdated" && a.label),
     [apps]
   );
 
   function openBranchModal() {
-    // Pre-check all outdated labeled apps, reset mode to default
     setBranchChecked(new Set(outdatedLabeledApps.map((a) => a.label!)));
     setBranchMode("managed");
     setBranchError(null);
@@ -108,14 +126,8 @@ export default function DeviceDetailPage({ params }: Props) {
     try {
       const res = await fetch(`/api/patch-jobs/branch`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          device_id: device.id,
-          labels: Array.from(branchChecked),
-          mode: branchMode,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_id: device.id, labels: Array.from(branchChecked), mode: branchMode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? `Server returned ${res.status}`);
@@ -165,23 +177,13 @@ export default function DeviceDetailPage({ params }: Props) {
         fetch(`/api/fleet/devices/${encodeURIComponent(id)}`),
         fetch(`/api/apps/status?device_id=${encodeURIComponent(id)}`),
       ]);
-
       if (!deviceRes.ok) {
         if (deviceRes.status === 404) throw new Error("Device not found");
         throw new Error(`Failed to load device (${deviceRes.status})`);
       }
-      if (!appsRes.ok) {
-        throw new Error(`Failed to load app status (${appsRes.status})`);
-      }
-
+      if (!appsRes.ok) throw new Error(`Failed to load app status (${appsRes.status})`);
       const deviceData = await deviceRes.json();
       const appsData = await appsRes.json();
-
-      console.log("[DeviceDetail] device:", deviceData?.id, deviceData?.hostname);
-      console.log("[DeviceDetail] appsData keys:", Object.keys(appsData));
-      console.log("[DeviceDetail] apps count:", appsData.apps?.length);
-      console.log("[DeviceDetail] outdated:", appsData.apps?.filter((a: any) => a.patch_status === "outdated").map((a: any) => a.name));
-
       setDevice(deviceData);
       setApps(appsData.apps ?? []);
     } catch (err: any) {
@@ -196,16 +198,12 @@ export default function DeviceDetailPage({ params }: Props) {
   // ─── Derived state ──────────────────────────────────────────────────────────
 
   const filteredApps = useMemo(() => {
-    let result = apps.filter((a) => a.patch_status !== "na"); // exclude system apps from main table
+    let result = apps.filter((a) => a.patch_status !== "na");
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter(
-        (a) => a.name.toLowerCase().includes(q) || a.version.toLowerCase().includes(q)
-      );
+      result = result.filter((a) => a.name.toLowerCase().includes(q) || a.version.toLowerCase().includes(q));
     }
-    if (statusFilter) {
-      result = result.filter((a) => a.patch_status === statusFilter);
-    }
+    if (statusFilter) result = result.filter((a) => a.patch_status === statusFilter);
     return result;
   }, [apps, search, statusFilter]);
 
@@ -213,18 +211,9 @@ export default function DeviceDetailPage({ params }: Props) {
     () => apps.filter((a) => a.patch_status === "na").sort((a, b) => a.name.localeCompare(b.name)),
     [apps]
   );
-
   const naCount = systemApps.length;
-
-  const outdatedCount = useMemo(
-    () => apps.filter((a) => a.patch_status === "outdated").length,
-    [apps]
-  );
-
-  const currentCount = useMemo(
-    () => apps.filter((a) => a.patch_status === "current").length,
-    [apps]
-  );
+  const outdatedCount = useMemo(() => apps.filter((a) => a.patch_status === "outdated").length, [apps]);
+  const currentCount = useMemo(() => apps.filter((a) => a.patch_status === "current").length, [apps]);
 
   // ─── Patch handler ──────────────────────────────────────────────────────────
 
@@ -239,19 +228,11 @@ export default function DeviceDetailPage({ params }: Props) {
     try {
       const res = await fetch(`/api/patch`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          deviceId: device.id,
-          bundleId: patchTarget.bundleId,
-          label: patchTarget.label,
-          appName: patchTarget.appName,
-          mode: patchMode,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceId: device.id, bundleId: patchTarget.bundleId, label: patchTarget.label, appName: patchTarget.appName, mode: patchMode }),
       });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      showToast(`${patchTarget.appName} queued for patching 🍎`);
+      showToast(`${patchTarget.appName} queued for patching`);
     } catch (err: any) {
       showToast(`Failed to queue patch: ${err.message}`);
     } finally {
@@ -260,28 +241,18 @@ export default function DeviceDetailPage({ params }: Props) {
     }
   }
 
-  // ─── Styles ─────────────────────────────────────────────────────────────────
-
-  const glassPanel = {
-    background: "rgba(255,255,255,0.06)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-  };
-
   // ─── Loading ────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <div className="px-6 py-6">
-        <div className="mb-5">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+      <div style={{ padding: "24px" }}>
+        <div style={{ marginBottom: 20 }}>
+          <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "var(--text-secondary)", textDecoration: "none" }}>
             <ChevronLeft className="h-4 w-4" /> App Inventory
           </Link>
         </div>
-        <div className="flex items-center justify-center py-24">
-          <RefreshCw className="h-6 w-6 animate-spin" style={{ color: "rgba(255,255,255,0.3)" }} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "96px 0" }}>
+          <RefreshCw className="h-6 w-6 animate-spin" style={{ color: "var(--text-tertiary)" }} />
         </div>
       </div>
     );
@@ -291,23 +262,24 @@ export default function DeviceDetailPage({ params }: Props) {
 
   if (error || !device) {
     return (
-      <div className="px-6 py-6">
-        <div className="mb-5">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+      <div style={{ padding: "24px" }}>
+        <div style={{ marginBottom: 20 }}>
+          <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "var(--text-secondary)", textDecoration: "none" }}>
             <ChevronLeft className="h-4 w-4" /> App Inventory
           </Link>
         </div>
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <AlertTriangle className="h-10 w-10" style={{ color: "#ef5350" }} />
-          <p className="text-base font-semibold" style={{ color: "#f0f8ec" }}>
-            {error ?? "Device not found"}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "96px 0", gap: 16 }}>
+          <AlertTriangle className="h-10 w-10" style={{ color: "var(--st-lagging)" }} />
+          <p style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>{error ?? "Device not found"}</p>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+            Could not load device <code style={{ fontFamily: "var(--mono)", fontSize: 12 }}>{id}</code> from fleet server.
           </p>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-            Could not load device <code className="font-mono text-xs">{id}</code> from fleet server.
-          </p>
-          <Button size="sm" onClick={loadData} className="mt-2" style={{ background: "#5aaa28", color: "white" }}>
+          <button
+            onClick={loadData}
+            style={{ marginTop: 8, padding: "8px 16px", borderRadius: "var(--r-md)", background: "var(--accent)", color: "var(--page-bg)", fontSize: 13, fontWeight: 500, cursor: "pointer", border: "none" }}
+          >
             Try again
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -316,138 +288,137 @@ export default function DeviceDetailPage({ params }: Props) {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="px-6 py-6">
-      {/* Back button */}
-      <div className="mb-5">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm transition-colors"
-          style={{ color: "rgba(255,255,255,0.55)" }}
-        >
+    <div style={{ padding: "24px 28px 48px" }}>
+
+      {/* Back link */}
+      <div style={{ marginBottom: 20 }}>
+        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, color: "var(--text-secondary)", textDecoration: "none" }}>
           <ChevronLeft className="h-4 w-4" />
           App Inventory
         </Link>
       </div>
 
-      {/* Device header */}
-      <div className="flex items-center gap-5 mb-6 rounded-2xl px-6 py-5" style={glassPanel}>
-        <div
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-white shadow-sm"
-          style={{ background: "rgba(125,217,74,0.2)", border: "1px solid rgba(125,217,74,0.3)" }}
-        >
-          <Cpu className="h-7 w-7" style={{ color: "#7dd94a" }} />
+      {/* Device header card */}
+      <div style={{ ...cardStyle, display: "flex", alignItems: "center", gap: 20, padding: "22px 24px", marginBottom: 18 }}>
+        {/* Avatar */}
+        <div style={{
+          width: 64, height: 64, borderRadius: "50%", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "var(--accent-tint)",
+          border: "1px solid var(--border-accent)",
+        }}>
+          <Cpu className="h-7 w-7" style={{ color: "var(--accent)" }} />
         </div>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold font-mono mb-1" style={{ color: "#f0f8ec" }}>
+
+        {/* Info */}
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, fontFamily: "var(--mono)", marginBottom: 4, color: "var(--text-primary)" }}>
             {device.hostname}
           </h1>
-          <p className="text-sm mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <p style={{ fontSize: 14, marginBottom: 8, color: "var(--text-secondary)" }}>
             {device.model ?? "Unknown model"}
           </p>
-          <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16, fontSize: 14, color: "var(--text-secondary)" }}>
             {device.os_version && (
-              <span className="flex items-center gap-1.5">
+              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <HardDrive className="h-3.5 w-3.5" />
                 macOS {macOSName(device.os_version) ? `${macOSName(device.os_version)} ` : ""}{device.os_version}
               </span>
             )}
-            <span className="flex items-center gap-1.5">
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <Package className="h-3.5 w-3.5" />
-              <strong style={{ color: "#f0f8ec" }}>{apps.length - naCount}</strong>&nbsp;apps installed{naCount > 0 && <span style={{ color: "rgba(255,255,255,0.35)" }}> · {naCount} system</span>}
+              <strong style={{ color: "var(--text-primary)" }}>{apps.length - naCount}</strong>&nbsp;apps installed
+              {naCount > 0 && <span style={{ color: "var(--text-tertiary)" }}>&nbsp;· {naCount} system</span>}
             </span>
             {outdatedCount > 0 && (
               <button
                 onClick={() => setStatusFilter((f) => f === "outdated" ? null : "outdated")}
-                className="flex items-center gap-1.5 font-semibold transition-all rounded px-1 -mx-1"
                 style={{
-                  color: "#ef5350",
-                  outline: statusFilter === "outdated" ? "1px solid rgba(239,83,80,0.5)" : "none",
-                  background: statusFilter === "outdated" ? "rgba(239,83,80,0.08)" : "transparent",
+                  display: "flex", alignItems: "center", gap: 6,
+                  fontWeight: 600, fontSize: 14, cursor: "pointer",
+                  color: "var(--st-outdated)",
+                  border: statusFilter === "outdated" ? "1px solid var(--border-accent)" : "1px solid transparent",
+                  background: statusFilter === "outdated" ? "var(--accent-tint)" : "transparent",
+                  borderRadius: "var(--r-sm)", padding: "2px 6px",
                 }}
-                title={statusFilter === "outdated" ? "Click to clear filter" : "Click to filter outdated apps"}
               >
-                🔴 {outdatedCount} outdated
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--st-outdated)", display: "inline-block", flexShrink: 0 }} />
+                {outdatedCount} outdated
               </button>
             )}
             {outdatedCount === 0 && currentCount > 0 && (
-              <span className="flex items-center gap-1.5 font-semibold" style={{ color: "#9fe066" }}>
-                ✅ All known apps up to date
+              <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--st-current)" }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--st-current)", display: "inline-block" }} />
+                All known apps up to date
               </span>
             )}
             {device.last_seen && (
-              <span className="flex items-center gap-1.5">
+              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <Clock className="h-3.5 w-3.5" />
                 Last seen{" "}
-                <strong style={{ color: "#f0f8ec" }}>{formatRelativeDate(device.last_seen)}</strong>
+                <strong style={{ color: "var(--text-primary)" }}>{formatRelativeDate(device.last_seen)}</strong>
                 &nbsp;
-                <span className="text-xs">({formatDate(device.last_seen)})</span>
+                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>({formatDate(device.last_seen)})</span>
               </span>
             )}
           </div>
-          {/* Force check-in */}
-          <div className="flex items-center gap-3 mt-3">
+
+          {/* Force check-in row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
             <button
               onClick={handleForceCheckin}
               disabled={forceCheckinLoading}
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50"
               style={{
-                border: "1px solid rgba(255,255,255,0.18)",
-                background: "rgba(255,255,255,0.06)",
-                color: "rgba(255,255,255,0.75)",
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "6px 12px",
+                borderRadius: "var(--r-md)",
+                border: "1px solid var(--border-hairline)",
+                background: "var(--surface-raised)",
+                color: "var(--text-primary)",
+                fontSize: 12, fontWeight: 500, cursor: "pointer",
+                opacity: forceCheckinLoading ? 0.5 : 1,
               }}
             >
               <RefreshCw className={"h-3 w-3" + (forceCheckinLoading ? " animate-spin" : "")} />
               {forceCheckinLoading ? "Checking in..." : "Force Check-in"}
             </button>
             {forceCheckinStatus === "success" && (
-              <span className="text-xs font-medium" style={{ color: "#9fe066" }}>
-                Check-in queued
-              </span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--st-current)" }}>Check-in queued</span>
             )}
             {forceCheckinStatus === "error" && (
-              <span className="text-xs font-medium" style={{ color: "#ef9a9a" }}>
-                Failed — try again
-              </span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--st-lagging)" }}>Failed — try again</span>
             )}
             {forceCheckinStatus === "idle" && (
-              <span className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
-                Results appear within 60 seconds
-              </span>
+              <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Results appear within 60 seconds</span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Apps table */}
-      <div className="rounded-2xl overflow-hidden" style={glassPanel}>
-        <div
-          className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          <div className="flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.55)" }}>
+      {/* Apps table card */}
+      <div style={{ ...cardStyle, marginBottom: 18, overflow: "hidden", padding: 0 }}>
+        {/* Card header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)", flexWrap: "wrap" as const }}>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}>
               Installed Apps
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
               {filteredApps.length === apps.length - naCount
                 ? `${apps.length - naCount} apps`
                 : `${filteredApps.length} of ${apps.length - naCount} apps`}
               {outdatedCount > 0 && (
                 <button
                   onClick={() => setStatusFilter((f) => f === "outdated" ? null : "outdated")}
-                  className="ml-1 transition-colors hover:text-[#ef5350]"
-                  style={{ color: statusFilter === "outdated" ? "#ef5350" : "rgba(255,255,255,0.35)" }}
+                  style={{ marginLeft: 4, cursor: "pointer", background: "none", border: "none", padding: 0, fontSize: 12, color: statusFilter === "outdated" ? "var(--st-outdated)" : "var(--text-tertiary)" }}
                 >
                   · {outdatedCount} outdated{statusFilter === "outdated" ? " ×" : ""}
                 </button>
               )}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              className="h-8 gap-1.5 text-xs font-semibold"
-              style={{ background: "#5aaa28", color: "white", borderColor: "#5aaa28" }}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
               onClick={() => {
                 if (outdatedLabeledApps.length === 0) {
                   showToast(outdatedCount === 0 ? "All apps are up to date!" : "No patchable outdated apps (none have Installomator labels)");
@@ -455,23 +426,39 @@ export default function DeviceDetailPage({ params }: Props) {
                   openBranchModal();
                 }
               }}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 7,
+                padding: "7px 14px",
+                borderRadius: "var(--r-md)",
+                background: "var(--accent-grad)",
+                border: "1px solid rgba(255,255,255,0.22)",
+                color: "#fff",
+                fontSize: 12, fontWeight: 600,
+                cursor: "pointer",
+                boxShadow: "var(--shadow-accent)",
+              }}
             >
               <Zap className="h-3.5 w-3.5" />
-              Patch This Device 🌿
-            </Button>
-            <SearchBar value={search} onChange={setSearch} placeholder="Filter apps…" className="sm:w-64" />
+              Patch This Device
+            </button>
+            <SearchBar value={search} onChange={setSearch} placeholder="Filter apps…" style={{ width: 224 }} />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Table */}
+        <div style={{ overflowX: "auto" }}>
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+              <TableRow style={{ borderColor: "var(--border-hairline)", background: "var(--surface-raised)" }}>
                 {["App Name", "Installed", "Latest", "Status", "Patch"].map((h, i) => (
                   <TableHead
                     key={h}
-                    className={`text-[11px] font-semibold uppercase tracking-[0.08em]${i >= 1 && i <= 2 ? " hidden sm:table-cell" : ""}${i === 4 ? " text-right" : ""}`}
-                    style={{ color: "rgba(255,255,255,0.55)", background: "rgba(0,0,0,0.2)" }}
+                    style={{
+                      fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em",
+                      color: "var(--text-secondary)",
+                      textAlign: i === 4 ? "right" : "left",
+                      display: (i === 1 || i === 2) ? undefined : undefined,
+                    }}
                   >
                     {h}
                   </TableHead>
@@ -484,74 +471,85 @@ export default function DeviceDetailPage({ params }: Props) {
                   const initials = appInitials(app.name);
                   const colorClass = appColorClass(app.name);
                   const isOutdated = app.patch_status === "outdated";
-
                   return (
                     <TableRow
                       key={app.id}
-                      className="group"
                       style={{
-                        background: idx % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
-                        borderColor: "rgba(255,255,255,0.06)",
+                        background: idx % 2 === 1 ? "var(--surface-raised)" : "transparent",
+                        borderColor: "var(--border-hairline)",
                       }}
                     >
                       {/* App name */}
                       <TableCell>
                         <Link
-                          href={`/apps/${app.bundle_id?.replace(/\./g, '-').toLowerCase() ?? app.id}`}
-                          className="flex items-center gap-3 group/link"
+                          href={`/apps/${app.bundle_id?.replace(/\./g, "-").toLowerCase() ?? app.id}`}
+                          style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}
                         >
-                          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${colorClass}`}>
+                          <div
+                            className={colorClass}
+                            style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 10, fontWeight: 700 }}
+                          >
                             {initials}
                           </div>
-                          <span className="text-sm font-medium transition-colors group-hover/link:text-[#9fe066]" style={{ color: "#f0f8ec" }}>{app.name}</span>
+                          <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{app.name}</span>
                         </Link>
                       </TableCell>
 
                       {/* Installed version */}
                       <TableCell>
-                        <span
-                          className="font-mono text-xs px-2 py-0.5 rounded"
-                          style={
-                            isOutdated
-                              ? { background: "rgba(239,83,80,0.12)", color: "#ef5350", border: "1px solid rgba(239,83,80,0.3)" }
-                              : { color: "rgba(255,255,255,0.55)" }
-                          }
-                        >
+                        <span style={{
+                          fontFamily: "var(--mono)", fontSize: 12, padding: "2px 8px", borderRadius: 4,
+                          ...(isOutdated
+                            ? { background: "color-mix(in srgb, var(--st-outdated) 12%, transparent)", color: "var(--st-outdated)", border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)" }
+                            : { color: "var(--text-secondary)" })
+                        }}>
                           {app.version}
                         </span>
                       </TableCell>
 
                       {/* Latest version */}
-                      <TableCell className="hidden sm:table-cell">
+                      <TableCell>
                         {app.latest_version ? (
-                          <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: "rgba(125,217,74,0.12)", color: "#9fe066", border: "1px solid rgba(125,217,74,0.3)" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: 12, padding: "2px 8px", borderRadius: 4, background: "var(--accent-tint)", color: "var(--st-current)", border: "1px solid var(--border-accent)" }}>
                             {app.latest_version}
                           </span>
                         ) : (
-                          <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>—</span>
+                          <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
                         )}
                       </TableCell>
 
-                      {/* Status badge */}
-                      <TableCell className="hidden sm:table-cell">
+                      {/* Status */}
+                      <TableCell>
                         <PatchStatusBadge status={app.patch_status} latestVersion={app.latest_version} />
                       </TableCell>
 
-                      {/* Patch button */}
-                      <TableCell className="text-right">
+                      {/* Patch action */}
+                      <TableCell style={{ textAlign: "right" }}>
                         {isOutdated ? (
                           <button
-                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all hover:opacity-80 active:scale-95"
-                            style={{ background: "#5aaa28", color: "white" }}
                             onClick={() => setPatchTarget({ bundleId: app.bundle_id, label: app.label, appName: app.name })}
+                            style={{
+                              display: "inline-flex", alignItems: "center", gap: 6,
+                              padding: "5px 12px",
+                              borderRadius: "var(--r-pill)",
+                              background: "var(--accent-grad)",
+                              border: "1px solid rgba(255,255,255,0.22)",
+                              color: "#fff",
+                              fontSize: 11, fontWeight: 600,
+                              cursor: "pointer",
+                            }}
                           >
-                            🍎 Patch
+                            Patch
                           </button>
                         ) : (
-                          <span
-                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-                            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.35)" }}
-                          >
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", gap: 6,
+                            padding: "5px 12px",
+                            borderRadius: "var(--r-pill)",
+                            background: "var(--surface-raised)",
+                            color: "var(--text-tertiary)",
+                            fontSize: 11, fontWeight: 600,
+                          }}>
                             Up to date
                           </span>
                         )}
@@ -561,19 +559,14 @@ export default function DeviceDetailPage({ params }: Props) {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+                  <TableCell colSpan={5} style={{ textAlign: "center", padding: "48px 0", fontSize: 14, color: "var(--text-tertiary)" }}>
                     {statusFilter
-                      ? <>
-                          No {statusFilter} apps match your search.{" "}
-                          <button
-                            onClick={() => setStatusFilter(null)}
-                            className="underline transition-colors hover:text-[#9fe066]"
-                          >
+                      ? <>No {statusFilter} apps match your search.{" "}
+                          <button onClick={() => setStatusFilter(null)} style={{ textDecoration: "underline", cursor: "pointer", background: "none", border: "none", fontSize: 14, color: "var(--accent)" }}>
                             Clear filter
                           </button>
                         </>
-                      : "No apps match your search"
-                    }
+                      : "No apps match your search"}
                   </TableCell>
                 </TableRow>
               )}
@@ -582,46 +575,46 @@ export default function DeviceDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* System Apps section */}
+      {/* System Apps collapsible */}
       {systemApps.length > 0 && (
-        <details className="mt-4 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-          <summary
-            className="px-5 py-3 cursor-pointer select-none text-[11px] font-semibold uppercase tracking-[0.1em] flex items-center gap-2"
-            style={{ color: "rgba(255,255,255,0.3)", listStyle: "none" }}
-          >
+        <details style={{ marginTop: 16, borderRadius: "var(--r-xl)", overflow: "hidden", background: "var(--surface-glass)", border: "1px solid var(--border-hairline)" }}>
+          <summary style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 20px", cursor: "pointer", fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "var(--text-tertiary)", listStyle: "none" }}>
             <Settings className="h-3 w-3" />
             System Apps ({systemApps.length})
           </summary>
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ borderTop: "1px solid var(--border-hairline)" }}>
             <Table>
               <TableBody>
                 {systemApps.map((app, idx) => (
                   <TableRow
                     key={app.id}
                     style={{
-                      background: idx % 2 === 1 ? "rgba(255,255,255,0.01)" : "transparent",
-                      borderColor: "rgba(255,255,255,0.04)",
+                      background: idx % 2 === 1 ? "var(--surface-raised)" : "transparent",
+                      borderColor: "var(--border-hairline)",
                     }}
                   >
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white text-[10px] font-bold ${appColorClass(app.name)}`}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div
+                          className={appColorClass(app.name)}
+                          style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 10, fontWeight: 700 }}
+                        >
                           {appInitials(app.name)}
                         </div>
-                        <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>{app.name}</span>
+                        <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-tertiary)" }}>{app.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-mono text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>{app.version}</span>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-tertiary)" }}>{app.version}</span>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>—</span>
+                    <TableCell>
+                      <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
+                    <TableCell>
                       <PatchStatusBadge status="na" />
                     </TableCell>
-                    <TableCell className="text-right">
-                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>—</span>
+                    <TableCell style={{ textAlign: "right" }}>
+                      <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -631,72 +624,60 @@ export default function DeviceDetailPage({ params }: Props) {
         </details>
       )}
 
-      {/* Patch by the Branch modal */}
+      {/* Branch (Patch This Device) modal */}
       {branchModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
           onClick={(e) => { if (e.target === e.currentTarget && !branchQueuing) setBranchModalOpen(false); }}
         >
-          <div
-            className="rounded-2xl shadow-2xl w-full max-w-md flex flex-col"
-            style={{
-              background: "rgba(12,22,8,0.97)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
-              maxHeight: "80vh",
-            }}
-          >
+          <div style={{ ...modalStyle, width: "100%", maxWidth: 480, maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
             {/* Header */}
-            <div className="px-6 pt-6 pb-4 flex items-start justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🌿</span>
-                  <h2 className="text-base font-bold" style={{ color: "#f0f8ec" }}>Patch This Device</h2>
-                </div>
-                <p className="text-sm font-medium" style={{ color: "#9fe066" }}>{device.hostname}</p>
-                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch This Device</h2>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)" }}>{device.hostname}</p>
+                <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
                   {branchChecked.size} app{branchChecked.size !== 1 ? "s" : ""} selected
                 </p>
               </div>
-              <button onClick={() => { if (!branchQueuing) setBranchModalOpen(false); }} style={{ color: "rgba(255,255,255,0.4)" }}>
+              <button onClick={() => { if (!branchQueuing) setBranchModalOpen(false); }} style={{ color: "var(--text-tertiary)", cursor: "pointer", background: "none", border: "none", padding: 4 }}>
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* App list */}
-            <div className="overflow-y-auto flex-1 px-6 py-3">
+            <div style={{ flex: 1, overflowY: "auto", padding: "12px 24px" }}>
               {outdatedLabeledApps.length === 0 ? (
-                <p className="text-sm py-4 text-center" style={{ color: "rgba(255,255,255,0.4)" }}>No patchable outdated apps.</p>
+                <p style={{ fontSize: 14, padding: "16px 0", textAlign: "center", color: "var(--text-tertiary)" }}>No patchable outdated apps.</p>
               ) : (
-                <div className="flex flex-col gap-1">
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {outdatedLabeledApps.map((app) => {
                     const checked = branchChecked.has(app.label!);
                     return (
                       <button
                         key={app.label}
                         onClick={() => toggleBranchApp(app.label!)}
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all w-full"
                         style={{
-                          border: checked ? "1px solid rgba(125,217,74,0.4)" : "1px solid rgba(255,255,255,0.07)",
-                          background: checked ? "rgba(125,217,74,0.08)" : "rgba(255,255,255,0.02)",
+                          display: "flex", alignItems: "center", gap: 12,
+                          padding: "10px 12px",
+                          borderRadius: "var(--r-md)",
+                          border: checked ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)",
+                          background: checked ? "var(--accent-tint)" : "var(--surface-raised)",
+                          cursor: "pointer", textAlign: "left", width: "100%",
                         }}
                       >
-                        <div
-                          className="h-4 w-4 rounded shrink-0 flex items-center justify-center"
-                          style={{
-                            border: checked ? "1.5px solid #7dd94a" : "1.5px solid rgba(255,255,255,0.25)",
-                            background: checked ? "#5aaa28" : "transparent",
-                          }}
-                        >
-                          {checked && <span className="text-white text-[10px] font-bold">✓</span>}
+                        <div style={{
+                          width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          border: checked ? "1.5px solid var(--accent)" : "1.5px solid var(--border-hairline)",
+                          background: checked ? "var(--accent)" : "transparent",
+                        }}>
+                          {checked && <span style={{ color: "#fff", fontSize: 10, fontWeight: 700 }}>✓</span>}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: "#f0f8ec" }}>{app.name}</p>
-                          <p className="text-[10px] font-mono" style={{ color: "rgba(255,255,255,0.35)" }}>
-                            {app.version} <span style={{ color: "rgba(255,255,255,0.2)" }}>→</span> {app.latest_version ?? "?"}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.name}</p>
+                          <p style={{ fontSize: 10, fontFamily: "var(--mono)", color: "var(--text-tertiary)" }}>
+                            {app.version} <span style={{ color: "var(--text-tertiary)" }}>→</span> {app.latest_version ?? "?"}
                           </p>
                         </div>
                       </button>
@@ -707,9 +688,9 @@ export default function DeviceDetailPage({ params }: Props) {
             </div>
 
             {/* Mode selector */}
-            <div className="px-6 pt-2 pb-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Deployment Mode</p>
-              <div className="grid grid-cols-3 gap-2">
+            <div style={{ padding: "12px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+              <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8, color: "var(--text-tertiary)" }}>Deployment Mode</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
                 {([
                   { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts", recommended: false },
                   { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notifies user to quit", recommended: true },
@@ -720,18 +701,21 @@ export default function DeviceDetailPage({ params }: Props) {
                     <button
                       key={key}
                       onClick={() => setBranchMode(key)}
-                      className="relative flex flex-col items-center gap-1 rounded-xl px-2 py-2.5 text-center transition-all"
                       style={{
-                        border: active ? "1.5px solid rgba(125,217,74,0.6)" : "1px solid rgba(255,255,255,0.08)",
-                        background: active ? "rgba(125,217,74,0.1)" : "rgba(255,255,255,0.03)",
+                        position: "relative",
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                        padding: "10px 8px",
+                        borderRadius: "var(--r-md)", textAlign: "center", cursor: "pointer",
+                        border: active ? "1.5px solid var(--border-accent)" : "1px solid var(--border-hairline)",
+                        background: active ? "var(--accent-tint)" : "var(--surface-raised)",
                       }}
                     >
                       {recommended && (
-                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "#5aaa28", color: "white" }}>Recommended</span>
+                        <span style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 9999, background: "var(--accent)", color: "#fff", whiteSpace: "nowrap" }}>Recommended</span>
                       )}
-                      <span style={{ color: active ? "#9fe066" : "rgba(255,255,255,0.4)" }}>{icon}</span>
-                      <span className="text-[11px] font-semibold" style={{ color: active ? "#f0f8ec" : "rgba(255,255,255,0.55)" }}>{label}</span>
-                      <span className="text-[9px] leading-tight" style={{ color: "rgba(255,255,255,0.3)" }}>{sub}</span>
+                      <span style={{ color: active ? "var(--accent)" : "var(--text-tertiary)" }}>{icon}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: active ? "var(--text-primary)" : "var(--text-secondary)" }}>{label}</span>
+                      <span style={{ fontSize: 9, lineHeight: 1.3, color: "var(--text-tertiary)" }}>{sub}</span>
                     </button>
                   );
                 })}
@@ -740,68 +724,63 @@ export default function DeviceDetailPage({ params }: Props) {
 
             {/* Error */}
             {branchError && (
-              <div className="mx-6 mb-2 px-3 py-2 rounded-lg text-xs" style={{ background: "rgba(239,83,80,0.12)", border: "1px solid rgba(239,83,80,0.3)", color: "#ef5350" }}>
+              <div style={{ margin: "0 24px 8px", padding: "8px 12px", borderRadius: "var(--r-md)", fontSize: 12, background: "color-mix(in srgb, var(--st-lagging) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--st-lagging) 30%, transparent)", color: "var(--st-lagging)" }}>
                 {branchError}
               </div>
             )}
 
             {/* Footer */}
-            <div className="flex gap-3 px-6 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <div style={{ display: "flex", gap: 10, padding: "14px 24px", borderTop: "1px solid var(--border-hairline)" }}>
               <button
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95"
-                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.04)" }}
                 onClick={() => setBranchModalOpen(false)}
                 disabled={branchQueuing}
+                style={{ flex: 1, padding: "10px", borderRadius: "var(--r-md)", border: "1px solid var(--border-hairline)", background: "var(--surface-raised)", color: "var(--text-primary)", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
               >
                 Cancel
               </button>
               <button
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
-                style={{ background: branchChecked.size === 0 ? "rgba(90,170,40,0.4)" : "#5aaa28", color: "white" }}
                 onClick={handleBranchPatch}
                 disabled={branchQueuing || branchChecked.size === 0}
+                style={{
+                  flex: 1, padding: "10px",
+                  borderRadius: "var(--r-md)",
+                  background: branchChecked.size === 0 ? "var(--surface-raised)" : "var(--accent-grad)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  color: branchChecked.size === 0 ? "var(--text-tertiary)" : "#fff",
+                  fontSize: 13, fontWeight: 600,
+                  cursor: branchQueuing || branchChecked.size === 0 ? "not-allowed" : "pointer",
+                  opacity: branchQueuing ? 0.7 : 1,
+                  boxShadow: branchChecked.size > 0 ? "var(--shadow-accent)" : "none",
+                }}
               >
-                {branchQueuing ? "Queuing…" : `Patch ${branchChecked.size} App${branchChecked.size !== 1 ? "s" : ""} 🌿`}
+                {branchQueuing ? "Queuing…" : `Patch ${branchChecked.size} App${branchChecked.size !== 1 ? "s" : ""}`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Patch by the Fruit modal */}
+      {/* Fruit (single app) patch modal */}
       {patchTarget && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setPatchTarget(null); }}
         >
-          <div
-            className="rounded-2xl shadow-2xl w-full max-w-sm"
-            style={{
-              background: "rgba(12,22,8,0.95)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
-            }}
-          >
-            <div className="px-6 pt-6 pb-4 flex items-start justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ ...modalStyle, width: "100%", maxWidth: 400 }}>
+            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🍎</span>
-                  <h2 className="text-base font-bold" style={{ color: "#f0f8ec" }}>Patch by the Fruit</h2>
-                </div>
-                <p className="text-sm font-medium" style={{ color: "#9fe066" }}>{patchTarget.appName}</p>
-                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>on {device.hostname}</p>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch by the Fruit</h2>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)" }}>{patchTarget.appName}</p>
+                <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>on {device.hostname}</p>
               </div>
-              <button onClick={() => setPatchTarget(null)} style={{ color: "rgba(255,255,255,0.4)" }}>
+              <button onClick={() => setPatchTarget(null)} style={{ color: "var(--text-tertiary)", cursor: "pointer", background: "none", border: "none", padding: 4 }}>
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="px-6 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>Patch Mode</p>
-              <div className="flex flex-col gap-2">
+            <div style={{ padding: "16px 24px" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10, color: "var(--text-tertiary)" }}>Patch Mode</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {[
                   { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts" },
                   { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
@@ -810,44 +789,53 @@ export default function DeviceDetailPage({ params }: Props) {
                   <button
                     key={key}
                     onClick={() => setPatchMode(key)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all"
                     style={{
-                      border: patchMode === key ? "1px solid rgba(125,217,74,0.5)" : "1px solid rgba(255,255,255,0.12)",
-                      background: patchMode === key ? "rgba(125,217,74,0.12)" : "rgba(255,255,255,0.04)",
-                      boxShadow: patchMode === key ? "0 0 0 1px rgba(125,217,74,0.3)" : "none",
+                      display: "flex", alignItems: "center", gap: 12,
+                      padding: "10px 14px",
+                      borderRadius: "var(--r-md)", cursor: "pointer", textAlign: "left",
+                      border: patchMode === key ? "1px solid var(--border-accent)" : "1px solid var(--border-hairline)",
+                      background: patchMode === key ? "var(--accent-tint)" : "var(--surface-raised)",
                     }}
                   >
-                    <div style={{ color: patchMode === key ? "#7dd94a" : "rgba(255,255,255,0.55)" }}>{icon}</div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold" style={{ color: "#f0f8ec" }}>{label}</span>
+                    <span style={{ color: patchMode === key ? "var(--accent)" : "var(--text-tertiary)" }}>{icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
                         {recommended && (
-                          <span className="text-[9px] px-1 py-0.5 rounded font-medium" style={{ background: "rgba(125,217,74,0.2)", color: "#9fe066" }}>✓ Recommended</span>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)", padding: "1px 6px", borderRadius: 9999, background: "var(--accent-tint)", border: "1px solid var(--border-accent)" }}>recommended</span>
                         )}
                       </div>
-                      <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{sub}</span>
+                      <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{sub}</span>
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="flex gap-3 px-6 pb-6">
+            <div style={{ display: "flex", gap: 10, padding: "14px 24px", borderTop: "1px solid var(--border-hairline)" }}>
               <button
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95"
-                style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.04)" }}
                 onClick={() => setPatchTarget(null)}
                 disabled={patching}
+                style={{ flex: 1, padding: "10px", borderRadius: "var(--r-md)", border: "1px solid var(--border-hairline)", background: "var(--surface-raised)", color: "var(--text-primary)", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
               >
                 Cancel
               </button>
               <button
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
-                style={{ background: "#5aaa28", color: "white" }}
                 onClick={handlePatchNow}
                 disabled={patching}
+                style={{
+                  flex: 1, padding: "10px",
+                  borderRadius: "var(--r-md)",
+                  background: "var(--accent-grad)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  color: "#fff",
+                  fontSize: 13, fontWeight: 600,
+                  cursor: patching ? "wait" : "pointer",
+                  opacity: patching ? 0.7 : 1,
+                  boxShadow: "var(--shadow-accent)",
+                }}
               >
-                {patching ? "Queuing…" : "Patch Now 🍎"}
+                {patching ? "Queuing…" : "Patch Now"}
               </button>
             </div>
           </div>
@@ -855,17 +843,19 @@ export default function DeviceDetailPage({ params }: Props) {
       )}
 
       {/* Toast */}
-      <div
-        className="fixed top-4 right-4 z-[60] flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg"
-        style={{
-          background: "#5aaa28",
-          transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-          opacity: toastMsg ? 1 : 0,
-          transform: toastMsg ? "translateY(0)" : "translateY(-120%)",
-          pointerEvents: toastMsg ? "auto" : "none",
-        }}
-      >
-        <span>🍎</span>
+      <div style={{
+        position: "fixed", top: 16, right: 16, zIndex: 60,
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "12px 16px",
+        borderRadius: "var(--r-md)",
+        fontSize: 13, fontWeight: 500, color: "#fff",
+        background: "var(--accent)",
+        boxShadow: "var(--shadow-accent)",
+        transition: "opacity 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+        opacity: toastMsg ? 1 : 0,
+        transform: toastMsg ? "translateY(0)" : "translateY(-120%)",
+        pointerEvents: toastMsg ? "auto" : "none",
+      }}>
         {toastMsg}
       </div>
     </div>
