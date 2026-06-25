@@ -195,14 +195,15 @@ export default function DashboardPage() {
     }
   };
 
-  // Donut segments (percentages)
-  const total = statusCounts.outdated + statusCounts.current + statusCounts.unknown + statusCounts.system;
+  // Donut segments (percentages) -- all five categories
+  const total = statusCounts.outdated + statusCounts.current + statusCounts.unknown + statusCounts.system + statusCounts.store;
   const pOut = total > 0 ? (statusCounts.outdated / total) * 100 : 0;
-  const pCur = total > 0 ? (statusCounts.current / total) * 100 : 0;
-  const pUnk = total > 0 ? (statusCounts.unknown / total) * 100 : 0;
-  const pSys = 100 - pOut - pCur - pUnk;
+  const pCur = total > 0 ? (statusCounts.current  / total) * 100 : 0;
+  const pUnk = total > 0 ? (statusCounts.unknown  / total) * 100 : 0;
+  const pSys = total > 0 ? (statusCounts.system   / total) * 100 : 0;
+  const pStr = 100 - pOut - pCur - pUnk - pSys;
   const donutGrad = total > 0
-    ? `conic-gradient(var(--st-outdated) 0 ${pOut}%, var(--st-current) ${pOut}% ${pOut + pCur}%, var(--st-unknown) ${pOut + pCur}% ${pOut + pCur + pUnk}%, var(--st-system) ${pOut + pCur + pUnk}% 100%)`
+    ? `conic-gradient(var(--st-outdated) 0 ${pOut}%, var(--st-current) ${pOut}% ${pOut + pCur}%, var(--st-unknown) ${pOut + pCur}% ${pOut + pCur + pUnk}%, var(--st-system) ${pOut + pCur + pUnk}% ${pOut + pCur + pUnk + pSys}%, var(--st-store) ${pOut + pCur + pUnk + pSys}% 100%)`
     : `conic-gradient(var(--st-unknown) 0 100%)`;
 
   function displayVersion(v: string) { return v ? v.split(',')[0] : v; }
