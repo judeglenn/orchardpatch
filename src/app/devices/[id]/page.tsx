@@ -401,12 +401,12 @@ export default function DeviceDetailPage({ params }: Props) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)", flexWrap: "wrap" as const }}>
           <div>
             <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}>
-              Installed Apps
+              Apps Detected
             </p>
             <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
               {filteredApps.length === apps.length - naCount
-                ? `${apps.length - naCount} apps`
-                : `${filteredApps.length} of ${apps.length - naCount} apps`}
+                ? `${apps.length - naCount} detected`
+                : `${filteredApps.length} of ${apps.length - naCount} detected`}
               {outdatedCount > 0 && (
                 <button
                   onClick={() => setStatusFilter((f) => f === "outdated" ? null : "outdated")}
@@ -635,7 +635,7 @@ export default function DeviceDetailPage({ params }: Props) {
             {/* Header */}
             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               <div>
-                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch This Device</h2>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch Device</h2>
                 <p style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)" }}>{device.hostname}</p>
                 <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
                   {branchChecked.size} app{branchChecked.size !== 1 ? "s" : ""} selected
