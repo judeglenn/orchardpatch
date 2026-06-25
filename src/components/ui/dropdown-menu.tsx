@@ -30,12 +30,12 @@ function DropdownMenuContent({
     MenuPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset"
   >) {
-  const { style: callerStyle, ...restProps } = props;
+  const { style: _callerStyle, ...restProps } = props;
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.Positioner
         className="isolate outline-none"
-        style={{ zIndex: 50 }}
+        style={{ zIndex: 9999 }}
         align={align}
         alignOffset={alignOffset}
         side={side}
@@ -51,7 +51,8 @@ function DropdownMenuContent({
             boxShadow: "var(--shadow-card)",
             padding: "4px",
             minWidth: 160,
-            ...callerStyle,
+            zIndex: 9999,
+            ...(props.style || {}),
           }}
           {...restProps}
         />
