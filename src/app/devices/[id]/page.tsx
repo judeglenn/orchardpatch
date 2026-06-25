@@ -396,7 +396,7 @@ export default function DeviceDetailPage({ params }: Props) {
       </div>
 
       {/* Apps table card */}
-      <div style={{ ...cardStyle, marginBottom: 18, overflow: "hidden", padding: 0 }}>
+      <div style={{ ...cardStyle, marginBottom: 18, padding: 0 }}>
         {/* Card header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 20px", borderBottom: "1px solid var(--border-hairline)", flexWrap: "wrap" as const }}>
           <div>
@@ -446,7 +446,7 @@ export default function DeviceDetailPage({ params }: Props) {
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: "auto" }}>
+        <div style={{ overflowX: "auto", padding: "0 12px" }}>
           <Table>
             <TableHeader>
               <TableRow style={{ borderColor: "var(--border-hairline)", background: "var(--surface-raised)" }}>
