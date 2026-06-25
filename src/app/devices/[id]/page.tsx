@@ -270,15 +270,15 @@ export default function DeviceDetailPage({ params }: Props) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "96px 0", gap: 16 }}>
           <AlertTriangle className="h-10 w-10" style={{ color: "var(--st-lagging)" }} />
-          <p style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>{error ?? "Device not found"}</p>
+          <p style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>{error ?? "Device Not Found"}</p>
           <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-            Could not load device <code style={{ fontFamily: "var(--mono)", fontSize: 12 }}>{id}</code> from fleet server.
+            Could not load device <code style={{ fontFamily: "var(--mono)", fontSize: 12 }}>{id}</code> from Fleet Server.
           </p>
           <button
             onClick={loadData}
             style={{ marginTop: 8, padding: "8px 16px", borderRadius: "var(--r-md)", background: "var(--accent)", color: "var(--page-bg)", fontSize: 13, fontWeight: 500, cursor: "pointer", border: "none" }}
           >
-            Try again
+            Try Again
           </button>
         </div>
       </div>
@@ -349,13 +349,13 @@ export default function DeviceDetailPage({ params }: Props) {
             {outdatedCount === 0 && currentCount > 0 && (
               <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--st-current)" }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--st-current)", display: "inline-block" }} />
-                All known apps up to date
+                All Known Apps Up to Date
               </span>
             )}
             {device.last_seen && (
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <Clock className="h-3.5 w-3.5" />
-                Last seen{" "}
+                Last Seen{" "}
                 <strong style={{ color: "var(--text-primary)" }}>{formatRelativeDate(device.last_seen)}</strong>
                 &nbsp;
                 <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>({formatDate(device.last_seen)})</span>
@@ -380,16 +380,16 @@ export default function DeviceDetailPage({ params }: Props) {
               }}
             >
               <RefreshCw className={"h-3 w-3" + (forceCheckinLoading ? " animate-spin" : "")} />
-              {forceCheckinLoading ? "Checking in..." : "Force Check-in"}
+              {forceCheckinLoading ? "Checking In..." : "Force Check-In"}
             </button>
             {forceCheckinStatus === "success" && (
-              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--st-current)" }}>Check-in queued</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--st-current)" }}>Check-In Queued</span>
             )}
             {forceCheckinStatus === "error" && (
-              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--st-lagging)" }}>Failed — try again</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--st-lagging)" }}>Failed — Try Again</span>
             )}
             {forceCheckinStatus === "idle" && (
-              <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Results appear within 60 seconds</span>
+              <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Results Appear Within 60 Seconds</span>
             )}
           </div>
         </div>
@@ -418,11 +418,11 @@ export default function DeviceDetailPage({ params }: Props) {
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flex: 1 }}>
-            <SearchBar value={search} onChange={setSearch} placeholder="Filter apps…" style={{ width: 200 }} />
+            <SearchBar value={search} onChange={setSearch} placeholder="Filter Apps…" style={{ width: 200 }} />
             <button
               onClick={() => {
                 if (outdatedLabeledApps.length === 0) {
-                  showToast(outdatedCount === 0 ? "All apps are up to date!" : "No patchable outdated apps (none have Installomator labels)");
+                  showToast(outdatedCount === 0 ? "All Apps Are Up to Date!" : "No Patchable Outdated Apps (None Have Installomator Labels)");
                 } else {
                   openBranchModal();
                 }
@@ -564,10 +564,10 @@ export default function DeviceDetailPage({ params }: Props) {
                     {statusFilter
                       ? <>No {statusFilter} apps match your search.{" "}
                           <button onClick={() => setStatusFilter(null)} style={{ textDecoration: "underline", cursor: "pointer", background: "none", border: "none", fontSize: 14, color: "var(--accent)" }}>
-                            Clear filter
+                            Clear Filter
                           </button>
                         </>
-                      : "No apps match your search"}
+                      : "No Apps Match Your Search"}
                   </TableCell>
                 </TableRow>
               )}
@@ -638,7 +638,7 @@ export default function DeviceDetailPage({ params }: Props) {
                 <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch Device</h2>
                 <p style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)" }}>{device.hostname}</p>
                 <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
-                  {branchChecked.size} app{branchChecked.size !== 1 ? "s" : ""} selected
+                  {branchChecked.size} App{branchChecked.size !== 1 ? "s" : ""} Selected
                 </p>
               </div>
               <button onClick={() => { if (!branchQueuing) setBranchModalOpen(false); }} style={{ color: "var(--text-tertiary)", cursor: "pointer", background: "none", border: "none", padding: 4 }}>
@@ -649,7 +649,7 @@ export default function DeviceDetailPage({ params }: Props) {
             {/* App list */}
             <div style={{ flex: 1, overflowY: "auto", padding: "12px 24px" }}>
               {outdatedLabeledApps.length === 0 ? (
-                <p style={{ fontSize: 14, padding: "16px 0", textAlign: "center", color: "var(--text-tertiary)" }}>No patchable outdated apps.</p>
+                <p style={{ fontSize: 14, padding: "16px 0", textAlign: "center", color: "var(--text-tertiary)" }}>No Patchable Outdated Apps.</p>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {outdatedLabeledApps.map((app) => {
@@ -693,9 +693,9 @@ export default function DeviceDetailPage({ params }: Props) {
               <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8, color: "var(--text-tertiary)" }}>Deployment Mode</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
                 {([
-                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts", recommended: false },
-                  { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notifies user to quit", recommended: true },
-                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when", recommended: false },
+                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force Quit, No Prompts", recommended: false },
+                  { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notifies User to Quit", recommended: true },
+                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User Chooses When", recommended: false },
                 ] as const).map(({ key, icon, label, sub, recommended }) => {
                   const active = branchMode === key;
                   return (
@@ -786,9 +786,9 @@ export default function DeviceDetailPage({ params }: Props) {
               <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10, color: "var(--text-tertiary)" }}>Patch Mode</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {[
-                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force quit, no prompts" },
-                  { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, must comply", recommended: true },
-                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User chooses when" },
+                  { key: "silent" as const, icon: <BellOff className="h-3.5 w-3.5" />, label: "Silent", sub: "Force Quit, No Prompts" },
+                  { key: "managed" as const, icon: <Bell className="h-3.5 w-3.5" />, label: "Managed", sub: "Notify, Must Comply", recommended: true },
+                  { key: "prompted" as const, icon: <MessageSquare className="h-3.5 w-3.5" />, label: "User Prompted", sub: "User Chooses When" },
                 ].map(({ key, icon, label, sub, recommended }) => (
                   <button
                     key={key}
