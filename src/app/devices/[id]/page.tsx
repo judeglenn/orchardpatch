@@ -417,7 +417,8 @@ export default function DeviceDetailPage({ params }: Props) {
               )}
             </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flex: 1 }}>
+            <SearchBar value={search} onChange={setSearch} placeholder="Filter apps…" style={{ width: 200 }} />
             <button
               onClick={() => {
                 if (outdatedLabeledApps.length === 0) {
@@ -436,12 +437,12 @@ export default function DeviceDetailPage({ params }: Props) {
                 fontSize: 12, fontWeight: 600,
                 cursor: "pointer",
                 boxShadow: "var(--shadow-accent)",
+                flexShrink: 0,
               }}
             >
               <Zap className="h-3.5 w-3.5" />
               Patch All Outdated
             </button>
-            <SearchBar value={search} onChange={setSearch} placeholder="Filter apps…" style={{ width: 224 }} />
           </div>
         </div>
 
@@ -772,7 +773,7 @@ export default function DeviceDetailPage({ params }: Props) {
           <div style={{ ...modalStyle, width: "100%", maxWidth: 400 }}>
             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               <div>
-                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch by the Fruit</h2>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch this App</h2>
                 <p style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)" }}>{patchTarget.appName}</p>
                 <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>on {device.hostname}</p>
               </div>
