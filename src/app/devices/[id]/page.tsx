@@ -405,8 +405,8 @@ export default function DeviceDetailPage({ params }: Props) {
             </p>
             <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
               {filteredApps.length === apps.length - naCount
-                ? `${apps.length - naCount} detected`
-                : `${filteredApps.length} of ${apps.length - naCount} detected`}
+                ? `${apps.length - naCount} installed`
+                : `${filteredApps.length} of ${apps.length - naCount} installed`}
               {outdatedCount > 0 && (
                 <button
                   onClick={() => setStatusFilter((f) => f === "outdated" ? null : "outdated")}
