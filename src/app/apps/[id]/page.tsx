@@ -14,6 +14,7 @@ interface Props {
 }
 
 type PatchMode = "silent" | "managed" | "prompted";
+type ResolverState = "current" | "patchable" | "lagging" | "unknown";
 
 const INSTALLOMATOR_LABELS: Record<string, string> = {
   "org.mozilla.firefox": "firefoxpkg",
@@ -84,12 +85,15 @@ function getInstallomatorLabel(bundleId: string): string | null {
   return INSTALLOMATOR_LABELS[bundleId] ?? null;
 }
 
-function displayVersion(v: string) { return v ? v.split(",")[0] : v; }
+// Never display raw stored version values — always normalize first
+function normalizeVersion(v: string | null | undefined): string | null {
+  if (!v) return null;
+  return v.includes(",") ? v.split(",")[0] : v;
+}
 
 // ---- Style helpers ----
 const cardStyle: React.CSSProperties = {
   position: "relative",
-  overflow: "hidden",
   backgroundColor: "var(--surface-glass)",
   backgroundImage: "var(--sheen)",
   WebkitBackdropFilter: "blur(20px) saturate(150%)",
@@ -109,11 +113,11 @@ const cardHead: React.CSSProperties = {
   marginBottom: 18,
 };
 
-function StatusPill({ status }: { status: "current" | "patchable" | "unknown" | "lagging" }) {
-  const configs = {
-    current:  { bg: "var(--st-current-tint)",  text: "var(--st-current-text)",  dot: "var(--st-current)",  label: "Up to date" },
+function StatusPill({ status }: { status: ResolverState }) {
+  const configs: Record<ResolverState, { bg: string; text: string; dot: string; label: string; dotGlow?: string }> = {
+    current:  { bg: "var(--st-current-tint)",  text: "var(--st-current-text)",  dot: "var(--st-current)",  label: "Current" },
     patchable:{ bg: "var(--st-outdated-tint)", text: "var(--st-outdated-text)", dot: "var(--st-outdated)", label: "Patchable" },
-    lagging:  { bg: "var(--st-lagging-tint)",  text: "var(--st-lagging-text)",  dot: "var(--st-lagging)",  label: "Lagging" },
+    lagging:  { bg: "var(--st-lagging-tint)",  text: "var(--st-lagging-text)",  dot: "var(--st-lagging)",  label: "Lagging", dotGlow: "0 0 7px rgba(210,75,58,0.5)" },
     unknown:  { bg: "var(--st-unknown-tint)",  text: "var(--st-unknown-text)",  dot: "var(--st-unknown)",  label: "Unknown" },
   };
   const c = configs[status];
@@ -124,7 +128,7 @@ function StatusPill({ status }: { status: "current" | "patchable" | "unknown" | 
       borderRadius: "var(--r-pill)",
       background: c.bg, color: c.text,
     }}>
-      <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.dot, boxShadow: c.dotGlow, display: "inline-block" }} />
       {c.label}
     </span>
   );
@@ -135,6 +139,18 @@ function DeviceStatusPill({ status }: { status: string }) {
   if (status === "current")  return <StatusPill status="current" />;
   if (status === "unknown")  return <StatusPill status="unknown" />;
   return null;
+}
+
+// ---- Version column component ----
+function VersionCol({ label, version, color }: { label: string; version: string; color?: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "var(--text-tertiary)" }}>{label}</span>
+      <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums", color: color ?? "var(--text-primary)" }}>
+        {version}
+      </span>
+    </div>
+  );
 }
 
 // ---- Main page ----
@@ -191,7 +207,6 @@ export default function AppDetailPage({ params }: Props) {
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data?.jobs) {
-          // Filter to this app by bundle ID or name match
           const appId = id.replace(/-/g, ".").toLowerCase();
           const filtered = data.jobs.filter((j: any) =>
             (j.bundleId || "").toLowerCase() === appId ||
@@ -336,25 +351,41 @@ export default function AppDetailPage({ params }: Props) {
 
   const initials = app.name.charAt(0).toUpperCase();
   const outdatedDevices = installations.filter((i: any) => i.isOutdated);
-  const patchableVersion = displayVersion(app.latestVersion || "");
 
-  // Determine overall version status
-  type VersionState = "current" | "patchable" | "unknown";
-  let versionState: VersionState = "unknown";
-  if (installations.length > 0) {
-    if (app.hasVersionConflict) versionState = "patchable";
-    else if (installations.every((i: any) => i.patchStatus === "current" || (!i.patchStatus && !i.isOutdated))) versionState = "current";
-    else if (installations.some((i: any) => i.patchStatus === "unknown")) versionState = "unknown";
-    else versionState = "current";
-  }
+  // Normalized version strings — never display raw values
+  const patchableVersion = normalizeVersion(app.latestVersion);
+  const availableVersion = normalizeVersion(app.latestAvailable);
 
-  // Installed version display: single if uniform, range if diverged
-  const uniqueVersions = [...new Set(installations.map((i: any) => displayVersion(i.version)))];
+  // Fleet-level installed version: uniform or range
+  const uniqueVersions = [...new Set(
+    installations
+      .map((i: any) => normalizeVersion(i.version))
+      .filter(Boolean) as string[]
+  )].sort();
   const installedDisplay = uniqueVersions.length === 1
     ? uniqueVersions[0]
     : uniqueVersions.length > 1
-      ? `${uniqueVersions[uniqueVersions.length - 1]}–${uniqueVersions[0]}`
+      ? `${uniqueVersions[0]}–${uniqueVersions[uniqueVersions.length - 1]}`
       : "—";
+  const installedForCompare = uniqueVersions[uniqueVersions.length - 1] ?? null; // newest installed
+
+  // Resolver state derivation (four states, applied in priority order)
+  let resolverState: ResolverState = "unknown";
+  if (!patchableVersion && !availableVersion) {
+    resolverState = "unknown";
+  } else if (patchableVersion && app.hasVersionConflict) {
+    // Any device is outdated vs patchable → patchable or lagging
+    if (availableVersion && availableVersion !== patchableVersion) {
+      resolverState = "lagging";
+    } else {
+      resolverState = "patchable";
+    }
+  } else if (availableVersion && patchableVersion && availableVersion !== patchableVersion && installedForCompare && installedForCompare >= patchableVersion) {
+    // Installed >= patchable but vendor has gone further → lagging
+    resolverState = "lagging";
+  } else if (patchableVersion) {
+    resolverState = "current";
+  }
 
   // Installomator label chip text
   const installomatorLabel = app.label || getInstallomatorLabel(app.bundleId) || null;
@@ -491,66 +522,142 @@ export default function AppDetailPage({ params }: Props) {
         <div style={cardStyle}>
           <div style={cardHead}>
             <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Version status</span>
-            <StatusPill status={versionState === "patchable" ? "patchable" : versionState === "current" ? "current" : "unknown"} />
+            <StatusPill status={resolverState} />
           </div>
 
-          {versionState === "unknown" && (
-            <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--text-tertiary)", padding: "12px 0" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22 }}>
-                <circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 6 0c0 2-3 3-3 3M12 17h.01"/>
-              </svg>
-              <span style={{ fontSize: 14 }}>Version data unavailable</span>
-            </div>
-          )}
-
-          {versionState === "current" && (
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "var(--text-tertiary)" }}>Installed</span>
-                <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
-                  {installedDisplay}
-                </span>
-                {installations.length > 1 && (
-                  <span style={{ fontSize: 11.5, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 2 }}>
-                    across {installations.length} devices
-                  </span>
-                )}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 6, color: "var(--st-current-text)" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22 }}>
-                  <circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>
+          {/* UNKNOWN state */}
+          {resolverState === "unknown" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "8px 0" }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                display: "grid", placeItems: "center",
+                background: "var(--surface-raised)",
+                color: "var(--text-tertiary)",
+              }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
+                  <circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>
                 </svg>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>Up to date</span>
+              </div>
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 500, color: "var(--text-secondary)" }}>Version data unavailable</p>
+                <p style={{ fontSize: 13, color: "var(--text-tertiary)", marginTop: 3, lineHeight: 1.5 }}>
+                  No Installomator label matched this app yet, so there is nothing to compare against.
+                </p>
               </div>
             </div>
           )}
 
-          {versionState === "patchable" && (
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "var(--text-tertiary)" }}>Installed</span>
-                <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+          {/* CURRENT state — single large number + green check */}
+          {resolverState === "current" && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums", color: "var(--text-primary)" }}>
                   {installedDisplay}
                 </span>
-                {installations.length > 1 && (
-                  <span style={{ fontSize: 11.5, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 2 }}>
-                    across {installations.length} devices
-                  </span>
-                )}
+                <div style={{
+                  width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                  display: "grid", placeItems: "center",
+                  background: "var(--st-current-tint)",
+                }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, color: "var(--st-current)" }}>
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                </div>
               </div>
-              {patchableVersion && (
-                <>
-                  <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "var(--text-tertiary)" }}>Patchable</span>
-                    <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums", color: "var(--st-outdated-text)" }}>
-                      {patchableVersion}
-                    </span>
-                    <span style={{ fontSize: 11.5, color: "var(--text-tertiary)", fontWeight: 500, marginTop: 2 }}>newest Installomator can install</span>
-                  </div>
-                </>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border-hairline)", lineHeight: 1.5 }}>
+                Installed everywhere, matches the latest the vendor has shipped. Nothing to do.
+              </p>
+            </>
+          )}
+
+          {/* PATCHABLE state — installed → patchable, inline patch CTA */}
+          {resolverState === "patchable" && (
+            <>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
+                <VersionCol label="Installed" version={installedDisplay} />
+                <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
+                <VersionCol label="Patchable" version={patchableVersion!} color="var(--st-outdated-text)" />
+              </div>
+              {installations.length > 1 && (
+                <p style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>across {installations.length} devices</p>
               )}
-            </div>
+              <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 14 }}>
+                <button
+                  onClick={() => {
+                    if (outdatedDevices.length > 1) { setBushelMode("managed"); setShowBushelModal(true); }
+                    else { setPatchDeviceId(outdatedDevices[0]?.deviceId ?? null); setShowPatchModal(true); }
+                  }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    fontSize: 13, fontWeight: 600, color: "#fff",
+                    background: "var(--accent-grad)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    borderRadius: "var(--r-md)",
+                    padding: "9px 16px",
+                    boxShadow: "var(--shadow-accent)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
+                    <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
+                  </svg>
+                  Patch to {patchableVersion}
+                </button>
+                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Up to date with the vendor</span>
+              </div>
+            </>
+          )}
+
+          {/* LAGGING state — installed → patchable → vendor latest, calm accent bar */}
+          {resolverState === "lagging" && (
+            <>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
+                <VersionCol label="Installed" version={installedDisplay} />
+                <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
+                <VersionCol label="Patchable" version={patchableVersion ?? "—"} color="var(--st-outdated-text)" />
+                <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
+                <VersionCol label="Vendor latest" version={availableVersion ?? "—"} color="var(--st-lagging-text)" />
+              </div>
+              {installations.length > 1 && (
+                <p style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>across {installations.length} devices</p>
+              )}
+              {/* Explanatory lag-line — calm, no red banner */}
+              <div style={{
+                marginTop: 20, paddingTop: 18,
+                borderTop: "1px solid var(--st-lagging-tint)",
+                display: "flex", gap: 11, alignItems: "flex-start",
+              }}>
+                <div style={{ width: 3, alignSelf: "stretch", borderRadius: 3, background: "var(--st-lagging)", flexShrink: 0 }} />
+                <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.55 }}>
+                  Installomator can install up to <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{patchableVersion}</strong> for now.{" "}
+                  <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{availableVersion}</strong> is available from the vendor. This gap closes automatically once Installomator adds the newer release.
+                </p>
+              </div>
+              <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 14 }}>
+                <button
+                  onClick={() => {
+                    if (outdatedDevices.length > 1) { setBushelMode("managed"); setShowBushelModal(true); }
+                    else { setPatchDeviceId(outdatedDevices[0]?.deviceId ?? null); setShowPatchModal(true); }
+                  }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    fontSize: 13, fontWeight: 600, color: "#fff",
+                    background: "var(--accent-grad)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    borderRadius: "var(--r-md)",
+                    padding: "9px 16px",
+                    boxShadow: "var(--shadow-accent)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
+                    <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
+                  </svg>
+                  Patch to {patchableVersion}
+                </button>
+                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Closes the patchable gap</span>
+              </div>
+            </>
           )}
         </div>
 
@@ -569,11 +676,11 @@ export default function AppDetailPage({ params }: Props) {
 
           {installations.length === 0 ? (
             <p style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No installations found.</p>
-          ) : installations.map((inst: any) => (
+          ) : installations.map((inst: any, idx: number) => (
             <div key={inst.deviceId} style={{
               display: "flex", alignItems: "center", gap: 16,
               padding: "15px 6px",
-              borderBottom: "1px solid var(--border-hairline)",
+              borderBottom: idx < installations.length - 1 ? "1px solid var(--border-hairline)" : undefined,
             }}>
               {/* Device icon */}
               <div style={{
@@ -604,7 +711,7 @@ export default function AppDetailPage({ params }: Props) {
 
               {/* Version */}
               <div style={{ fontFamily: "var(--mono)", fontSize: 13.5, fontWeight: 500, fontVariantNumeric: "tabular-nums", minWidth: 64, color: "var(--text-primary)" }}>
-                {displayVersion(inst.version)}
+                {normalizeVersion(inst.version) ?? "—"}
               </div>
 
               {/* Status pill */}
@@ -639,7 +746,7 @@ export default function AppDetailPage({ params }: Props) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
                       <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
                     </svg>
-                    Patch to {patchableVersion || "latest"}
+                    Patch to {patchableVersion ?? "latest"}
                   </button>
                 ) : app.hasVersionConflict ? (
                   <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>On newest patchable</span>
@@ -659,18 +766,18 @@ export default function AppDetailPage({ params }: Props) {
           </div>
           {patchHistory.length === 0 ? (
             <p style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No recent patch history for this app.</p>
-          ) : patchHistory.map((job: any) => (
+          ) : patchHistory.map((job: any, idx: number) => (
             <div key={job.jobId} style={{
               display: "flex", alignItems: "center", gap: 14,
               padding: "13px 6px",
-              borderBottom: "1px solid var(--border-hairline)",
+              borderBottom: idx < patchHistory.length - 1 ? "1px solid var(--border-hairline)" : undefined,
             }}>
               <div style={{ fontSize: 13, color: "var(--text-secondary)", minWidth: 200, fontVariantNumeric: "tabular-nums" }}>
                 {formatDateTime(job.startedAt || job.createdAt)}
               </div>
               <div style={{ fontSize: 13, color: "var(--text-secondary)", flex: 1, minWidth: 0 }}>{job.deviceName}</div>
               <div style={{ fontFamily: "var(--mono)", fontSize: 12.5, color: "var(--text-tertiary)", minWidth: 90 }}>
-                {job.completedAt ? "→ " + (displayVersion(job.toVersion || "")) : ""}
+                {job.completedAt && normalizeVersion(job.toVersion) ? `→ ${normalizeVersion(job.toVersion)}` : ""}
               </div>
               <div style={{ minWidth: 96, display: "flex", justifyContent: "flex-end" }}>
                 <StatusPill status={job.status === "success" ? "current" : "unknown"} />
@@ -782,7 +889,7 @@ export default function AppDetailPage({ params }: Props) {
                 <div key={inst.deviceId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--r-md)", background: "var(--surface-sunken)", border: "1px solid var(--border-hairline)" }}>
                   <div>
                     <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-primary)" }}>{inst.deviceName}</p>
-                    <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontFamily: "var(--mono)" }}>v{displayVersion(inst.version)}</p>
+                    <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontFamily: "var(--mono)" }}>v{normalizeVersion(inst.version) ?? "?"}</p>
                   </div>
                 </div>
               ))}
