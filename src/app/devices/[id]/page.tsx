@@ -524,7 +524,7 @@ export default function DeviceDetailPage({ params }: Props) {
                       </TableCell>
 
                       {/* Patch action */}
-                      <TableCell style={{ textAlign: "right" }}>
+                      <TableCell style={{ textAlign: "right", overflow: "visible" }}>
                         {isOutdated ? (
                           <button
                             onClick={() => setPatchTarget({ bundleId: app.bundle_id, label: app.label, appName: app.name })}
