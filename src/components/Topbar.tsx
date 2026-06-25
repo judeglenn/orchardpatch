@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface TopbarDashboardProps {
   type: "dashboard";
@@ -104,7 +103,6 @@ export function Topbar(props: TopbarProps) {
               Sync now
             </button>
           )}
-          <ThemeToggle />
         </div>
       </header>
     );
@@ -136,7 +134,6 @@ export function Topbar(props: TopbarProps) {
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
           <SyncPill label={props.syncLabel ?? "Synced today"} />
-          <ThemeToggle />
         </div>
       </header>
     );
@@ -148,9 +145,6 @@ export function Topbar(props: TopbarProps) {
       <h1 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
         {(props as TopbarSimpleProps).title}
       </h1>
-      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
-        <ThemeToggle />
-      </div>
     </header>
   );
 }

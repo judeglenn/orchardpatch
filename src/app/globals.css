@@ -32,8 +32,10 @@
      radial-gradient(1000px 560px at 103% -4%, rgba(70,110,150,0.07), transparent 54%),
      radial-gradient(900px 760px at 50% 124%, rgba(61,122,66,0.05), transparent 60%);
 
-  --surface-glass:rgba(255,255,255,0.70); --surface-solid:var(--white); --surface-sunken:var(--ink-050);
+  --surface-glass:rgba(255,255,255,0.70); --surface-solid:var(--white); --surface-sunken:var(--ink-050); --surface-raised:#ffffff;
   --topbar-glass:rgba(244,246,247,0.68);
+
+  --border-accent:rgba(61,122,66,0.35);
 
   /* sidebar (flat green-tinted glass, thin top-edge shine) */
   --sidebar-bg:rgba(31,58,40,0.90); --sidebar-accent:var(--green-mint);
@@ -65,8 +67,10 @@
      radial-gradient(1000px 580px at 104% -6%, rgba(70,120,170,0.11), transparent 54%),
      radial-gradient(900px 800px at 52% 126%, rgba(98,184,106,0.06), transparent 60%);
 
-  --surface-glass:rgba(40,44,42,0.52); --surface-solid:var(--night-800); --surface-sunken:var(--night-850);
+  --surface-glass:rgba(40,44,42,0.52); --surface-solid:var(--night-800); --surface-sunken:var(--night-850); --surface-raised:rgba(255,255,255,0.07);
   --topbar-glass:rgba(18,21,20,0.62);
+
+  --border-accent:rgba(116,204,124,0.30);
 
   --sidebar-bg:rgba(18,34,23,0.80); --sidebar-accent:var(--green-mint);
 
