@@ -619,7 +619,7 @@ export default function AppDetailPage({ params }: Props) {
                   </svg>
                   Patch to {patchableVersion}
                 </button>
-                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Up to date with the vendor</span>
+                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Up to Date with the Vendor</span>
               </div>
             </>
           )}
@@ -682,11 +682,11 @@ export default function AppDetailPage({ params }: Props) {
           <div style={cardHead}>
             <div>
               <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>
-                Installed on {installations.length} device{installations.length !== 1 ? "s" : ""}
+                Installed on {installations.length} Device{installations.length !== 1 ? "s" : ""}
               </span>
             </div>
             <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>
-              Patch a single device, or use Patch all outdated above
+              Patch a Single Device, or Use Patch All Outdated Above
             </span>
           </div>
 
@@ -775,13 +775,13 @@ export default function AppDetailPage({ params }: Props) {
         {/* Patch history card */}
         <div style={cardStyle}>
           <div style={cardHead}>
-            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Patch history</span>
+            <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Patch History</span>
             <Link href="/patches" style={{ fontSize: 12.5, color: "var(--accent)", fontWeight: 500 }}>
               View all in Patch History
             </Link>
           </div>
           {patchHistory.length === 0 ? (
-            <p style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No recent patch history for this app.</p>
+            <p style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No Recent Patch History for This App.</p>
           ) : patchHistory.map((job: any, idx: number) => (
             <div key={job.jobId} style={{
               display: "flex", alignItems: "center", gap: 14,
