@@ -382,8 +382,8 @@ export default function HomePageInner() {
             size="sm"
             style={
               (patchStatusFilter === "outdated" || conflictsOnly)
-                ? { background: "var(--accent)", color: "var(--page-bg)", borderColor: "var(--accent)", padding: "0px 12px", gap: 6, whiteSpace: "nowrap" }
-                : { background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", padding: "0px 12px", gap: 6, whiteSpace: "nowrap" }
+                ? { background: "var(--accent)", color: "var(--page-bg)", borderColor: "var(--accent)", padding: "0px 12px", gap: 6, whiteSpace: "nowrap", height: 36 }
+                : { background: "var(--surface-raised)", color: "var(--text-primary)", borderColor: "var(--border-hairline)", padding: "0px 12px", gap: 6, whiteSpace: "nowrap", height: 36 }
             }
             onClick={() => {
               const isActive = patchStatusFilter === "outdated" || conflictsOnly;
