@@ -88,7 +88,9 @@ function getInstallomatorLabel(bundleId: string): string | null {
 // Never display raw stored version values — always normalize first
 function normalizeVersion(v: string | null | undefined): string | null {
   if (!v) return null;
-  return v.includes(",") ? v.split(",")[0] : v;
+  let s = v.includes(",") ? v.split(",")[0] : v;
+  s = s.replace(/\s*\(.*?\)/g, "").trim();
+  return s || null;
 }
 
 // ---- Style helpers ----
@@ -541,7 +543,7 @@ export default function AppDetailPage({ params }: Props) {
               <div>
                 <p style={{ fontSize: 15, fontWeight: 500, color: "var(--text-secondary)" }}>Version data unavailable</p>
                 <p style={{ fontSize: 13, color: "var(--text-tertiary)", marginTop: 3, lineHeight: 1.5 }}>
-                  No Installomator label matched this app yet, so there is nothing to compare against.
+                  Version data unavailable. OrchardPatch could not determine the current or available version for this app.
                 </p>
               </div>
             </div>

@@ -343,7 +343,7 @@ export default function HomePageInner() {
               {selectedCategory === CATEGORY_ALL ? "Category" : selectedCategory}
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" style={{ maxHeight: 288, overflowY: "auto" }}>
+            <DropdownMenuContent align="end" style={{ maxHeight: 288, overflowY: "auto", zIndex: 50 }}>
               {categories.map((cat) => (
                 <DropdownMenuItem
                   key={cat}
