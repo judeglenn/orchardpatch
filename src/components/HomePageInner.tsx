@@ -399,13 +399,13 @@ export default function HomePageInner() {
 
       {/* Patch status summary bar - clickable pills filter the app list */}
       {statusSummary && (() => {
-        type Pill = { status: PatchStatus; emoji: string; label: string; count: number; activeColor: string; activeBg: string; activeBorder: string };
+        type Pill = { status: PatchStatus; dot: string; label: string; count: number; activeColor: string; activeBg: string; activeBorder: string };
         const pills: Pill[] = [
-          { status: "outdated", emoji: "🔴", label: "outdated",  count: statusSummary.outdated, activeColor: "var(--st-lagging)", activeBg: "color-mix(in srgb, var(--st-lagging) 15%, transparent)", activeBorder: "color-mix(in srgb, var(--st-lagging) 50%, transparent)" },
-          { status: "current",  emoji: "✅", label: "current",   count: statusSummary.current,  activeColor: "var(--st-current)", activeBg: "var(--accent-tint)", activeBorder: "var(--border-accent)" },
-          { status: "unknown",  emoji: "🟡", label: "Unknown",   count: statusSummary.unknown,  activeColor: "var(--text-secondary)", activeBg: "var(--surface-raised)", activeBorder: "var(--border-hairline)" },
-          { status: "na",       emoji: "⚙️",  label: "System",    count: statusSummary.na,       activeColor: "var(--text-tertiary)", activeBg: "var(--surface-raised)", activeBorder: "var(--border-hairline)" },
-          { status: "mas",      emoji: "🍎", label: "App Store", count: statusSummary.mas,       activeColor: "var(--accent)", activeBg: "var(--accent-tint)", activeBorder: "var(--border-accent)" },
+          { status: "outdated", dot: "var(--st-outdated)", label: "outdated",  count: statusSummary.outdated, activeColor: "var(--st-lagging)", activeBg: "color-mix(in srgb, var(--st-lagging) 15%, transparent)", activeBorder: "color-mix(in srgb, var(--st-lagging) 50%, transparent)" },
+          { status: "current",  dot: "var(--st-current)",  label: "current",   count: statusSummary.current,  activeColor: "var(--st-current)", activeBg: "var(--accent-tint)", activeBorder: "var(--border-accent)" },
+          { status: "unknown",  dot: "var(--st-unknown)",  label: "Unknown",   count: statusSummary.unknown,  activeColor: "var(--text-secondary)", activeBg: "var(--surface-raised)", activeBorder: "var(--border-hairline)" },
+          { status: "na",       dot: "var(--st-system)",   label: "System",    count: statusSummary.na,       activeColor: "var(--text-tertiary)", activeBg: "var(--surface-raised)", activeBorder: "var(--border-hairline)" },
+          { status: "mas",      dot: "var(--st-store)",    label: "App Store", count: statusSummary.mas,       activeColor: "var(--accent)", activeBg: "var(--accent-tint)", activeBorder: "var(--border-accent)" },
         ];
         return (
           <div
@@ -428,7 +428,8 @@ export default function HomePageInner() {
                       : { borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer", background: "transparent", color: "var(--text-secondary)", border: "1px solid transparent" }
                     }
                   >
-                    {pill.emoji} {pill.count} {pill.label}
+                    <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", backgroundColor: pill.dot, marginRight: 5, flexShrink: 0 }} />
+                    {pill.count} {pill.label}
                   </button>
                 </>
               );
