@@ -429,12 +429,13 @@ export default function DashboardPage() {
               boxShadow: "var(--shadow-accent)",
               transition: "filter 0.14s, transform 0.08s",
               cursor: "pointer",
+              transform: "translateZ(0)",
             }}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
               <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
             </svg>
-            Patch all outdated · {statusCounts.outdated} apps · {devices.length} devices
+            Patch All Outdated · {statusCounts.outdated} Apps · {devices.length} Devices
           </button>
         </section>
 
