@@ -398,7 +398,7 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <h3 style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Patch by the Orchard</h3>
+              <h3 style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>OrchardPatch</h3>
               <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 2 }}>Queue Patches Across Your Entire Fleet</p>
             </div>
           </div>
@@ -474,7 +474,7 @@ export default function DashboardPage() {
                 <path d="M12 22V12"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 15c0-3.2-3-5.8-7-5.8 0 3.2 3 5.8 7 5.8z"/>
               </svg>
               <div>
-                <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>Patch by the Orchard</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>Patch the Fleet</h2>
                 <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 1 }}>Review everything that will be patched</p>
               </div>
             </div>
