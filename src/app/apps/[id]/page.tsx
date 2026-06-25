@@ -765,7 +765,7 @@ export default function AppDetailPage({ params }: Props) {
                     Patch to {patchableVersion ?? "latest"}
                   </button>
                 ) : app.hasVersionConflict ? (
-                  <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>On newest patchable</span>
+                  <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>On Newest Patchable</span>
                 ) : null}
               </div>
             </div>
