@@ -773,7 +773,7 @@ export default function DeviceDetailPage({ params }: Props) {
           <div style={{ ...modalStyle, width: "100%", maxWidth: 400 }}>
             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
               <div>
-                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch this App</h2>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>Patch {patchTarget.appName}</h2>
                 <p style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)" }}>{patchTarget.appName}</p>
                 <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>on {device.hostname}</p>
               </div>
