@@ -82,6 +82,13 @@ export function macOSName(version: string): string {
   return OS_NAMES[major] ?? "";
 }
 
+export function normalizeVersion(v: string | null | undefined): string | null {
+  if (!v) return null;
+  let s = v.includes(",") ? v.split(",")[0] : v;
+  s = s.replace(/\s*\(.*?\)/g, "").trim();
+  return s || null;
+}
+
 export function appInitials(name: string): string {
   const words = name.trim().split(/\s+/);
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
