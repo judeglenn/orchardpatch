@@ -210,7 +210,6 @@ export default function DashboardPage() {
 
   const cardStyle: React.CSSProperties = {
     position: "relative",
-    overflow: "hidden",
     backgroundColor: "var(--surface-glass)",
     backgroundImage: "var(--sheen)",
     WebkitBackdropFilter: "blur(20px) saturate(150%)",
