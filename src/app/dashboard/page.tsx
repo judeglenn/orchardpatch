@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Topbar } from '@/components/Topbar';
@@ -28,44 +28,72 @@ interface Stats {
   lastCheckin: string;
 }
 
+function PinSlot() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        border: `1.5px dashed ${hovered ? "var(--accent)" : "var(--border-strong)"}`,
+        borderRadius: "var(--r-lg)",
+        padding: 30,
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 9,
+        color: hovered ? "var(--accent)" : "var(--text-tertiary)",
+        transition: "border-color 0.2s, color 0.2s",
+        cursor: "default",
+      }}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22, opacity: 0.8 }}>
+        <path d="M9 4v6l-2 4h10l-2-4V4"/><path d="M12 18v3M8 4h8"/>
+      </svg>
+      <span style={{ fontSize: 13, fontWeight: 500 }}>Pin an app</span>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
   const [allAppsStatus, setAllAppsStatus] = useState<AppStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [showOrchardModal, setShowOrchardModal] = useState(false);
   const [selectedMode, setSelectedMode] = useState<'silent' | 'managed' | 'prompted'>('silent');
   const [confirmCheckbox, setConfirmCheckbox] = useState(false);
   const [orchardLoading, setOrchardLoading] = useState(false);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const statsRes = await fetch('/api/stats');
-        const statsData = await statsRes.json();
-        setStats(statsData);
+  const loadData = useCallback(async (opts?: { silent?: boolean }) => {
+    if (opts?.silent) setSyncing(true); else setLoading(true);
+    try {
+      const statsRes = await fetch('/api/stats');
+      const statsData = await statsRes.json();
+      setStats(statsData);
 
-        const devicesRes = await fetch('/api/devices');
-        const devicesData = await devicesRes.json();
-        const deviceList = devicesData.devices || [];
-        setDevices(deviceList);
+      const devicesRes = await fetch('/api/devices');
+      const devicesData = await devicesRes.json();
+      const deviceList = devicesData.devices || [];
+      setDevices(deviceList);
 
-        const allApps: AppStatus[] = [];
-        for (const device of deviceList) {
-          const statusRes = await fetch(`/api/apps/status?device_id=${device.id}`);
-          const statusData = await statusRes.json();
-          allApps.push(...(statusData.apps || []));
-        }
-        setAllAppsStatus(allApps);
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err);
-      } finally {
-        setLoading(false);
+      const allApps: AppStatus[] = [];
+      for (const device of deviceList) {
+        const statusRes = await fetch(`/api/apps/status?device_id=${device.id}`);
+        const statusData = await statusRes.json();
+        allApps.push(...(statusData.apps || []));
       }
+      setAllAppsStatus(allApps);
+    } catch (err) {
+      console.error('Failed to load dashboard data:', err);
+    } finally {
+      setLoading(false);
+      setSyncing(false);
     }
-    loadData();
   }, []);
+
+  const refreshStats = useCallback(() => loadData({ silent: true }), [loadData]);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const statusCounts = {
     outdated: allAppsStatus.filter(a => a.patch_status === 'outdated').length,
@@ -156,7 +184,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Topbar type="dashboard" title="Fleet Dashboard" subtitle="Monitor your device fleet and manage patches" />
+      <Topbar type="dashboard" title="Fleet Dashboard" subtitle="Monitor your device fleet and manage patches" onSyncNow={syncing ? undefined : refreshStats} />
 
       <div style={{ padding: "26px 30px 48px", maxWidth: 1480, width: "100%" }}>
 
@@ -254,8 +282,8 @@ export default function DashboardPage() {
               <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>Loading…</div>
             ) : topOutdated.length === 0 ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No outdated apps</div>
-            ) : topOutdated.map(app => (
-              <div key={app.label} style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 4px", borderBottom: "1px solid var(--border-hairline)" }}>
+            ) : topOutdated.map((app, idx) => (
+              <div key={app.label} style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 4px", borderBottom: idx < topOutdated.length - 1 ? "1px solid var(--border-hairline)" : undefined }}>
                 <div style={{
                   width: 38, height: 38, borderRadius: 11, flexShrink: 0,
                   display: "grid", placeItems: "center",
@@ -351,18 +379,7 @@ export default function DashboardPage() {
           <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", margin: "4px 0 14px" }}>Pinned apps</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 12 }}>
             {[1, 2, 3].map(i => (
-              <div key={i} style={{
-                border: "1.5px dashed var(--border-strong)",
-                borderRadius: "var(--r-lg)",
-                padding: 30,
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 9,
-                color: "var(--text-tertiary)",
-              }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22, opacity: 0.8 }}>
-                  <path d="M9 4v6l-2 4h10l-2-4V4"/><path d="M12 18v3M8 4h8"/>
-                </svg>
-                <span style={{ fontSize: 13, fontWeight: 500 }}>Pin an app</span>
-              </div>
+              <PinSlot key={i} />
             ))}
           </div>
           <div style={{ fontSize: 13, color: "var(--text-tertiary)" }}>
