@@ -9,6 +9,7 @@ interface AppStatus {
   id: string;
   device_id: string;
   name: string;
+  bundle_id?: string;
   version: string;
   latest_version: string | null;
   patch_status: 'outdated' | 'current' | 'unknown' | 'na' | 'store';
@@ -104,13 +105,13 @@ export default function DashboardPage() {
   };
 
   // Top outdated apps aggregated by label
-  const outdatedByLabel = new Map<string, { label: string; name: string; devices: Set<string>; version: string; latest: string | null }>();
+  const outdatedByLabel = new Map<string, { label: string; name: string; bundleId: string | null; devices: Set<string>; version: string; latest: string | null }>();
   allAppsStatus
     .filter(a => a.patch_status === 'outdated')
     .forEach(app => {
       const key = app.label || app.name;
       if (!outdatedByLabel.has(key)) {
-        outdatedByLabel.set(key, { label: key, name: app.name, devices: new Set(), version: app.version, latest: app.latest_version });
+        outdatedByLabel.set(key, { label: key, name: app.name, bundleId: app.bundle_id ?? null, devices: new Set(), version: app.version, latest: app.latest_version });
       }
       outdatedByLabel.get(key)!.devices.add(app.device_id);
     });
@@ -119,6 +120,7 @@ export default function DashboardPage() {
     .map(item => ({
       label: item.label,
       name: item.name,
+      bundleId: item.bundleId,
       deviceCount: item.devices.size,
       version: item.version,
       latest: item.latest,
@@ -191,13 +193,14 @@ export default function DashboardPage() {
         {/* 5 Metric cards */}
         <section style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 22 }}>
           {[
-            { cls: "m-outdated", glow: "var(--st-outdated-glow)", dot: "var(--st-outdated)", dotGlow: "var(--st-outdated-glow)", label: "Outdated", value: statusCounts.outdated, numColor: "var(--st-outdated-text)", foot: "Patchable now" },
-            { cls: "m-current",  glow: "var(--st-current-glow)",  dot: "var(--st-current)",  dotGlow: "var(--st-current-glow)",  label: "Current",  value: statusCounts.current,  numColor: "var(--st-current-text)",  foot: "Up to date" },
-            { cls: "m-unknown",  glow: "var(--st-unknown-glow)",  dot: "var(--st-unknown)",  dotGlow: undefined, label: "Unknown",  value: statusCounts.unknown,  numColor: "var(--text-primary)", foot: "No label yet" },
-            { cls: "m-system",   glow: "var(--st-system-glow)",   dot: "var(--st-system)",   dotGlow: undefined, label: "System",   value: statusCounts.system,   numColor: "var(--text-primary)", foot: "Apple managed" },
-            { cls: "m-store",    glow: "var(--st-store-glow)",    dot: "var(--st-store)",    dotGlow: "var(--st-store-glow)",    label: "App Store", value: statusCounts.store,    numColor: "var(--text-primary)", foot: "Mac App Store" },
+            { glow: "var(--st-outdated-glow)", dot: "var(--st-outdated)", dotGlow: "var(--st-outdated-glow)", label: "Outdated",  href: "/apps?status=outdated", value: statusCounts.outdated, numColor: "var(--st-outdated-text)", foot: "Patchable now" },
+            { glow: "var(--st-current-glow)",  dot: "var(--st-current)",  dotGlow: "var(--st-current-glow)",  label: "Current",   href: "/apps?status=current",  value: statusCounts.current,  numColor: "var(--st-current-text)",  foot: "Up to date" },
+            { glow: "var(--st-unknown-glow)",  dot: "var(--st-unknown)",  dotGlow: undefined,                 label: "Unknown",   href: "/apps?status=unknown",  value: statusCounts.unknown,  numColor: "var(--text-primary)",     foot: "No label yet" },
+            { glow: "var(--st-system-glow)",   dot: "var(--st-system)",   dotGlow: undefined,                 label: "System",    href: "/apps?status=system",   value: statusCounts.system,   numColor: "var(--text-primary)",     foot: "Apple managed" },
+            { glow: "var(--st-store-glow)",    dot: "var(--st-store)",    dotGlow: "var(--st-store-glow)",    label: "App Store", href: "/apps?status=mas",      value: statusCounts.store,    numColor: "var(--text-primary)",     foot: "Mac App Store" },
           ].map(m => (
-            <div key={m.label} style={{
+            <Link key={m.label} href={m.href} style={{
+              display: "block",
               position: "relative",
               overflow: "hidden",
               backgroundColor: "var(--surface-glass)",
@@ -209,6 +212,8 @@ export default function DashboardPage() {
               boxShadow: "var(--shadow-card)",
               padding: "15px 17px 16px",
               transition: "background-color 0.5s, box-shadow 0.5s",
+              cursor: "pointer",
+              textDecoration: "none",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11.5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: m.dot, boxShadow: m.dotGlow ? `0 0 9px ${m.dotGlow}` : undefined, display: "inline-block" }} />
@@ -218,7 +223,7 @@ export default function DashboardPage() {
                 {loading ? "—" : m.value}
               </div>
               <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 7 }}>{m.foot}</div>
-            </div>
+            </Link>
           ))}
         </section>
 
@@ -282,37 +287,55 @@ export default function DashboardPage() {
               <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>Loading…</div>
             ) : topOutdated.length === 0 ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>No outdated apps</div>
-            ) : topOutdated.map((app, idx) => (
-              <div key={app.label} style={{ display: "flex", alignItems: "center", gap: 13, padding: "12px 4px", borderBottom: idx < topOutdated.length - 1 ? "1px solid var(--border-hairline)" : undefined }}>
-                <div style={{
-                  width: 38, height: 38, borderRadius: 11, flexShrink: 0,
-                  display: "grid", placeItems: "center",
-                  fontSize: 15, fontWeight: 600,
-                  color: "var(--accent)",
-                  background: "var(--accent-tint)",
-                  boxShadow: "inset 0 1px 0 var(--rim-top), inset 0 0 0 1px rgba(98,184,106,0.14)",
-                }}>
-                  {app.name.charAt(0).toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>{app.name}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontVariantNumeric: "tabular-nums" }}>
-                    {displayVersion(app.version)}{" "}
-                    {app.latest && <b style={{ color: "var(--st-outdated-text)", fontWeight: 600 }}>→ {displayVersion(app.latest)}</b>}
+            ) : topOutdated.map((app, idx) => {
+              const slug = app.bundleId ? app.bundleId.replace(/\./g, "-") : null;
+              const rowContent = (
+                <>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                    display: "grid", placeItems: "center",
+                    fontSize: 15, fontWeight: 600,
+                    color: "var(--accent)",
+                    background: "var(--accent-tint)",
+                    boxShadow: "inset 0 1px 0 var(--rim-top), inset 0 0 0 1px rgba(98,184,106,0.14)",
+                  }}>
+                    {app.name.charAt(0).toUpperCase()}
                   </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{app.name}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontVariantNumeric: "tabular-nums" }}>
+                      {displayVersion(app.version)}{" "}
+                      {app.latest && <b style={{ color: "var(--st-outdated-text)", fontWeight: 600 }}>→ {displayVersion(app.latest)}</b>}
+                    </div>
+                  </div>
+                  <span style={{
+                    fontSize: 12, fontWeight: 600,
+                    color: "var(--st-outdated-text)",
+                    background: "var(--st-outdated-tint)",
+                    padding: "5px 11px",
+                    borderRadius: "var(--r-pill)",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {app.deviceCount} device{app.deviceCount !== 1 ? "s" : ""}
+                  </span>
+                </>
+              );
+              const rowStyle: React.CSSProperties = {
+                display: "flex", alignItems: "center", gap: 13, padding: "12px 4px",
+                borderBottom: idx < topOutdated.length - 1 ? "1px solid var(--border-hairline)" : undefined,
+                cursor: slug ? "pointer" : "default",
+                textDecoration: "none",
+              };
+              return slug ? (
+                <Link key={app.label} href={`/apps/${slug}`} style={rowStyle}>
+                  {rowContent}
+                </Link>
+              ) : (
+                <div key={app.label} style={rowStyle}>
+                  {rowContent}
                 </div>
-                <span style={{
-                  fontSize: 12, fontWeight: 600,
-                  color: "var(--st-outdated-text)",
-                  background: "var(--st-outdated-tint)",
-                  padding: "5px 11px",
-                  borderRadius: "var(--r-pill)",
-                  whiteSpace: "nowrap",
-                }}>
-                  {app.deviceCount} device{app.deviceCount !== 1 ? "s" : ""}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

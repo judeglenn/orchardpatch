@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { AppCard } from "@/components/AppCard";
 import { SearchBar } from "@/components/SearchBar";
 import { apps as mockApps, stats as mockStats } from "@/lib/mockData";
@@ -45,10 +46,23 @@ const lastSynced = mockApps.reduce(
 );
 
 export default function HomePageInner() {
+  const searchParams = useSearchParams();
+
+  const VALID_STATUS_PARAMS: Record<string, PatchStatus> = {
+    outdated: "outdated",
+    current:  "current",
+    unknown:  "unknown",
+    system:   "na",
+    mas:      "mas",
+  };
+  const initialStatus = searchParams.get("status");
+
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [conflictsOnly, setConflictsOnly] = useState(false); // kept for compat; drives patchStatusFilter
-  const [patchStatusFilter, setPatchStatusFilter] = useState<PatchStatus | null>(null);
+  const [patchStatusFilter, setPatchStatusFilter] = useState<PatchStatus | null>(
+    initialStatus && VALID_STATUS_PARAMS[initialStatus] ? VALID_STATUS_PARAMS[initialStatus] : null
+  );
   const [selectedCategory, setSelectedCategory] = useState(CATEGORY_ALL);
 
   // Selection state
