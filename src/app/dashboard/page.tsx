@@ -299,10 +299,11 @@ export default function DashboardPage() {
               {/* Legend */}
               <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 14, flex: 1 }}>
                 {[
-                  { color: "var(--st-outdated)", label: "Outdated", value: statusCounts.outdated, href: "/apps?status=outdated" },
-                  { color: "var(--st-current)",  label: "Current",  value: statusCounts.current,  href: "/apps?status=current" },
-                  { color: "var(--st-unknown)",  label: "Unknown",  value: statusCounts.unknown,  href: "/apps?status=unknown" },
-                  { color: "var(--st-system)",   label: "System",   value: statusCounts.system,   href: "/apps?status=system" },
+                  { color: "var(--st-outdated)", label: "Outdated",  value: statusCounts.outdated, href: "/apps?status=outdated" },
+                  { color: "var(--st-current)",  label: "Current",   value: statusCounts.current,  href: "/apps?status=current" },
+                  { color: "var(--st-unknown)",  label: "Unknown",   value: statusCounts.unknown,  href: "/apps?status=unknown" },
+                  { color: "var(--st-system)",   label: "System",    value: statusCounts.system,   href: "/apps?status=system" },
+                  { color: "var(--st-store)",    label: "App Store", value: statusCounts.store,    href: "/apps?status=mas" },
                 ].map(row => (
                   <LegendRow key={row.label} color={row.color} label={row.label} value={loading ? null : row.value} href={row.href} />
                 ))}
@@ -321,6 +322,7 @@ export default function DashboardPage() {
                 </svg>
               </Link>
             </div>
+            <div style={{ maxHeight: 320, overflowY: "auto", overflowX: "hidden" }}>
             {loading ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>Loading…</div>
             ) : topOutdated.length === 0 ? (
@@ -374,6 +376,7 @@ export default function DashboardPage() {
                 </div>
               );
             })}
+            </div>
           </div>
         </section>
 
