@@ -93,7 +93,8 @@ function normalizeVersion(v: string | null | undefined): string | null {
   return s || null;
 }
 
-function versionGt(a: string, b: string): boolean {
+function versionGt(a: string | null, b: string | null): boolean {
+  if (!a || !b) return false;
   const pa = a.split(".").map(Number);
   const pb = b.split(".").map(Number);
   const len = Math.max(pa.length, pb.length);
