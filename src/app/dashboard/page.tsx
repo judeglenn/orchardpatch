@@ -546,7 +546,8 @@ export default function DashboardPage() {
             </div>
 
             {/* Buttons */}
-            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)", display: "flex", gap: 10, justifyContent: "flex-end", background: "var(--surface-sunken)" }}>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)", background: "var(--surface-sunken)" }}>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
               <button
                 onClick={() => setShowOrchardModal(false)}
                 disabled={orchardLoading}
@@ -578,6 +579,8 @@ export default function DashboardPage() {
               >
                 {orchardLoading ? "Starting…" : "Start patching"}
               </button>
+              </div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Orchard</div>
             </div>
           </div>
         </div>
