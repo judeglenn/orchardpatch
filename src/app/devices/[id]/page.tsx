@@ -439,7 +439,7 @@ export default function DeviceDetailPage({ params }: Props) {
               }}
             >
               <Zap className="h-3.5 w-3.5" />
-              Patch This Device
+              Patch All Outdated
             </button>
             <SearchBar value={search} onChange={setSearch} placeholder="Filter apps…" style={{ width: 224 }} />
           </div>
@@ -730,7 +730,8 @@ export default function DeviceDetailPage({ params }: Props) {
             )}
 
             {/* Footer */}
-            <div style={{ display: "flex", gap: 10, padding: "14px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+              <div style={{ display: "flex", gap: 10 }}>
               <button
                 onClick={() => setBranchModalOpen(false)}
                 disabled={branchQueuing}
@@ -755,6 +756,8 @@ export default function DeviceDetailPage({ params }: Props) {
               >
                 {branchQueuing ? "Queuing…" : `Patch ${branchChecked.size} App${branchChecked.size !== 1 ? "s" : ""}`}
               </button>
+              </div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Branch</div>
             </div>
           </div>
         </div>
@@ -812,7 +815,8 @@ export default function DeviceDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 10, padding: "14px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+              <div style={{ display: "flex", gap: 10 }}>
               <button
                 onClick={() => setPatchTarget(null)}
                 disabled={patching}
@@ -837,6 +841,8 @@ export default function DeviceDetailPage({ params }: Props) {
               >
                 {patching ? "Queuing…" : "Patch Now"}
               </button>
+              </div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Fruit</div>
             </div>
           </div>
         </div>

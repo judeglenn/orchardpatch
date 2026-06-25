@@ -851,7 +851,8 @@ export default function AppDetailPage({ params }: Props) {
                 ))}
               </div>
             </div>
-            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)" }}>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
               <button onClick={() => setShowPatchModal(false)} style={{ padding: "9px 16px", borderRadius: "var(--r-md)", border: "1px solid var(--border-hairline)", background: "var(--surface-glass)", color: "var(--text-primary)", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
                 Cancel
               </button>
@@ -869,6 +870,8 @@ export default function AppDetailPage({ params }: Props) {
               >
                 Patch now
               </button>
+              </div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Fruit</div>
             </div>
           </div>
         </div>
@@ -935,7 +938,8 @@ export default function AppDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)", display: "flex", gap: 10, justifyContent: "flex-end", background: "var(--surface-sunken)" }}>
+            <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border-hairline)", background: "var(--surface-sunken)" }}>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
               <button onClick={() => setShowBushelModal(false)} style={{ padding: "9px 16px", borderRadius: "var(--r-md)", border: "1px solid var(--border-hairline)", background: "var(--surface-glass)", color: "var(--text-primary)", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
                 Cancel
               </button>
@@ -956,6 +960,8 @@ export default function AppDetailPage({ params }: Props) {
               >
                 {bushelLoading ? "Queuing…" : `Patch ${outdatedDevices.length} device${outdatedDevices.length !== 1 ? "s" : ""}`}
               </button>
+              </div>
+              <div style={{ textAlign: "center", fontSize: 11, color: "var(--text-tertiary)", marginTop: 8, letterSpacing: "0.02em" }}>Patch by the Bushel</div>
             </div>
           </div>
         </div>
