@@ -4,7 +4,7 @@ import { use, useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { PatchStatusBadge, type PatchStatus } from "@/components/PatchStatusBadge";
-import { formatDate, formatRelativeDate, appInitials, appColorClass, macOSName } from "@/lib/utils";
+import { formatDate, formatRelativeDate, appInitials, appColorClass, macOSName, normalizeVersion } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -512,7 +512,7 @@ export default function DeviceDetailPage({ params }: Props) {
                       <TableCell>
                         {app.latest_version ? (
                           <span style={{ fontFamily: "var(--mono)", fontSize: 12, padding: "2px 8px", borderRadius: 4, background: "var(--accent-tint)", color: "var(--st-current)", border: "1px solid var(--border-accent)" }}>
-                            {app.latest_version}
+                            {normalizeVersion(app.latest_version)}
                           </span>
                         ) : (
                           <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
@@ -678,7 +678,7 @@ export default function DeviceDetailPage({ params }: Props) {
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.name}</p>
                           <p style={{ fontSize: 10, fontFamily: "var(--mono)", color: "var(--text-tertiary)" }}>
-                            {app.version} <span style={{ color: "var(--text-tertiary)" }}>→</span> {app.latest_version ?? "?"}
+                            {app.version} <span style={{ color: "var(--text-tertiary)" }}>→</span> {normalizeVersion(app.latest_version) ?? "?"}
                           </p>
                         </div>
                       </button>
