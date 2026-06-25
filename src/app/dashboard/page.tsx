@@ -322,7 +322,7 @@ export default function DashboardPage() {
                 </svg>
               </Link>
             </div>
-            <div style={{ maxHeight: 320, overflowY: "auto", overflowX: "hidden" }}>
+            <div style={{ maxHeight: 240, overflowY: "auto", overflowX: "hidden" }}>
             {loading ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>Loading…</div>
             ) : topOutdated.length === 0 ? (
