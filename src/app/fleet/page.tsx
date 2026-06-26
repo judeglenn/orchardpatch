@@ -31,20 +31,26 @@ const glass: React.CSSProperties = { backgroundColor: "var(--surface-glass)", ba
 export default function FleetPage() {
   const [devices, setDevices] = useState<FleetDevice[]>([]);
   const [stats, setStats] = useState<FleetStats | null>(null);
+  const [patchCounts, setPatchCounts] = useState<{ outdated: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   async function fetchData() {
     setLoading(true);
     try {
-      const [statsRes, devicesRes] = await Promise.all([
+      const [statsRes, devicesRes, patchStatusRes] = await Promise.all([
         fetch(`/api/stats`),
         fetch(`/api/devices`),
+        fetch(`/api/stats/patch-status`),
       ]);
       const statsData = await statsRes.json();
       const devicesData = await devicesRes.json();
       setStats(statsData);
       setDevices(devicesData.devices || []);
+      if (patchStatusRes.ok) {
+        const pd = await patchStatusRes.json();
+        setPatchCounts({ outdated: pd.outdated });
+      }
       setLastRefresh(prev => new Date());
     } catch (err) {
       console.error("Fleet fetch failed, falling back to mock data:", err);
@@ -99,7 +105,7 @@ export default function FleetPage() {
           {[
             { label: "Devices", value: stats.totalDevices, color: "var(--st-current)" },
             { label: "Total Apps", value: stats.totalApps, color: "var(--text-primary)" },
-            { label: "Outdated", value: stats.outdatedApps, color: stats.outdatedApps > 0 ? "var(--st-outdated)" : "var(--st-current)" },
+            { label: "Outdated", value: patchCounts?.outdated ?? stats.outdatedApps, color: (patchCounts?.outdated ?? stats.outdatedApps) > 0 ? "var(--st-outdated)" : "var(--st-current)" },
             { label: "Patches Run", value: stats.patchJobs.total, color: "var(--text-primary)" },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ ...glass, padding: "16px 20px" }}>
