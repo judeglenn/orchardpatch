@@ -361,22 +361,27 @@ export default function AppDetailPage({ params }: Props) {
   const initials = app.name.charAt(0).toUpperCase();
   const outdatedDevices = installations.filter((i: any) => i.isOutdated);
 
-  // Normalized version strings — never display raw values
+  // Normalized versions — for state derivation/comparison only, never for display
   const patchableVersion = normalizeVersion(app.latestVersion);
   const availableVersion = normalizeVersion(app.latestAvailable);
 
-  // Fleet-level installed version: uniform or range
-  const uniqueVersions = [...new Set(
-    installations
-      .map((i: any) => normalizeVersion(i.version))
-      .filter(Boolean) as string[]
+  // Raw versions — for display only, never normalized
+  const patchableVersionRaw = app.latestVersion ?? null;
+  const availableVersionRaw = app.latestAvailable ?? null;
+
+  // Fleet-level installed version: raw for display, normalized for comparison
+  const uniqueVersionsRaw = [...new Set(
+    installations.map((i: any) => i.version as string).filter(Boolean)
   )].sort();
-  const installedDisplay = uniqueVersions.length === 1
-    ? uniqueVersions[0]
-    : uniqueVersions.length > 1
-      ? `${uniqueVersions[0]}–${uniqueVersions[uniqueVersions.length - 1]}`
+  const installedDisplay = uniqueVersionsRaw.length === 1
+    ? uniqueVersionsRaw[0]
+    : uniqueVersionsRaw.length > 1
+      ? `${uniqueVersionsRaw[0]}–${uniqueVersionsRaw[uniqueVersionsRaw.length - 1]}`
       : "—";
-  const installedForCompare = uniqueVersions[uniqueVersions.length - 1] ?? null; // newest installed
+  const uniqueVersionsNorm = [...new Set(
+    installations.map((i: any) => normalizeVersion(i.version)).filter(Boolean) as string[]
+  )].sort();
+  const installedForCompare = uniqueVersionsNorm[uniqueVersionsNorm.length - 1] ?? null; // newest installed, normalized for comparison
 
   // Resolver state derivation (four states, applied in priority order)
   let resolverState: ResolverState = "unknown";
@@ -585,7 +590,7 @@ export default function AppDetailPage({ params }: Props) {
               <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
                 <VersionCol label="Installed" version={installedDisplay} />
                 <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
-                <VersionCol label="Patchable" version={patchableVersion!} color="var(--st-outdated-text)" />
+                <VersionCol label="Patchable" version={patchableVersionRaw ?? "—"} color="var(--st-outdated-text)" />
               </div>
               {installations.length > 1 && (
                 <p style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>across {installations.length} devices</p>
@@ -610,7 +615,7 @@ export default function AppDetailPage({ params }: Props) {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
                     <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
                   </svg>
-                  Patch to {patchableVersion}
+                  Patch to {patchableVersionRaw ?? "latest"}
                 </button>
                 <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Up to Date with the Vendor</span>
               </div>
@@ -623,9 +628,9 @@ export default function AppDetailPage({ params }: Props) {
               <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
                 <VersionCol label="Installed" version={installedDisplay} />
                 <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
-                <VersionCol label="Patchable" version={patchableVersion ?? "—"} color="var(--st-outdated-text)" />
+                <VersionCol label="Patchable" version={patchableVersionRaw ?? "—"} color="var(--st-outdated-text)" />
                 <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
-                <VersionCol label="Vendor latest" version={availableVersion ?? "—"} color="var(--st-lagging-text)" />
+                <VersionCol label="Vendor latest" version={availableVersionRaw ?? "—"} color="var(--st-lagging-text)" />
               </div>
               {installations.length > 1 && (
                 <p style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>across {installations.length} devices</p>
@@ -638,8 +643,8 @@ export default function AppDetailPage({ params }: Props) {
               }}>
                 <div style={{ width: 3, alignSelf: "stretch", borderRadius: 3, background: "var(--st-lagging)", flexShrink: 0 }} />
                 <p style={{ fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.55 }}>
-                  Installomator can install up to <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{patchableVersion}</strong> for now.{" "}
-                  <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{availableVersion}</strong> is available from the vendor. This gap closes automatically once Installomator adds the newer release.
+                  Installomator can install up to <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{patchableVersionRaw}</strong> for now.{" "}
+                  <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{availableVersionRaw}</strong> is available from the vendor. This gap closes automatically once Installomator adds the newer release.
                 </p>
               </div>
               <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 14 }}>
@@ -662,7 +667,7 @@ export default function AppDetailPage({ params }: Props) {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
                     <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
                   </svg>
-                  Patch to {patchableVersion}
+                  Patch to {patchableVersionRaw ?? "latest"}
                 </button>
                 <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Closes the patchable gap</span>
               </div>
@@ -720,7 +725,7 @@ export default function AppDetailPage({ params }: Props) {
 
               {/* Version */}
               <div style={{ fontFamily: "var(--mono)", fontSize: 13.5, fontWeight: 500, fontVariantNumeric: "tabular-nums", minWidth: 64, color: "var(--text-primary)" }}>
-                {normalizeVersion(inst.version) ?? "—"}
+                {inst.version ?? "—"}
               </div>
 
               {/* Status pill */}
@@ -755,7 +760,7 @@ export default function AppDetailPage({ params }: Props) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
                       <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
                     </svg>
-                    Patch to {patchableVersion ?? "latest"}
+                    Patch to {patchableVersionRaw ?? "latest"}
                   </button>
                 ) : app.hasVersionConflict ? (
                   <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>On Newest Patchable</span>
@@ -901,7 +906,7 @@ export default function AppDetailPage({ params }: Props) {
                 <div key={inst.deviceId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--r-md)", background: "var(--surface-sunken)", border: "1px solid var(--border-hairline)" }}>
                   <div>
                     <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-primary)" }}>{inst.deviceName}</p>
-                    <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontFamily: "var(--mono)" }}>v{normalizeVersion(inst.version) ?? "?"}</p>
+                    <p style={{ fontSize: 12, color: "var(--text-tertiary)", marginTop: 1, fontFamily: "var(--mono)" }}>v{inst.version ?? "?"}</p>
                   </div>
                 </div>
               ))}
