@@ -578,6 +578,7 @@ export default function AppDetailPage({ params }: Props) {
                   </svg>
                 </div>
               </div>
+              <span style={{ fontSize: 12, color: "var(--text-tertiary)", display: "block", marginTop: 8 }}>Up to Date with the Vendor</span>
               <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border-hairline)", lineHeight: 1.5 }}>
                 Installed everywhere, matches the latest the vendor has shipped. Nothing to do.
               </p>
@@ -617,7 +618,6 @@ export default function AppDetailPage({ params }: Props) {
                   </svg>
                   Patch to {patchableVersionRaw ?? "latest"}
                 </button>
-                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Up to Date with the Vendor</span>
               </div>
             </>
           )}
