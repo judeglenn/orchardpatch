@@ -79,35 +79,33 @@ export default function HomePageInner() {
   const [statusSummary, setStatusSummary] = useState<{ outdated: number; current: number; unknown: number; na: number; mas: number } | null>(null);
 
   useEffect(() => {
-    // Fetch patch status separately and build a bundle_id → status map
+    // Fetch canonical patch status counts from server-side deduped endpoint
     async function loadPatchStatus() {
       try {
-        const res = await fetch(`/api/apps/status`);
-        if (!res.ok) return;
-        const data = await res.json();
-        const map: Record<string, { status: PatchStatus; latestVersion: string | null }> = {};
-        let outdated = 0, current = 0, unknown = 0, na = 0, mas = 0;
-        for (const row of data.apps as any[]) {
-          const bid = (row.bundle_id || "").toLowerCase();
-          if (!bid) continue;
-          const existing = map[bid];
-          // MAS apps get synthetic 'mas' status client-side for distinct filtering
-          const rowStatus: PatchStatus = row.source === 'mas' ? 'mas' : row.patch_status;
-          // Worst-case wins: outdated > unknown > current; na/mas is lowest priority
-          if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current") || (rowStatus !== "na" && rowStatus !== "mas" && (existing.status === "na" || existing.status === "mas"))) {
-            map[bid] = { status: rowStatus, latestVersion: row.latest_version ?? null };
+        const [statusRes, appsRes] = await Promise.all([
+          fetch(`/api/stats/patch-status`),
+          fetch(`/api/apps/status`),
+        ]);
+        // Build bundle_id → status map for app list filtering (still needed for per-app filter)
+        if (appsRes.ok) {
+          const data = await appsRes.json();
+          const map: Record<string, { status: PatchStatus; latestVersion: string | null }> = {};
+          for (const row of data.apps as any[]) {
+            const bid = (row.bundle_id || "").toLowerCase();
+            if (!bid) continue;
+            const existing = map[bid];
+            const rowStatus: PatchStatus = row.source === 'mas' ? 'mas' : row.patch_status;
+            if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current") || (rowStatus !== "na" && rowStatus !== "mas" && (existing.status === "na" || existing.status === "mas"))) {
+              map[bid] = { status: rowStatus, latestVersion: row.latest_version ?? null };
+            }
           }
+          setPatchStatusMap(map);
         }
-        // Tally unique bundle_ids
-        for (const { status } of Object.values(map)) {
-          if (status === "outdated") outdated++;
-          else if (status === "current") current++;
-          else if (status === "unknown") unknown++;
-          else if (status === "na") na++;
-          else if (status === "mas") mas++;
+        // Use canonical server-side counts for the stats bar
+        if (statusRes.ok) {
+          const d = await statusRes.json();
+          setStatusSummary({ outdated: d.outdated, current: d.current, unknown: d.unknown, na: d.system, mas: d.store });
         }
-        setPatchStatusMap(map);
-        setStatusSummary({ outdated, current, unknown, na, mas });
       } catch { /* non-fatal */ }
     }
     loadPatchStatus();

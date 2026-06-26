@@ -86,6 +86,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
   const [allAppsStatus, setAllAppsStatus] = useState<AppStatus[]>([]);
+  const [statusCounts, setStatusCounts] = useState<{ outdated: number; current: number; unknown: number; system: number; store: number; total: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [showOrchardModal, setShowOrchardModal] = useState(false);
@@ -100,18 +101,19 @@ export default function DashboardPage() {
       const statsData = await statsRes.json();
       setStats(statsData);
 
-      const devicesRes = await fetch('/api/devices');
+      const [devicesRes, allAppsRes, patchStatusRes] = await Promise.all([
+        fetch('/api/devices'),
+        fetch('/api/apps/status'),
+        fetch('/api/stats/patch-status'),
+      ]);
       const devicesData = await devicesRes.json();
-      const deviceList = devicesData.devices || [];
-      setDevices(deviceList);
-
-      const allApps: AppStatus[] = [];
-      for (const device of deviceList) {
-        const statusRes = await fetch(`/api/apps/status?device_id=${device.id}`);
-        const statusData = await statusRes.json();
-        allApps.push(...(statusData.apps || []));
+      setDevices(devicesData.devices || []);
+      const allAppsData = await allAppsRes.json();
+      setAllAppsStatus(allAppsData.apps || []);
+      if (patchStatusRes.ok) {
+        const patchStatusData = await patchStatusRes.json();
+        setStatusCounts(patchStatusData);
       }
-      setAllAppsStatus(allApps);
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -124,33 +126,12 @@ export default function DashboardPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Deduplicate allAppsStatus by bundle_id (or name), keeping worst-case status
-  const statusPriority: Record<string, number> = { outdated: 4, unknown: 3, current: 2, na: 1 };
-  const deduped = new Map<string, AppStatus>();
-  for (const app of allAppsStatus) {
-    const key = app.bundle_id || app.name;
-    const existing = deduped.get(key);
-    if (!existing) {
-      deduped.set(key, app);
-    } else {
-      const existingPriority = statusPriority[existing.patch_status] ?? 0;
-      const newPriority = statusPriority[app.patch_status] ?? 0;
-      if (newPriority > existingPriority) deduped.set(key, app);
-    }
-  }
-  const dedupedApps = Array.from(deduped.values());
+  // Counts come from server-side canonical endpoint
+  const counts = statusCounts ?? { outdated: 0, current: 0, unknown: 0, system: 0, store: 0, total: 0 };
 
-  const statusCounts = {
-    outdated: dedupedApps.filter(a => a.patch_status === 'outdated').length,
-    current:  dedupedApps.filter(a => a.patch_status === 'current').length,
-    unknown:  dedupedApps.filter(a => a.patch_status === 'unknown').length,
-    system:   dedupedApps.filter(a => a.patch_status === 'na' && a.source !== 'mas').length,
-    store:    dedupedApps.filter(a => a.source === 'mas').length,
-  };
-
-  // Top outdated apps aggregated by label
+  // Top outdated apps aggregated by label (uses raw per-device rows for device counting)
   const outdatedByLabel = new Map<string, { label: string; name: string; bundleId: string | null; devices: Set<string>; version: string; latest: string | null }>();
-  dedupedApps
+  allAppsStatus
     .filter(a => a.patch_status === 'outdated')
     .forEach(app => {
       const key = app.label || app.name;
@@ -196,11 +177,11 @@ export default function DashboardPage() {
   };
 
   // Donut segments (percentages) -- all five categories
-  const total = statusCounts.outdated + statusCounts.current + statusCounts.unknown + statusCounts.system + statusCounts.store;
-  const pOut = total > 0 ? (statusCounts.outdated / total) * 100 : 0;
-  const pCur = total > 0 ? (statusCounts.current  / total) * 100 : 0;
-  const pUnk = total > 0 ? (statusCounts.unknown  / total) * 100 : 0;
-  const pSys = total > 0 ? (statusCounts.system   / total) * 100 : 0;
+  const total = counts.total;
+  const pOut = total > 0 ? (counts.outdated / total) * 100 : 0;
+  const pCur = total > 0 ? (counts.current  / total) * 100 : 0;
+  const pUnk = total > 0 ? (counts.unknown  / total) * 100 : 0;
+  const pSys = total > 0 ? (counts.system   / total) * 100 : 0;
   const pStr = 100 - pOut - pCur - pUnk - pSys;
   const donutGrad = total > 0
     ? `conic-gradient(var(--st-outdated) 0 ${pOut}%, var(--st-current) ${pOut}% ${pOut + pCur}%, var(--st-unknown) ${pOut + pCur}% ${pOut + pCur + pUnk}%, var(--st-system) ${pOut + pCur + pUnk}% ${pOut + pCur + pUnk + pSys}%, var(--st-store) ${pOut + pCur + pUnk + pSys}% 100%)`
@@ -237,11 +218,11 @@ export default function DashboardPage() {
         {/* 5 Metric cards */}
         <section style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 22 }}>
           {[
-            { glow: "var(--st-outdated-glow)", dot: "var(--st-outdated)", dotGlow: "var(--st-outdated-glow)", label: "Outdated",  href: "/apps?status=outdated", value: statusCounts.outdated, numColor: "var(--st-outdated-text)", foot: "Patchable Now" },
-            { glow: "var(--st-current-glow)",  dot: "var(--st-current)",  dotGlow: "var(--st-current-glow)",  label: "Current",   href: "/apps?status=current",  value: statusCounts.current,  numColor: "var(--st-current-text)",  foot: "Up to Date" },
-            { glow: "var(--st-unknown-glow)",  dot: "var(--st-unknown)",  dotGlow: undefined,                 label: "Unknown",   href: "/apps?status=unknown",  value: statusCounts.unknown,  numColor: "var(--text-primary)",     foot: "No Label Yet" },
-            { glow: "var(--st-system-glow)",   dot: "var(--st-system)",   dotGlow: undefined,                 label: "System",    href: "/apps?status=system",   value: statusCounts.system,   numColor: "var(--text-primary)",     foot: "Apple Managed" },
-            { glow: "var(--st-store-glow)",    dot: "var(--st-store)",    dotGlow: "var(--st-store-glow)",    label: "App Store", href: "/apps?status=mas",      value: statusCounts.store,    numColor: "var(--text-primary)",     foot: "Mac App Store" },
+            { glow: "var(--st-outdated-glow)", dot: "var(--st-outdated)", dotGlow: "var(--st-outdated-glow)", label: "Outdated",  href: "/apps?status=outdated", value: counts.outdated, numColor: "var(--st-outdated-text)", foot: "Patchable Now" },
+            { glow: "var(--st-current-glow)",  dot: "var(--st-current)",  dotGlow: "var(--st-current-glow)",  label: "Current",   href: "/apps?status=current",  value: counts.current,  numColor: "var(--st-current-text)",  foot: "Up to Date" },
+            { glow: "var(--st-unknown-glow)",  dot: "var(--st-unknown)",  dotGlow: undefined,                 label: "Unknown",   href: "/apps?status=unknown",  value: counts.unknown,  numColor: "var(--text-primary)",     foot: "No Label Yet" },
+            { glow: "var(--st-system-glow)",   dot: "var(--st-system)",   dotGlow: undefined,                 label: "System",    href: "/apps?status=system",   value: counts.system,   numColor: "var(--text-primary)",     foot: "Apple Managed" },
+            { glow: "var(--st-store-glow)",    dot: "var(--st-store)",    dotGlow: "var(--st-store-glow)",    label: "App Store", href: "/apps?status=mas",      value: counts.store,    numColor: "var(--text-primary)",     foot: "Mac App Store" },
           ].map(m => (
             <Link key={m.label} href={m.href} style={{
               display: "block",
@@ -291,7 +272,7 @@ export default function DashboardPage() {
                 }} />
                 <div style={{ position: "absolute", inset: 0, display: "grid", placeContent: "center", textAlign: "center" }}>
                   <div style={{ fontSize: 38, fontWeight: 600, letterSpacing: "-0.03em", color: "var(--st-outdated-text)", lineHeight: 1 }}>
-                    {loading ? "—" : statusCounts.outdated}
+                    {loading ? "—" : counts.outdated}
                   </div>
                   <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 4 }}>outdated</div>
                 </div>
@@ -299,11 +280,11 @@ export default function DashboardPage() {
               {/* Legend */}
               <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 14, flex: 1 }}>
                 {[
-                  { color: "var(--st-outdated)", label: "Outdated",  value: statusCounts.outdated, href: "/apps?status=outdated" },
-                  { color: "var(--st-current)",  label: "Current",   value: statusCounts.current,  href: "/apps?status=current" },
-                  { color: "var(--st-unknown)",  label: "Unknown",   value: statusCounts.unknown,  href: "/apps?status=unknown" },
-                  { color: "var(--st-system)",   label: "System",    value: statusCounts.system,   href: "/apps?status=system" },
-                  { color: "var(--st-store)",    label: "App Store", value: statusCounts.store,    href: "/apps?status=mas" },
+                  { color: "var(--st-outdated)", label: "Outdated",  value: counts.outdated, href: "/apps?status=outdated" },
+                  { color: "var(--st-current)",  label: "Current",   value: counts.current,  href: "/apps?status=current" },
+                  { color: "var(--st-unknown)",  label: "Unknown",   value: counts.unknown,  href: "/apps?status=unknown" },
+                  { color: "var(--st-system)",   label: "System",    value: counts.system,   href: "/apps?status=system" },
+                  { color: "var(--st-store)",    label: "App Store", value: counts.store,    href: "/apps?status=mas" },
                 ].map(row => (
                   <LegendRow key={row.label} color={row.color} label={row.label} value={loading ? null : row.value} href={row.href} />
                 ))}
@@ -435,7 +416,7 @@ export default function DashboardPage() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
               <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/>
             </svg>
-            Patch All Outdated · {statusCounts.outdated} Apps · {devices.length} Devices
+            Patch All Outdated · {counts.outdated} Apps · {devices.length} Devices
           </button>
         </section>
 
@@ -500,7 +481,7 @@ export default function DashboardPage() {
             <div style={{ padding: "12px 24px", borderTop: "1px solid var(--border-hairline)", fontSize: 13, color: "var(--text-secondary)", background: "var(--surface-sunken)" }}>
               <strong style={{ color: "var(--text-primary)" }}>{topOutdated.length} apps</strong> across{" "}
               <strong style={{ color: "var(--text-primary)" }}>{devices.length} devices</strong> —{" "}
-              <strong style={{ color: "var(--text-primary)" }}>{statusCounts.outdated} total patch jobs</strong>
+              <strong style={{ color: "var(--text-primary)" }}>{counts.outdated} total patch jobs</strong>
             </div>
 
             {/* Mode selector */}
