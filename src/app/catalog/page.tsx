@@ -20,6 +20,7 @@ type CatalogItem = {
   app_name: string;
   bundle_id: string | null;
   expected_team: string | null;
+  has_conflict?: boolean;
 };
 
 type CatalogResponse = {
@@ -351,8 +352,10 @@ export default function CatalogPage() {
                     </td>
                     <td style={{ padding: "12px 16px", textAlign: "right" }}>
                       <button
-                        onClick={() => openModal(item)}
-                        style={{ fontSize: 12, fontWeight: 600, padding: "6px 12px", borderRadius: 8, cursor: "pointer", background: "var(--accent)", color: "white" }}
+                        onClick={item.has_conflict ? undefined : () => openModal(item)}
+                        disabled={!!item.has_conflict}
+                        title={item.has_conflict ? "Identity conflict -- this label is unsafe to deploy" : "Deploy to device"}
+                        style={{ fontSize: 12, fontWeight: 600, padding: "6px 12px", borderRadius: 8, cursor: item.has_conflict ? "not-allowed" : "pointer", background: "var(--accent)", color: "white", opacity: item.has_conflict ? 0.4 : 1, pointerEvents: item.has_conflict ? "none" : "auto" }}
                       >
                         Deploy
                       </button>
