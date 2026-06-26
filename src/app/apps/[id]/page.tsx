@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAppById, getAppInstallations } from "@/lib/mockData";
 import { getAgentApp, getAgentStore } from "@/lib/agentStore";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, normalizeVersion } from "@/lib/utils";
 import { Topbar } from "@/components/Topbar";
 import { X } from "lucide-react";
 
@@ -86,13 +86,6 @@ function getInstallomatorLabel(bundleId: string): string | null {
 }
 
 // Never display raw stored version values — always normalize first
-function normalizeVersion(v: string | null | undefined): string | null {
-  if (!v) return null;
-  let s = v.includes(",") ? v.split(",")[0] : v;
-  s = s.replace(/\s*\(.*?\)/g, "").trim();
-  return s || null;
-}
-
 function versionGt(a: string | null, b: string | null): boolean {
   if (!a || !b) return false;
   const pa = a.split(".").map(Number);
