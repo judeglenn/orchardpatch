@@ -86,6 +86,7 @@ export function normalizeVersion(v: string | null | undefined): string | null {
   if (!v) return null;
   let s = v.includes(",") ? v.split(",")[0] : v;
   s = s.replace(/\s*\(.*?\)/g, "").trim();
+  s = s.replace(/^(\d+\.\d+\.\d+)\..*$/, '$1');
   return s || null;
 }
 
