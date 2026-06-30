@@ -721,6 +721,15 @@ export default function AppDetailPage({ params }: Props) {
                     {inst.model}{inst.model && inst.osVersion ? " · " : ""}{inst.osVersion}
                   </div>
                 )}
+                {inst.removalState === 'removed' && (
+                  <div style={{
+                    fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                    marginTop: 2,
+                  }}>
+                    Last seen {formatDateTime(inst.lastSeen)}
+                  </div>
+                )}
               </div>
 
               {/* Version */}
@@ -740,7 +749,9 @@ export default function AppDetailPage({ params }: Props) {
 
               {/* Action */}
               <div style={{ minWidth: 142, display: "flex", justifyContent: "flex-end" }}>
-                {inst.source === "mas" ? (
+                {inst.removalState === 'removed' ? (
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>Removed</span>
+                ) : inst.source === "mas" ? (
                   <span style={{ fontSize: 12.5, color: "var(--text-tertiary)", fontWeight: 500 }}>App Store</span>
                 ) : inst.isOutdated ? (
                   <button

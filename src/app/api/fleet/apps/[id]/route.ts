@@ -8,6 +8,19 @@ interface Context {
   params: Promise<{ id: string }>;
 }
 
+interface Installation {
+  deviceId: string;
+  deviceName: string;
+  version: string;
+  lastInventory: string;
+  patchStatus: string;
+  isOutdated: boolean;
+  label: string | null;
+  source: string | null;
+  removalState: 'present' | 'removed';
+  lastSeen: string | null;
+}
+
 export async function GET(_req: Request, { params }: Context) {
   if (!FLEET_SERVER_URL || !FLEET_SERVER_TOKEN) {
     return NextResponse.json({ error: "Fleet server not configured" }, { status: 503 });
@@ -76,7 +89,9 @@ export async function GET(_req: Request, { params }: Context) {
         isOutdated: a.patch_status === "outdated",
         label: a.label,
         source: a.source ?? null,
-      };
+        removalState: (a.removal_state ?? 'present') as 'present' | 'removed',
+        lastSeen: (a.last_seen as string | null) ?? null,
+      } satisfies Installation;
     });
 
     const versions = Object.entries(versionMap)
