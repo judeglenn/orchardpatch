@@ -76,6 +76,7 @@ export default function HomePageInner() {
   const [agentSyncTime, setAgentSyncTime] = useState<string | null>(null);
   // patch status keyed by bundle_id (deduplicated - if any row is outdated, whole app is outdated)
   const [patchStatusMap, setPatchStatusMap] = useState<Record<string, { status: PatchStatus; latestVersion: string | null }>>({}); 
+  const [allRemovedMap, setAllRemovedMap] = useState<Record<string, boolean>>({});
   const [statusSummary, setStatusSummary] = useState<{ outdated: number; current: number; unknown: number; na: number; mas: number } | null>(null);
 
   useEffect(() => {
@@ -90,10 +91,15 @@ export default function HomePageInner() {
         if (appsRes.ok) {
           const data = await appsRes.json();
           const map: Record<string, { status: PatchStatus; latestVersion: string | null }> = {};
+          const removedMap: Record<string, boolean> = {};
           for (const row of data.apps as any[]) {
             const bid = (row.bundle_id || "").toLowerCase();
             if (!bid) continue;
+            // Track whether every row for this bundle_id is removed
+            if (!(bid in removedMap)) removedMap[bid] = true;
             if (row.removal_state === 'removed') continue;
+            // At least one active row — mark as not all-removed
+            removedMap[bid] = false;
             const existing = map[bid];
             const rowStatus: PatchStatus = row.source === 'mas' ? 'mas' : row.patch_status;
             if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current") || (rowStatus !== "na" && rowStatus !== "mas" && (existing.status === "na" || existing.status === "mas"))) {
@@ -101,6 +107,7 @@ export default function HomePageInner() {
             }
           }
           setPatchStatusMap(map);
+          setAllRemovedMap(removedMap);
         }
         // Use canonical server-side counts for the stats bar
         if (statusRes.ok) {
@@ -542,6 +549,7 @@ export default function HomePageInner() {
               onToggle={toggleApp}
               patchStatus={patchStatusMap[app.bundleId?.toLowerCase()]?.status}
               latestVersion={patchStatusMap[app.bundleId?.toLowerCase()]?.latestVersion}
+              isRemoved={allRemovedMap[app.bundleId?.toLowerCase()] ?? false}
             />
           ))}
         </div>
