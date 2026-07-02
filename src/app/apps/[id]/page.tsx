@@ -758,7 +758,9 @@ export default function AppDetailPage({ params }: Props) {
 
               {/* Status pill */}
               <div style={{ minWidth: 108 }}>
-                <DeviceStatusPill status={inst.patchStatus || (inst.isOutdated ? "outdated" : "current")} />
+                {inst.removalState === 'removed' ? null : (
+                  <DeviceStatusPill status={inst.patchStatus || (inst.isOutdated ? "outdated" : "current")} />
+                )}
               </div>
 
               {/* Last checked */}
