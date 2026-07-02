@@ -262,6 +262,12 @@ export default function AppDetailPage({ params }: Props) {
         )
   );
 
+  const activeInstallations = installations.filter(
+    (i: any) => i.removalState !== 'removed'
+  );
+  const allRemoved =
+    installations.length > 0 && activeInstallations.length === 0;
+
   function showToast(msg: string) {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3500);
@@ -359,7 +365,7 @@ export default function AppDetailPage({ params }: Props) {
   }
 
   const initials = app.name.charAt(0).toUpperCase();
-  const outdatedDevices = installations.filter((i: any) => i.isOutdated);
+  const outdatedDevices = activeInstallations.filter((i: any) => i.isOutdated);
 
   // Normalized versions — for state derivation/comparison only, never for display
   const patchableVersion = normalizeVersion(app.latestVersion);
@@ -482,14 +488,14 @@ export default function AppDetailPage({ params }: Props) {
                 border: "1px solid var(--border-hairline)",
                 color: "var(--text-secondary)",
               }}>
-                {installations.length} device{installations.length !== 1 ? "s" : ""}
+                {activeInstallations.length} device{activeInstallations.length !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
 
           {/* Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-            {app.hasVersionConflict && outdatedDevices.length > 0 && (
+            {!allRemoved && app.hasVersionConflict && outdatedDevices.length > 0 && (
               <button
                 onClick={() => { setBushelMode("managed"); setShowBushelModal(true); }}
                 style={{
@@ -534,6 +540,17 @@ export default function AppDetailPage({ params }: Props) {
 
         {/* Version hero card */}
         <div style={cardStyle}>
+          {allRemoved ? (
+            <div style={{
+              padding: '32px 24px',
+              textAlign: 'center',
+              color: 'var(--text-tertiary)',
+              fontSize: 15
+            }}>
+              No Active Installations
+            </div>
+          ) : (
+          <>
           <div style={cardHead}>
             <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" }}>Version status</span>
             <StatusPill status={resolverState} />
@@ -672,6 +689,8 @@ export default function AppDetailPage({ params }: Props) {
                 <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Closes the patchable gap</span>
               </div>
             </>
+          )}
+          </>
           )}
         </div>
 
