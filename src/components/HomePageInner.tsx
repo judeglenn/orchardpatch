@@ -93,6 +93,7 @@ export default function HomePageInner() {
           for (const row of data.apps as any[]) {
             const bid = (row.bundle_id || "").toLowerCase();
             if (!bid) continue;
+            if (row.removal_state === 'removed') continue;
             const existing = map[bid];
             const rowStatus: PatchStatus = row.source === 'mas' ? 'mas' : row.patch_status;
             if (!existing || rowStatus === "outdated" || (rowStatus === "unknown" && existing.status === "current") || (rowStatus !== "na" && rowStatus !== "mas" && (existing.status === "na" || existing.status === "mas"))) {
