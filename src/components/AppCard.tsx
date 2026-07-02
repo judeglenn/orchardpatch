@@ -11,9 +11,10 @@ interface AppCardProps {
   onToggle?: (id: string) => void;
   patchStatus?: PatchStatus;
   latestVersion?: string | null;
+  isRemoved?: boolean;
 }
 
-export function AppCard({ app, totalDevices, selected, onToggle, patchStatus, latestVersion }: AppCardProps) {
+export function AppCard({ app, totalDevices, selected, onToggle, patchStatus, latestVersion, isRemoved }: AppCardProps) {
   const initials = appInitials(app.name);
   const colorClass = appColorClass(app.name);
 
@@ -119,10 +120,14 @@ export function AppCard({ app, totalDevices, selected, onToggle, patchStatus, la
               <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-secondary)" }}> / {totalDevices.toLocaleString()}</span>
             </span>
           </div>
-          <PatchStatusBadge
-            status={patchStatus ?? (app.hasVersionConflict ? "outdated" : "unknown")}
-            latestVersion={latestVersion}
-          />
+          {isRemoved ? (
+            <span style={{ color: 'var(--text-tertiary)', fontSize: 11 }}>Removed</span>
+          ) : (
+            <PatchStatusBadge
+              status={patchStatus ?? (app.hasVersionConflict ? "outdated" : "unknown")}
+              latestVersion={latestVersion}
+            />
+          )}
         </div>
       </Link>
 
