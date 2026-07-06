@@ -141,10 +141,12 @@ export default function HomePageInner() {
               const bundleLower = (a.bundle_id || "").toLowerCase().trim();
               const nameLower = (a.name || "").toLowerCase().trim();
 
-              // Find existing entry by bundle_id first (if not empty), then canonical name
+              // bundle_id is authoritative identity: only fall through to name lookup
+              // when this row has no bundle_id at all (e.g. install-path alias rows).
+              // If a row has a real bundle_id, never merge it into another card by name.
               const existingKey =
                 (bundleLower && bundleToKey[bundleLower]) ||
-                (nameLower && nameToKey[nameLower]) ||
+                (!bundleLower && nameLower && nameToKey[nameLower]) ||
                 null;
 
               if (!existingKey) {
