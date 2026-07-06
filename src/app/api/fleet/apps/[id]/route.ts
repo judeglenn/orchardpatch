@@ -65,6 +65,18 @@ export async function GET(_req: Request, { params }: Context) {
       return NextResponse.json({ error: "App not found" }, { status: 404 });
     }
 
+    // Fetch first-seen date from lifecycle events (sequential: needs bundle_id from matchingStatus)
+    const bundleId = matchingStatus[0].bundle_id as string;
+    const firstSeenRes = await fetch(
+      `${FLEET_SERVER_URL}/apps/${encodeURIComponent(bundleId)}/first-seen`,
+      {
+        headers: { "x-orchardpatch-token": FLEET_SERVER_TOKEN as string },
+        next: { revalidate: 60 },
+      }
+    );
+    const firstSeenJson = firstSeenRes.ok ? await firstSeenRes.json() : { firstSeen: null };
+    const firstSeen: string | null = firstSeenJson.firstSeen ?? null;
+
     // Aggregate version distribution and installations from status rows
     const versionMap: Record<string, number> = {};
     let latestVersion: string | null = null;
@@ -115,6 +127,7 @@ export async function GET(_req: Request, { params }: Context) {
       lastSeen,
       latestVersion,
       latestAvailable,
+      firstSeen,
     };
 
     return NextResponse.json({ app, installations });

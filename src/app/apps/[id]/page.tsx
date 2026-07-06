@@ -490,6 +490,18 @@ export default function AppDetailPage({ params }: Props) {
               }}>
                 {activeInstallations.length} device{activeInstallations.length !== 1 ? "s" : ""}
               </span>
+              {app.firstSeen && (
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  fontSize: 12, fontWeight: 500, padding: "4px 10px",
+                  borderRadius: "var(--r-pill)",
+                  background: "var(--surface-glass)",
+                  border: "1px solid var(--border-hairline)",
+                  color: "var(--text-secondary)",
+                }}>
+                  Installed since {formatDateTime(app.firstSeen)}
+                </span>
+              )}
             </div>
           </div>
 
