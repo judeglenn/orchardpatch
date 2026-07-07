@@ -688,13 +688,6 @@ export default function DeviceDetailPage({ params }: Props) {
                       <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-tertiary)" }}>{app.version}</span>
                     </TableCell>
                     <TableCell>
-                      {app.latest_version ? (
-                        <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-tertiary)" }}>{app.latest_version}</span>
-                      ) : (
-                        <EmptyCell />
-                      )}
-                    </TableCell>
-                    <TableCell>
                       <span style={{
                         display: "inline-flex", alignItems: "center", gap: 4,
                         borderRadius: 9999, padding: "2px 8px",
