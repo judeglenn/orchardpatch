@@ -549,11 +549,9 @@ export default function DeviceDetailPage({ params }: Props) {
                         )}
                       </TableCell>
 
-                      {/* Patch action — G8: removed rows show —, not patchable */}
+                      {/* Patch action — G8: removed rows show nothing (status cell already says Removed) */}
                       <TableCell style={{ textAlign: "right", overflow: "visible" }}>
-                        {isRemoved ? (
-                          <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
-                        ) : isOutdated ? (
+                        {isRemoved ? null : isOutdated ? (
                           <button
                             onClick={() => setPatchTarget({ bundleId: app.bundle_id, label: app.label, appName: app.name })}
                             style={{
