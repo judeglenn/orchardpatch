@@ -54,7 +54,7 @@ export default function LabelOverridesPage() {
       showToast("✅ Override saved");
       fetchOverrides();
     } catch {
-      showToast("❌ Failed to save — is agent running?");
+      showToast("Failed to save. Is the agent running?");
     } finally {
       setSaving(false);
     }

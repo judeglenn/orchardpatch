@@ -232,7 +232,7 @@ export default function DeviceDetailPage({ params }: Props) {
   async function handlePatchNow() {
     if (!patchTarget || !device) return;
     if (!patchTarget.label) {
-      showToast("No Installomator label — can't patch this app");
+      showToast("No Installomator label. Can't patch this app.");
       setPatchTarget(null);
       return;
     }

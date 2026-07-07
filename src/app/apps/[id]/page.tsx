@@ -296,7 +296,7 @@ export default function AppDetailPage({ params }: Props) {
       });
       const data = await res.json();
       if (!res.ok) { showToast(`${data.error || "Patch failed to queue"}`); return; }
-      showToast(`Patch job queued — redirecting…`);
+      showToast(`Patch job queued. Redirecting…`);
       setTimeout(() => {
         const p = new URLSearchParams();
         p.set("method", "fruit");
@@ -304,7 +304,7 @@ export default function AppDetailPage({ params }: Props) {
         router.push(`/patches?${p.toString()}`);
       }, 800);
     } catch {
-      showToast(`Agent not reachable — is it running?`);
+      showToast(`Agent not reachable. Is it running?`);
     }
     setPatchDeviceId(null);
   }
@@ -329,12 +329,12 @@ export default function AppDetailPage({ params }: Props) {
       });
       const data = await res.json();
       if (!res.ok) { showToast(`${data.error || "Patch failed to queue"}`); return; }
-      showToast(`Patch jobs queued (${data.queued} device${data.queued !== 1 ? "s" : ""}) — redirecting…`);
+      showToast(`Patch jobs queued (${data.queued} device${data.queued !== 1 ? "s" : ""}). Redirecting…`);
       setTimeout(() => {
         window.location.href = `/patches?method=bushel&label=${encodeURIComponent(label!)}`;
       }, 800);
     } catch {
-      showToast(`Server error — could not queue patches`);
+      showToast(`Server error. Could not queue patches.`);
     } finally {
       setBushelLoading(false);
     }

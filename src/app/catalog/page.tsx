@@ -182,12 +182,12 @@ export default function CatalogPage() {
       }
 
       closeModal();
-      showToast(`✅ Patch queued for ${selectedApp.app_name} — redirecting...`);
+      showToast(`Patch queued for ${selectedApp.app_name}. Redirecting...`);
       setTimeout(() => {
         router.push(`/patches?method=fruit&label=${encodeURIComponent(selectedApp.label)}`);
       }, 800);
     } catch {
-      showToast("❌ Server error — could not queue patch");
+      showToast("Server error. Could not queue patch.");
     } finally {
       setDeploying(false);
     }

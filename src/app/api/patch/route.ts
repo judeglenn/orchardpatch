@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data);
   } catch (err: any) {
     if (err.name === "TimeoutError" || err.name === "AbortError") {
-      return NextResponse.json({ error: "Agent not reachable — is OrchardPatch agent running?" }, { status: 503 });
+      return NextResponse.json({ error: "Agent not reachable. Is the OrchardPatch agent running?" }, { status: 503 });
     }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
