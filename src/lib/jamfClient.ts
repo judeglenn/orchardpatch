@@ -12,7 +12,6 @@
  */
 
 import {
-  apps,
   devices,
   getAppById,
   getAppInstallations,
@@ -28,11 +27,6 @@ const USE_MOCK = process.env.USE_MOCK_DATA !== "false";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type { App, AppInstallation, Device };
-
-export interface AppListResult {
-  apps: App[];
-  total: number;
-}
 
 export interface AppDetailResult {
   app: App;
@@ -63,23 +57,6 @@ async function getJamfToken(): Promise<string> {
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
-
-export async function listApps(): Promise<AppListResult> {
-  if (USE_MOCK) {
-    return { apps, total: apps.length };
-  }
-
-  // Real Jamf Pro implementation placeholder
-  const token = await getJamfToken();
-  const res = await fetch(`${process.env.JAMF_PRO_URL}/api/v1/apps`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Jamf API error: ${res.status}`);
-  const data = await res.json();
-  // Transform Jamf Pro response to our App type here
-  return { apps: data.results, total: data.totalCount };
-}
 
 export async function getApp(id: string): Promise<AppDetailResult | null> {
   if (USE_MOCK) {
