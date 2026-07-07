@@ -129,10 +129,10 @@ function formatDuration(startedAt: string, completedAt?: string): string {
 
 function MethodBadge({ method }: { method?: string | null }) {
   const cfg: Record<string, { label: string; emoji: string; bg: string; color: string; border: string; title: string }> = {
-    fruit:   { label: "Fruit",   emoji: "🍎", bg: "color-mix(in srgb, var(--st-current) 10%, transparent)", color: "var(--st-current)", border: "color-mix(in srgb, var(--st-current) 30%, transparent)", title: "Patch by the Fruit — single app, single device" },
-    branch:  { label: "Branch",  emoji: "🌿", bg: "color-mix(in srgb, var(--st-current) 10%, transparent)", color: "var(--st-current)", border: "color-mix(in srgb, var(--st-current) 30%, transparent)", title: "Patch by the Branch — all outdated apps, single device" },
-    bushel:  { label: "Bushel",  emoji: "🧺", bg: "color-mix(in srgb, var(--st-outdated) 10%, transparent)", color: "var(--st-outdated)", border: "color-mix(in srgb, var(--st-outdated) 30%, transparent)", title: "Patch by the Bushel — single app, all devices" },
-    orchard: { label: "Orchard", emoji: "🌳", bg: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "color-mix(in srgb, var(--accent) 30%, transparent)", title: "Patch by the Orchard — all outdated apps, entire fleet" },
+    fruit:   { label: "Fruit",   emoji: "🍎", bg: "color-mix(in srgb, var(--st-current) 10%, transparent)", color: "var(--st-current)", border: "color-mix(in srgb, var(--st-current) 30%, transparent)", title: "Patch by the Fruit · single app, single device" },
+    branch:  { label: "Branch",  emoji: "🌿", bg: "color-mix(in srgb, var(--st-current) 10%, transparent)", color: "var(--st-current)", border: "color-mix(in srgb, var(--st-current) 30%, transparent)", title: "Patch by the Branch · all outdated apps, single device" },
+    bushel:  { label: "Bushel",  emoji: "🧺", bg: "color-mix(in srgb, var(--st-outdated) 10%, transparent)", color: "var(--st-outdated)", border: "color-mix(in srgb, var(--st-outdated) 30%, transparent)", title: "Patch by the Bushel · single app, all devices" },
+    orchard: { label: "Orchard", emoji: "🌳", bg: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "color-mix(in srgb, var(--accent) 30%, transparent)", title: "Patch by the Orchard · all outdated apps, entire fleet" },
   };
   const m = method && cfg[method] ? cfg[method] : null;
   if (!m) return <EmptyCell />;
