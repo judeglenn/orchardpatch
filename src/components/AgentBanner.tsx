@@ -1,31 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { WifiOff, X } from "lucide-react";
-
-type FleetStatus = "checking" | "has-devices" | "no-devices" | "unreachable";
+import { useFleetStats } from "@/components/FleetStatsProvider";
 
 export function AgentBanner() {
-  const [status, setStatus] = useState<FleetStatus>("checking");
+  const stats = useFleetStats();
   const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/fleet/status")
-      .then((r) => r.json())
-      .then((data) => {
-        if (!data.connected) {
-          setStatus("unreachable");
-        } else if (data.deviceCount > 0) {
-          setStatus("has-devices");
-        } else {
-          setStatus("no-devices");
-        }
-      })
-      .catch(() => setStatus("unreachable"));
-  }, []);
-
-  // Hide while checking or when fleet has real device data
-  if (dismissed || status === "checking" || status === "has-devices") return null;
+  // Hide while loading, when fleet has real device data, or after dismiss
+  if (dismissed || stats.status === "loading" || stats.status === "has-devices") return null;
 
   return (
     <div
@@ -45,7 +29,7 @@ export function AgentBanner() {
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <WifiOff className="h-3.5 w-3.5" style={{ color: "var(--text-tertiary)" }} />
         <span style={{ color: "var(--text-secondary)" }}>
-          {status === "no-devices" ? (
+          {stats.status === "no-devices" ? (
             <>
               No devices enrolled yet ·{" "}
               <a href="/settings/enrollment" style={{ textDecoration: "underline", color: "var(--accent)" }}>

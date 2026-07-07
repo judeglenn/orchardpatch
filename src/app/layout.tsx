@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { AgentBanner } from "@/components/AgentBanner";
+import { FleetStatsProvider } from "@/components/FleetStatsProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,10 +28,12 @@ export default function RootLayout({
       <body>
         <div style={{ display: "flex", minHeight: "100vh" }}>
           <Sidebar />
-          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-            <AgentBanner />
-            {children}
-          </div>
+          <FleetStatsProvider>
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+              <AgentBanner />
+              {children}
+            </div>
+          </FleetStatsProvider>
         </div>
       </body>
     </html>
