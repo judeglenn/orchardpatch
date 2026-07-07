@@ -1,6 +1,6 @@
 import { CheckCircle2, AlertCircle, HelpCircle, Settings, ShoppingBag } from "lucide-react";
 
-export type PatchStatus = "current" | "outdated" | "unknown" | "na" | "mas";
+export type PatchStatus = "current" | "outdated" | "unknown" | "na" | "mas" | "system" | "store";
 
 interface PatchStatusBadgeProps {
   status: PatchStatus;
@@ -38,6 +38,21 @@ const STATUS_CONFIG = {
     border: "var(--border-hairline)",
   },
   mas: {
+    icon: ShoppingBag,
+    label: "App Store",
+    color: "var(--accent)",
+    bg: "var(--accent-tint)",
+    border: "var(--border-accent)",
+  },
+  // Module-vocabulary aliases (system = na, store = mas)
+  system: {
+    icon: Settings,
+    label: "System",
+    color: "var(--text-tertiary)",
+    bg: "var(--surface-raised)",
+    border: "var(--border-hairline)",
+  },
+  store: {
     icon: ShoppingBag,
     label: "App Store",
     color: "var(--accent)",

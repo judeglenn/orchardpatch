@@ -28,7 +28,10 @@ interface FleetApp {
   last_checked: string | null;
   cache_age_seconds: number | null;
   label: string | null;
-  patch_status: PatchStatus;
+  patch_status: PatchStatus;      // legacy SQL field; flows until Part 7
+  // Server-derived fields (Part 2+):
+  status: PatchStatus;            // G6: module-derived status
+  removal_state: 'present' | 'removed'; // G6: module-derived removal
 }
 
 interface FleetDevice {
@@ -98,8 +101,9 @@ export default function DeviceDetailPage({ params }: Props) {
   const [forceCheckinLoading, setForceCheckinLoading] = useState(false);
   const [forceCheckinStatus, setForceCheckinStatus] = useState<"idle" | "success" | "error">("idle");
 
+  // G9: branch modal excludes removed apps (server already refuses them; this aligns display)
   const outdatedLabeledApps = useMemo(
-    () => apps.filter((a) => a.patch_status === "outdated" && a.label),
+    () => apps.filter((a) => a.status === "outdated" && a.removal_state !== "removed" && a.label),
     [apps]
   );
 
@@ -198,22 +202,25 @@ export default function DeviceDetailPage({ params }: Props) {
   // ─── Derived state ──────────────────────────────────────────────────────────
 
   const filteredApps = useMemo(() => {
-    let result = apps.filter((a) => a.patch_status !== "na");
+    // System + store apps are shown in their own collapsible; removed apps stay here (G8 muted rendering)
+    let result = apps.filter((a) => a.status !== "system" && a.status !== "store");
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter((a) => a.name.toLowerCase().includes(q) || a.version.toLowerCase().includes(q));
     }
-    if (statusFilter) result = result.filter((a) => a.patch_status === statusFilter);
+    // G7: statusFilter uses server-sent status
+    if (statusFilter) result = result.filter((a) => a.status === statusFilter);
     return result;
   }, [apps, search, statusFilter]);
 
   const systemApps = useMemo(
-    () => apps.filter((a) => a.patch_status === "na").sort((a, b) => a.name.localeCompare(b.name)),
+    () => apps.filter((a) => a.status === "system" || a.status === "store").sort((a, b) => a.name.localeCompare(b.name)),
     [apps]
   );
   const naCount = systemApps.length;
-  const outdatedCount = useMemo(() => apps.filter((a) => a.patch_status === "outdated").length, [apps]);
-  const currentCount = useMemo(() => apps.filter((a) => a.patch_status === "current").length, [apps]);
+  // G7: counts use server-sent status; removed rows excluded
+  const outdatedCount = useMemo(() => apps.filter((a) => a.status === "outdated" && a.removal_state !== "removed").length, [apps]);
+  const currentCount = useMemo(() => apps.filter((a) => a.status === "current" && a.removal_state !== "removed").length, [apps]);
 
   // ─── Patch handler ──────────────────────────────────────────────────────────
 
@@ -471,7 +478,9 @@ export default function DeviceDetailPage({ params }: Props) {
                 filteredApps.map((app, idx) => {
                   const initials = appInitials(app.name);
                   const colorClass = appColorClass(app.name);
-                  const isOutdated = app.patch_status === "outdated";
+                  // G8: use server-sent status; isRemoved drives muted rendering
+                  const isRemoved = app.removal_state === "removed";
+                  const isOutdated = app.status === "outdated" && !isRemoved;
                   return (
                     <TableRow
                       key={app.id}
@@ -500,9 +509,12 @@ export default function DeviceDetailPage({ params }: Props) {
                       <TableCell>
                         <span style={{
                           fontFamily: "var(--mono)", fontSize: 12, padding: "2px 8px", borderRadius: 4,
-                          ...(isOutdated
-                            ? { background: "color-mix(in srgb, var(--st-outdated) 12%, transparent)", color: "var(--st-outdated)", border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)" }
-                            : { color: "var(--text-secondary)" })
+                          // G8: muted for removed; outdated-highlighted otherwise
+                          ...(isRemoved
+                            ? { color: "var(--text-tertiary)" }
+                            : isOutdated
+                              ? { background: "color-mix(in srgb, var(--st-outdated) 12%, transparent)", color: "var(--st-outdated)", border: "1px solid color-mix(in srgb, var(--st-outdated) 30%, transparent)" }
+                              : { color: "var(--text-secondary)" })
                         }}>
                           {app.version}
                         </span>
@@ -519,14 +531,29 @@ export default function DeviceDetailPage({ params }: Props) {
                         )}
                       </TableCell>
 
-                      {/* Status */}
+                      {/* Status — G8: removed rows get muted label, no colored badge */}
                       <TableCell>
-                        <PatchStatusBadge status={app.patch_status} latestVersion={app.latest_version} />
+                        {isRemoved ? (
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            borderRadius: 9999, padding: "2px 8px",
+                            fontSize: 10, fontWeight: 600,
+                            background: "var(--surface-raised)",
+                            border: "1px solid var(--border-hairline)",
+                            color: "var(--text-tertiary)",
+                          }}>
+                            Removed
+                          </span>
+                        ) : (
+                          <PatchStatusBadge status={app.status} latestVersion={app.latest_version} />
+                        )}
                       </TableCell>
 
-                      {/* Patch action */}
+                      {/* Patch action — G8: removed rows show —, not patchable */}
                       <TableCell style={{ textAlign: "right", overflow: "visible" }}>
-                        {isOutdated ? (
+                        {isRemoved ? (
+                          <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
+                        ) : isOutdated ? (
                           <button
                             onClick={() => setPatchTarget({ bundleId: app.bundle_id, label: app.label, appName: app.name })}
                             style={{
