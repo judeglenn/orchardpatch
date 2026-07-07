@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Version module · four states</title>
+<style>
+:root{
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter",system-ui,sans-serif;
+  --text-primary:#1c1f1e; --text-secondary:#5b6160; --text-tertiary:#828987;
+  --surface:rgba(255,255,255,0.72); --rim:rgba(255,255,255,0.85);
+  --hair:rgba(20,30,25,0.09); --r-lg:18px; --r-md:14px; --r-pill:999px;
+  --green:#3d7a42; --green-text:#2f7d3a; --green-tint:#e6f2e7;
+  --amber:#d68a1e; --amber-text:#a8680c; --amber-tint:#f7efdc;
+  --red:#d24b3a; --red-text:#b23a2e; --red-tint:#fbe9e6;
+  --gray:#8a9290; --gray-tint:#eef0ef;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:var(--font);-webkit-font-smoothing:antialiased;min-height:100vh;padding:40px 28px;color:var(--text-primary);
+  background:#eceef1;
+  background-image:radial-gradient(1100px 600px at 10% -8%, rgba(61,122,66,0.12), transparent 56%),radial-gradient(900px 500px at 100% 0%, rgba(70,110,150,0.06), transparent 54%);
+}
+.lbl{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-tertiary);max-width:880px;margin:0 auto 20px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:880px;margin:0 auto;}
+
+.mod{
+  background-color:var(--surface);
+  background-image:linear-gradient(135deg, rgba(255,255,255,0.30), rgba(255,255,255,0) 44%);
+  -webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);
+  border:1px solid var(--hair);border-radius:var(--r-lg);
+  box-shadow:inset 0 1px 0 var(--rim), 0 1px 2px rgba(16,24,20,0.05), 0 16px 34px -18px rgba(16,24,20,0.18);
+  padding:20px 22px;
+}
+.mhead{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.ava{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;font-size:14px;font-weight:600;color:var(--green);background:var(--green-tint);box-shadow:inset 0 1px 0 var(--rim);}
+.mname{font-size:15px;font-weight:600;letter-spacing:-0.01em;}
+.msub{font-size:12px;color:var(--text-tertiary);margin-top:1px;}
+.spill{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:4px 11px;border-radius:var(--r-pill);}
+.spill .sd{width:7px;height:7px;border-radius:50%;}
+.sp-cur{background:var(--green-tint);color:var(--green-text);} .sp-cur .sd{background:var(--green);}
+.sp-pat{background:var(--amber-tint);color:var(--amber-text);} .sp-pat .sd{background:var(--amber);}
+.sp-lag{background:var(--red-tint);color:var(--red-text);} .sp-lag .sd{background:var(--red);box-shadow:0 0 7px rgba(210,75,58,0.5);}
+.sp-unk{background:var(--gray-tint);color:var(--text-secondary);} .sp-unk .sd{background:var(--gray);}
+
+/* version display */
+.vrow{display:flex;align-items:flex-end;gap:16px;}
+.vcol{display:flex;flex-direction:column;gap:4px;}
+.vk{font-size:10.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-tertiary);}
+.vv{font-size:24px;font-weight:600;letter-spacing:-0.02em;line-height:1;font-variant-numeric:tabular-nums;}
+.varr{font-size:18px;color:var(--text-tertiary);padding-bottom:2px;}
+.vv-amber{color:var(--amber-text);} .vv-red{color:var(--red-text);}
+
+.bignum{font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:11px;}
+.check{width:24px;height:24px;border-radius:50%;background:var(--green-tint);display:grid;place-items:center;}
+.check svg{width:14px;height:14px;color:var(--green);stroke-width:2.4;}
+.muted-state{display:flex;align-items:center;gap:11px;color:var(--text-tertiary);}
+.muted-state .qm{width:34px;height:34px;border-radius:10px;background:var(--gray-tint);display:grid;place-items:center;}
+.muted-state .qm svg{width:18px;height:18px;color:var(--gray);stroke-width:1.8;}
+.muted-state .mst{font-size:15px;font-weight:500;color:var(--text-secondary);}
+
+.line{margin-top:14px;padding-top:14px;border-top:1px solid var(--hair);font-size:13px;color:var(--text-secondary);line-height:1.5;}
+.line.lag{display:flex;gap:9px;align-items:flex-start;border-top:1px solid var(--red-tint);}
+.line.lag .lbar{width:3px;align-self:stretch;border-radius:3px;background:var(--red);flex-shrink:0;margin:1px 0;}
+.line b{color:var(--text-primary);font-weight:600;}
+
+.act{margin-top:14px;display:flex;align-items:center;gap:12px;}
+.btn{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#fff;background:linear-gradient(165deg,#62b86a,#3d7a42);border:1px solid rgba(255,255,255,0.22);border-radius:var(--r-md);padding:9px 16px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.4),0 8px 20px -8px rgba(61,122,66,0.45);}
+.btn svg{width:15px;height:15px;stroke-width:2;}
+.act-note{font-size:12px;color:var(--text-tertiary);}
+@media(max-width:760px){.grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="lbl">Resolver version module · the four states · light mode</div>
+<div class="grid">
+
+  <!-- CURRENT: collapses to one number -->
+  <div class="mod">
+    <div class="mhead">
+      <div class="ava">1</div>
+      <div><div class="mname">1Password</div><div class="msub">2 devices</div></div>
+      <span class="spill sp-cur"><span class="sd"></span>Current</span>
+    </div>
+    <div class="bignum">8.10.34 <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></div>
+    <div class="line">Installed everywhere, matches the latest the vendor has shipped. Nothing to do.</div>
+  </div>
+
+  <!-- PATCHABLE: two numbers -->
+  <div class="mod">
+    <div class="mhead">
+      <div class="ava">C</div>
+      <div><div class="mname">Google Chrome</div><div class="msub">2 devices</div></div>
+      <span class="spill sp-pat"><span class="sd"></span>Patchable</span>
+    </div>
+    <div class="vrow">
+      <div class="vcol"><span class="vk">Installed</span><span class="vv">131.0</span></div>
+      <span class="varr">&rarr;</span>
+      <div class="vcol"><span class="vk">Patchable</span><span class="vv vv-amber">132.0</span></div>
+    </div>
+    <div class="act">
+      <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>Patch to 132.0</button>
+      <span class="act-note">Up to date with the vendor</span>
+    </div>
+  </div>
+
+  <!-- LAGGING: three numbers, restrained red -->
+  <div class="mod">
+    <div class="mhead">
+      <div class="ava">F</div>
+      <div><div class="mname">Firefox</div><div class="msub">2 devices</div></div>
+      <span class="spill sp-lag"><span class="sd"></span>Lagging</span>
+    </div>
+    <div class="vrow">
+      <div class="vcol"><span class="vk">Installed</span><span class="vv">131.0</span></div>
+      <span class="varr">&rarr;</span>
+      <div class="vcol"><span class="vk">Patchable</span><span class="vv vv-amber">132.0</span></div>
+      <span class="varr">&rarr;</span>
+      <div class="vcol"><span class="vk">Vendor latest</span><span class="vv vv-red">134.0.1</span></div>
+    </div>
+    <div class="line lag"><span class="lbar"></span><span>Firefox has shipped <b>134.0.1</b>. Installomator can install up to <b>132.0</b> for now, so patching will leave you two versions behind the vendor.</span></div>
+    <div class="act">
+      <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>Patch to 132.0</button>
+      <span class="act-note">Closes the patchable gap</span>
+    </div>
+  </div>
+
+  <!-- UNKNOWN: no data -->
+  <div class="mod">
+    <div class="mhead">
+      <div class="ava" style="background:var(--gray-tint);color:var(--gray);">N</div>
+      <div><div class="mname">Notion</div><div class="msub">1 device</div></div>
+      <span class="spill sp-unk"><span class="sd"></span>Unknown</span>
+    </div>
+    <div class="muted-state">
+      <div class="qm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></div>
+      <div class="mst">Version data unavailable</div>
+    </div>
+    <div class="line">No Installomator label matched this app yet, so there is nothing to compare against. It stays visible here rather than hidden.</div>
+  </div>
+
+</div>
+</body>
+</html>

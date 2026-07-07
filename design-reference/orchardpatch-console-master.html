@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchardPatch · Fleet Dashboard</title>
+<script>document.documentElement.setAttribute('data-theme', window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
+<style>
+/* ============================================================
+   TOKEN SYSTEM  (three layers, dual-theme)
+   1. PRIMITIVES        only place raw hex lives
+   2. SEMANTIC / light  :root
+   3. SEMANTIC / dark   [data-theme="dark"]
+   Components reference SEMANTIC only. Theme flips one attribute.
+   ============================================================ */
+:root{
+  /* 1. PRIMITIVES */
+  --green-700:#2a5730; --green-600:#336b39; --green-500:#3d7a42;
+  --green-400:#4d9a55; --green-300:#62b86a; --green-200:#8fd396; --green-mint:#74cc7c;
+  --ink-900:#111315; --ink-800:#1c1f1e; --ink-700:#2b302e; --ink-500:#5b6160;
+  --ink-400:#828987; --ink-300:#aab0ae; --ink-150:#d7dbd9; --ink-100:#e7eae9;
+  --ink-050:#eff2f1; --paper:#eceef1; --white:#ffffff;
+  --night-900:#0d0f0e; --night-850:#141716; --night-800:#1a1d1c;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter",system-ui,"Segoe UI",Roboto,sans-serif;
+  --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:22px; --r-pill:999px;
+
+  /* 2. SEMANTIC :: LIGHT */
+  --accent:var(--green-500); --accent-hover:var(--green-600); --accent-press:var(--green-700);
+  --accent-tint:#e7f0e8; --accent-grad:linear-gradient(165deg,#62b86a,#3d7a42); --accent-glow:rgba(61,122,66,0.45);
+
+  --text-primary:var(--ink-800); --text-secondary:var(--ink-500); --text-tertiary:var(--ink-400);
+
+  --page-bg:var(--paper);
+  --ambient:
+     radial-gradient(1200px 640px at 9% -8%, rgba(61,122,66,0.13), transparent 56%),
+     radial-gradient(1000px 560px at 103% -4%, rgba(70,110,150,0.07), transparent 54%),
+     radial-gradient(900px 760px at 50% 124%, rgba(61,122,66,0.05), transparent 60%);
+
+  --surface-glass:rgba(255,255,255,0.70); --surface-solid:var(--white); --surface-sunken:var(--ink-050);
+  --topbar-glass:rgba(244,246,247,0.68);
+
+  /* sidebar (flat green-tinted glass, thin top-edge shine) */
+  --sidebar-bg:rgba(31,58,40,0.90); --sidebar-accent:var(--green-mint);
+
+  --sheen:linear-gradient(135deg, rgba(255,255,255,0.30), rgba(255,255,255,0) 44%);
+  --border-hairline:rgba(20,30,25,0.09); --border-strong:rgba(20,30,25,0.16); --rim-top:rgba(255,255,255,0.85);
+
+  --shadow-card:inset 0 1px 0 var(--rim-top), 0 1px 2px rgba(16,24,20,0.05), 0 16px 34px -18px rgba(16,24,20,0.18);
+  --shadow-accent:inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 6px -2px rgba(20,50,24,0.4), 0 12px 28px -10px var(--accent-glow);
+
+  --st-current:#3a9b46;  --st-current-text:#2f7d3a;  --st-current-tint:#e6f2e7;  --st-current-glow:rgba(58,155,70,0.22);
+  --st-outdated:#d68a1e; --st-outdated-text:#a8680c;  --st-outdated-tint:#f7efdc; --st-outdated-glow:rgba(214,138,30,0.20);
+  --st-unknown:#8a9290;  --st-unknown-text:#6b7270;   --st-unknown-tint:#eef0ef;  --st-unknown-glow:rgba(138,146,144,0.16);
+  --st-system:#c4c9c7;   --st-system-text:#828987;    --st-system-tint:#f1f3f2;   --st-system-glow:rgba(170,176,174,0.14);
+  --st-store:#2a86d8;    --st-store-text:#1f6fb8;     --st-store-tint:#e6f0fb;    --st-store-glow:rgba(42,134,216,0.18);
+  --st-lagging:#d24b3a;  --st-lagging-text:#b23a2e;   --st-lagging-tint:#fbe9e6;
+  --notice-bg:#f7efdc; --notice-border:rgba(168,104,12,0.20); --notice-text:#7a4c08;
+}
+
+[data-theme="dark"]{
+  --accent:var(--green-300); --accent-hover:var(--green-200); --accent-press:var(--green-400);
+  --accent-tint:rgba(98,184,106,0.14); --accent-grad:linear-gradient(165deg,#74cc7c,#46a350); --accent-glow:rgba(98,184,106,0.55);
+
+  --text-primary:rgba(255,255,255,0.94); --text-secondary:rgba(255,255,255,0.56); --text-tertiary:rgba(255,255,255,0.38);
+
+  --page-bg:var(--night-900);
+  --ambient:
+     radial-gradient(1200px 660px at 8% -10%, rgba(98,184,106,0.15), transparent 55%),
+     radial-gradient(1000px 580px at 104% -6%, rgba(70,120,170,0.11), transparent 54%),
+     radial-gradient(900px 800px at 52% 126%, rgba(98,184,106,0.06), transparent 60%);
+
+  --surface-glass:rgba(40,44,42,0.52); --surface-solid:var(--night-800); --surface-sunken:var(--night-850);
+  --topbar-glass:rgba(18,21,20,0.62);
+
+  --sidebar-bg:rgba(18,34,23,0.80); --sidebar-accent:var(--green-mint);
+
+  --sheen:linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 42%);
+  --border-hairline:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18); --rim-top:rgba(255,255,255,0.20);
+
+  --shadow-card:inset 0 1px 0 var(--rim-top), 0 1px 2px rgba(0,0,0,0.4), 0 20px 40px -20px rgba(0,0,0,0.7);
+  --shadow-accent:inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 8px -2px rgba(0,0,0,0.5), 0 14px 34px -10px var(--accent-glow);
+
+  --st-current:#5fc26a;  --st-current-text:#7ed489;  --st-current-tint:rgba(95,194,106,0.15);  --st-current-glow:rgba(95,194,106,0.30);
+  --st-outdated:#f0ad4e; --st-outdated-text:#f4bd6e; --st-outdated-tint:rgba(240,173,78,0.15);  --st-outdated-glow:rgba(240,173,78,0.28);
+  --st-unknown:#9aa2a0;  --st-unknown-text:#aab2b0;  --st-unknown-tint:rgba(154,162,160,0.14);   --st-unknown-glow:rgba(154,162,160,0.20);
+  --st-system:#5a6260;   --st-system-text:#8a908e;   --st-system-tint:rgba(90,98,96,0.18);        --st-system-glow:rgba(90,98,96,0.20);
+  --st-store:#4aa3ea;    --st-store-text:#6cb6ee;    --st-store-tint:rgba(74,163,234,0.15);       --st-store-glow:rgba(74,163,234,0.26);
+  --st-lagging:#f06a58;  --st-lagging-text:#f4897a;  --st-lagging-tint:rgba(240,106,88,0.15);
+  --notice-bg:rgba(240,173,78,0.10); --notice-border:rgba(240,173,78,0.28); --notice-text:#f4bd6e;
+}
+
+/* ============================================================ RESET */
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--font);color:var(--text-primary);background:var(--page-bg);background-image:var(--ambient);background-attachment:fixed;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .5s ease;}
+a{color:inherit;text-decoration:none;} button{font-family:inherit;cursor:pointer;border:none;background:none;}
+
+/* ============================================================ SHELL */
+.app{display:flex;min-height:100vh;}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  position:sticky;top:0;align-self:flex-start;width:248px;height:100vh;flex-shrink:0;overflow:hidden;
+  background-color:var(--sidebar-bg);
+  -webkit-backdrop-filter:blur(36px) saturate(165%); backdrop-filter:blur(36px) saturate(165%);
+  border-right:1px solid rgba(255,255,255,0.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.20), inset 0 11px 13px -13px rgba(255,255,255,0.16), inset -1px 0 0 rgba(255,255,255,0.04), 0 22px 54px -22px rgba(16,30,20,0.5);
+  display:flex;flex-direction:column;padding:20px 14px 14px;z-index:30;transition:background-color .5s ease;
+}
+.sidebar > *{position:relative;z-index:2;}
+.brand{padding:2px 8px 18px;}
+.brand-word{font-size:18px;font-weight:600;letter-spacing:-0.015em;color:#fff;}
+.brand-word b{color:var(--sidebar-accent);font-weight:600;}
+.nav-group{margin-top:14px;}
+.nav-label{font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.5);padding:0 10px;margin-bottom:6px;}
+.nav-item{position:relative;display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:var(--r-sm);color:rgba(255,255,255,0.55);font-size:13.5px;font-weight:500;letter-spacing:-0.005em;transition:background .14s,color .14s;}
+.nav-item svg{width:18px;height:18px;stroke-width:1.7;flex-shrink:0;}
+.nav-item:hover{color:rgba(255,255,255,0.92);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:#fff;background:rgba(255,255,255,0.11);box-shadow:inset 0 1px 0 rgba(255,255,255,0.09);}
+.nav-item.active::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:0 3px 3px 0;background:var(--sidebar-accent);box-shadow:0 0 12px 0 var(--sidebar-accent);}
+.nav-item .soon{margin-left:auto;font-size:10px;font-weight:600;letter-spacing:0.03em;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.08);padding:2px 7px;border-radius:var(--r-pill);}
+.sidebar-foot{margin-top:auto;padding:12px 10px 2px;border-top:1px solid rgba(255,255,255,0.08);font-size:11.5px;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:7px;}
+.foot-dot{width:6px;height:6px;border-radius:50%;background:var(--sidebar-accent);box-shadow:0 0 9px var(--sidebar-accent);}
+
+/* ---------- MAIN ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:20px;padding:14px 30px;background:var(--topbar-glass);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border-bottom:1px solid var(--border-hairline);transition:background-color .5s ease;}
+.topbar h1{font-size:20px;font-weight:600;letter-spacing:-0.02em;}
+.topbar .sub{font-size:12.5px;color:var(--text-secondary);margin-top:1px;}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.sync-pill{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-secondary);background:var(--surface-glass);border:1px solid var(--border-hairline);padding:6px 12px;border-radius:var(--r-pill);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent-glow);}
+.btn-ghost{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--text-primary);background:var(--surface-glass);border:1px solid var(--border-hairline);padding:8px 13px;border-radius:var(--r-md);box-shadow:inset 0 1px 0 var(--rim-top);transition:background .14s,transform .08s;}
+.btn-ghost:hover{background:var(--surface-solid);} .btn-ghost:active{transform:scale(0.98);}
+.btn-ghost svg{width:15px;height:15px;stroke-width:1.8;}
+
+.theme-toggle{position:relative;display:flex;align-items:center;background:var(--surface-glass);border:1px solid var(--border-hairline);border-radius:var(--r-pill);padding:3px;box-shadow:inset 0 1px 0 var(--rim-top);}
+.theme-toggle .seg{position:relative;z-index:1;width:34px;height:26px;display:grid;place-items:center;border-radius:var(--r-pill);color:var(--text-tertiary);transition:color .2s;}
+.theme-toggle .seg svg{width:15px;height:15px;stroke-width:1.8;}
+.theme-toggle .seg.on{color:var(--accent);}
+.theme-toggle .seg-thumb{position:absolute;z-index:0;top:3px;left:3px;width:34px;height:26px;border-radius:var(--r-pill);background:var(--surface-solid);box-shadow:0 1px 3px rgba(0,0,0,0.18),inset 0 1px 0 var(--rim-top);transition:transform .26s cubic-bezier(.4,0,.2,1);}
+.theme-toggle.dark .seg-thumb{transform:translateX(34px);}
+
+.content{padding:26px 30px 48px;max-width:1480px;width:100%;}
+
+/* ---------- METRICS ---------- */
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;}
+.metric{position:relative;overflow:hidden;background-color:var(--surface-glass);background-image:radial-gradient(150px 95px at 100% -12%, var(--m-glow,transparent), transparent 70%), var(--sheen);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--border-hairline);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:15px 17px 16px;transition:background-color .5s,box-shadow .5s;}
+.metric .mlabel{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-secondary);}
+.metric .mdot{width:8px;height:8px;border-radius:50%;}
+.metric .mnum{font-size:30px;font-weight:600;letter-spacing:-0.03em;margin-top:11px;line-height:1;color:var(--text-primary);}
+.metric .mfoot{font-size:11.5px;color:var(--text-tertiary);margin-top:7px;}
+.m-outdated{--m-glow:var(--st-outdated-glow);} .m-outdated .mdot{background:var(--st-outdated);box-shadow:0 0 9px var(--st-outdated-glow);} .m-outdated .mnum{color:var(--st-outdated-text);}
+.m-current{--m-glow:var(--st-current-glow);} .m-current .mdot{background:var(--st-current);box-shadow:0 0 9px var(--st-current-glow);} .m-current .mnum{color:var(--st-current-text);}
+.m-unknown{--m-glow:var(--st-unknown-glow);} .m-unknown .mdot{background:var(--st-unknown);}
+.m-system{--m-glow:var(--st-system-glow);} .m-system .mdot{background:var(--st-system);}
+.m-store{--m-glow:var(--st-store-glow);} .m-store .mdot{background:var(--st-store);box-shadow:0 0 9px var(--st-store-glow);}
+
+/* ---------- CARDS ---------- */
+.grid-2{display:grid;grid-template-columns:1.15fr 1fr;gap:18px;margin-bottom:18px;}
+.card{position:relative;overflow:hidden;background-color:var(--surface-glass);background-image:var(--sheen);-webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);border:1px solid var(--border-hairline);border-radius:var(--r-xl);box-shadow:var(--shadow-card);padding:22px 24px;transition:background-color .5s,box-shadow .5s;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.card-title{font-size:15px;font-weight:600;letter-spacing:-0.01em;}
+.card-link{font-size:13px;font-weight:500;color:var(--accent);display:inline-flex;align-items:center;gap:5px;}
+.card-link svg{width:14px;height:14px;stroke-width:2;}
+
+.health{display:flex;align-items:center;gap:30px;}
+.donut-wrap{position:relative;width:184px;height:184px;flex-shrink:0;}
+.donut{width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--st-outdated) 0 9.94%, var(--st-current) 9.94% 19.33%, var(--st-unknown) 19.33% 32.59%, var(--st-system) 32.59% 100%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 26px),#000 calc(100% - 26px));mask:radial-gradient(farthest-side,transparent calc(100% - 26px),#000 calc(100% - 26px));}
+.donut-center{position:absolute;inset:0;display:grid;place-content:center;text-align:center;}
+.donut-center .dnum{font-size:38px;font-weight:600;letter-spacing:-0.03em;color:var(--st-outdated-text);line-height:1;}
+.donut-center .dlbl{font-size:12.5px;color:var(--text-secondary);margin-top:4px;}
+.legend{display:flex;flex-direction:column;gap:11px;flex:1;}
+.legend-row{display:flex;align-items:center;gap:10px;font-size:13.5px;}
+.legend-row .lc{width:9px;height:9px;border-radius:3px;}
+.legend-row .lk{color:var(--text-secondary);}
+.legend-row .lv{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;}
+.lc-out{background:var(--st-outdated);} .lc-cur{background:var(--st-current);} .lc-unk{background:var(--st-unknown);} .lc-sys{background:var(--st-system);}
+
+.app-row{display:flex;align-items:center;gap:13px;padding:12px 4px;border-bottom:1px solid var(--border-hairline);}
+.app-row:last-of-type{border-bottom:none;}
+.app-ava{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:grid;place-items:center;font-size:15px;font-weight:600;color:var(--accent);background:var(--accent-tint);box-shadow:inset 0 1px 0 var(--rim-top),inset 0 0 0 1px rgba(98,184,106,0.14);}
+.app-name{font-size:14px;font-weight:500;}
+.app-meta{font-size:12px;color:var(--text-tertiary);margin-top:1px;font-variant-numeric:tabular-nums;}
+.app-meta b{color:var(--st-outdated-text);font-weight:600;}
+.dev-pill{margin-left:auto;font-size:12px;font-weight:600;color:var(--st-outdated-text);background:var(--st-outdated-tint);padding:5px 11px;border-radius:var(--r-pill);}
+
+/* ---------- ORCHARD CTA ---------- */
+.orchard{position:relative;overflow:hidden;background-color:var(--surface-glass);background-image:var(--sheen);-webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);border:1px solid var(--border-hairline);border-radius:var(--r-xl);box-shadow:var(--shadow-card);padding:22px 24px;margin-bottom:18px;transition:background-color .5s,box-shadow .5s;}
+.orchard-head{display:flex;align-items:flex-start;gap:13px;margin-bottom:16px;}
+.orchard-ico{width:40px;height:40px;border-radius:12px;flex-shrink:0;background:var(--accent-tint);display:grid;place-items:center;box-shadow:inset 0 1px 0 var(--rim-top);}
+.orchard-ico svg{width:21px;height:21px;color:var(--accent);stroke-width:1.7;}
+.orchard-head h3{font-size:15px;font-weight:600;letter-spacing:-0.01em;}
+.orchard-head p{font-size:13px;color:var(--text-secondary);margin-top:2px;}
+.notice{display:flex;align-items:center;gap:10px;background:var(--notice-bg);border:1px solid var(--notice-border);border-radius:var(--r-md);padding:11px 14px;margin-bottom:16px;font-size:13px;color:var(--notice-text);}
+.notice svg{width:16px;height:16px;flex-shrink:0;stroke-width:1.9;}
+.btn-primary{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:600;color:#fff;letter-spacing:-0.005em;background:var(--accent-grad);border:1px solid rgba(255,255,255,0.22);border-radius:var(--r-md);padding:12px 20px;box-shadow:var(--shadow-accent);transition:filter .14s,transform .08s;}
+.btn-primary:hover{filter:brightness(1.06);} .btn-primary:active{transform:scale(0.985);filter:brightness(0.97);}
+.btn-primary svg{width:16px;height:16px;stroke-width:2;}
+
+/* ---------- PINNED ---------- */
+.section-h{font-size:15px;font-weight:600;letter-spacing:-0.01em;margin:4px 0 14px;}
+.pinned-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:12px;}
+.pin-empty{border:1.5px dashed var(--border-strong);border-radius:var(--r-lg);padding:30px;display:flex;flex-direction:column;align-items:center;gap:9px;color:var(--text-tertiary);transition:border-color .2s,color .2s;}
+.pin-empty:hover{border-color:var(--accent);color:var(--accent);}
+.pin-empty svg{width:22px;height:22px;stroke-width:1.6;opacity:0.8;}
+.pin-empty span{font-size:13px;font-weight:500;}
+.pinned-help{font-size:13px;color:var(--text-tertiary);}
+
+@media(max-width:1180px){.metrics{grid-template-columns:repeat(3,1fr);}.grid-2{grid-template-columns:1fr;}}
+@media(max-width:720px){.sidebar{display:none;}.metrics{grid-template-columns:repeat(2,1fr);}.pinned-grid{grid-template-columns:1fr;}.health{flex-direction:column;}.content,.topbar{padding-left:18px;padding-right:18px;}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-word">Orchard<b>Patch</b></span></div>
+    <div class="nav-group">
+      <div class="nav-label">Inventory</div>
+      <a class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Apps</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Catalog</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>Devices</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>Patch History</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Enterprise</div>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9"/><path d="M12 9c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"/><path d="M12 12c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/></svg>Cultivation <span class="soon">Soon</span></a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reports <span class="soon">Soon</span></a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Alerts <span class="soon">Soon</span></a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Configuration</div>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.4.6 1.65 1.65 0 0 0-.36 1.06V22a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 20.4a1.65 1.65 0 0 0-2.4-.6l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3 15a1.65 1.65 0 0 0-1.51-1H1a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 3 8.6a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6 1.65 1.65 0 0 0 9 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 21 9.6V10a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a>
+    </div>
+    <div class="sidebar-foot"><span class="foot-dot"></span> v0.1.0 · OrchardPatch</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Fleet Dashboard</h1><div class="sub">Monitor your device fleet and manage patches</div></div>
+      <div class="topbar-actions">
+        <span class="sync-pill"><span class="live-dot"></span> Synced today</span>
+        <div class="theme-toggle" id="themeToggle" role="group" aria-label="Color theme">
+          <button class="seg on" data-set="light" aria-label="Light mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+          <button class="seg" data-set="dark" aria-label="Dark mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button>
+          <span class="seg-thumb"></span>
+        </div>
+        <button class="btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>Sync now</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="metrics">
+        <div class="metric m-outdated"><div class="mlabel"><span class="mdot"></span>Outdated</div><div class="mnum">18</div><div class="mfoot">Patchable now</div></div>
+        <div class="metric m-current"><div class="mlabel"><span class="mdot"></span>Current</div><div class="mnum">17</div><div class="mfoot">Up to date</div></div>
+        <div class="metric m-unknown"><div class="mlabel"><span class="mdot"></span>Unknown</div><div class="mnum">24</div><div class="mfoot">No label yet</div></div>
+        <div class="metric m-system"><div class="mlabel"><span class="mdot"></span>System</div><div class="mnum">122</div><div class="mfoot">Apple managed</div></div>
+        <div class="metric m-store"><div class="mlabel"><span class="mdot"></span>App Store</div><div class="mnum">8</div><div class="mfoot">Mac App Store</div></div>
+      </section>
+
+      <section class="grid-2">
+        <div class="card">
+          <div class="card-head"><span class="card-title">Fleet health</span></div>
+          <div class="health">
+            <div class="donut-wrap"><div class="donut"></div><div class="donut-center"><div class="dnum">18</div><div class="dlbl">outdated</div></div></div>
+            <div class="legend">
+              <div class="legend-row"><span class="lc lc-out"></span><span class="lk">Outdated</span><span class="lv">18</span></div>
+              <div class="legend-row"><span class="lc lc-cur"></span><span class="lk">Current</span><span class="lv">17</span></div>
+              <div class="legend-row"><span class="lc lc-unk"></span><span class="lk">Unknown</span><span class="lv">24</span></div>
+              <div class="legend-row"><span class="lc lc-sys"></span><span class="lk">System</span><span class="lv">122</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Top outdated apps</span><a class="card-link">View all<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+          <div class="app-row"><div class="app-ava">1</div><div><div class="app-name">1Password</div><div class="app-meta">8.10.30 <b>→ 8.10.34</b></div></div><span class="dev-pill">2 devices</span></div>
+          <div class="app-row"><div class="app-ava">C</div><div><div class="app-name">Google Chrome</div><div class="app-meta">131.0 <b>→ 132.0</b></div></div><span class="dev-pill">2 devices</span></div>
+          <div class="app-row"><div class="app-ava">F</div><div><div class="app-name">Firefox</div><div class="app-meta">133.0 <b>→ 134.0.1</b></div></div><span class="dev-pill">2 devices</span></div>
+          <div class="app-row"><div class="app-ava">Z</div><div><div class="app-name">Zoom</div><div class="app-meta">6.2.6 <b>→ 6.2.10</b></div></div><span class="dev-pill">2 devices</span></div>
+        </div>
+      </section>
+
+      <section class="orchard">
+        <div class="orchard-head">
+          <div class="orchard-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M12 12c0-4 3-7 7-7 0 4-3 7-7 7z"/><path d="M12 15c0-3.2-3-5.8-7-5.8 0 3.2 3 5.8 7 5.8z"/></svg></div>
+          <div><h3>Patch by the Orchard</h3><p>Queue patches across your entire fleet</p></div>
+        </div>
+        <div class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>This queues patch jobs on every device in your fleet. Review before you confirm.</div>
+        <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>Patch all outdated · 18 apps · 2 devices</button>
+      </section>
+
+      <section>
+        <div class="section-h">Pinned apps</div>
+        <div class="pinned-grid">
+          <div class="pin-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v6l-2 4h10l-2-4V4"/><path d="M12 18v3M8 4h8"/></svg><span>Pin an app</span></div>
+          <div class="pin-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v6l-2 4h10l-2-4V4"/><path d="M12 18v3M8 4h8"/></svg><span>Pin an app</span></div>
+          <div class="pin-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v6l-2 4h10l-2-4V4"/><path d="M12 18v3M8 4h8"/></svg><span>Pin an app</span></div>
+        </div>
+        <div class="pinned-help">Pin the apps you watch most for one-tap access. Coming soon.</div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var html=document.documentElement, toggle=document.getElementById('themeToggle');
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  var userOverride=false;
+  function apply(theme){
+    html.setAttribute('data-theme',theme);
+    toggle.classList.toggle('dark',theme==='dark');
+    toggle.querySelectorAll('.seg').forEach(function(s){s.classList.toggle('on',s.dataset.set===theme);});
+  }
+  apply(mq.matches?'dark':'light');
+  if(mq.addEventListener){mq.addEventListener('change',function(e){if(!userOverride)apply(e.matches?'dark':'light');});}
+  toggle.querySelectorAll('.seg').forEach(function(s){
+    s.addEventListener('click',function(){userOverride=true;apply(s.dataset.set);});
+  });
+})();
+</script>
+</body>
+</html>
