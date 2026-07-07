@@ -17,6 +17,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { appInitials, appColorClass, formatRelativeDate, formatDateTime, getJobSummary } from "@/lib/utils";
+import { EmptyCell, EMPTY_VALUE } from "@/components/EmptyCell";
 
 type PatchMode = "silent" | "managed" | "prompted";
 type PatchMethod = "fruit" | "branch" | "bushel" | "orchard";
@@ -119,7 +120,7 @@ const glassPanel: React.CSSProperties = {
 };
 
 function formatDuration(startedAt: string, completedAt?: string): string {
-  if (!completedAt) return "—";
+  if (!completedAt) return EMPTY_VALUE;
   const ms = new Date(completedAt).getTime() - new Date(startedAt).getTime();
   const secs = Math.floor(ms / 1000);
   if (secs < 60) return `${secs}s`;
@@ -134,7 +135,7 @@ function MethodBadge({ method }: { method?: string | null }) {
     orchard: { label: "Orchard", emoji: "🌳", bg: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", border: "color-mix(in srgb, var(--accent) 30%, transparent)", title: "Patch by the Orchard — all outdated apps, entire fleet" },
   };
   const m = method && cfg[method] ? cfg[method] : null;
-  if (!m) return <span style={{ color: "var(--text-tertiary)" }}>—</span>;
+  if (!m) return <EmptyCell />;
   return (
     <span
       style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 9999, background: m.bg, color: m.color, border: `1px solid ${m.border}` }}
@@ -163,7 +164,7 @@ function ModeBadge({ mode }: { mode?: string | null }) {
       User Prompted
     </span>
   );
-  return <span style={{ color: "var(--text-tertiary)" }}>—</span>;
+  return <EmptyCell />;
 }
 
 function StatusBadge({ status }: { status: PatchStatus }) {
@@ -292,7 +293,7 @@ function JobRows({ job, index, cancellingId, onCancel, undoSecondsLeft }: { job:
           {job.deviceName}
         </td>
         <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--text-tertiary)" }}>
-          {job.initiatedBy ?? <span style={{ color: "var(--text-tertiary)" }}>—</span>}
+          {job.initiatedBy ?? <EmptyCell />}
         </td>
         <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--text-secondary)" }}>
           {formatDateTime(job.startedAt)}
@@ -661,7 +662,7 @@ function PatchesPageInner() {
           { label: "Total Jobs", value: String(total), color: "var(--text-primary)" },
           {
             label: "Success Rate",
-            value: successRate !== null ? `${successRate}%` : "—",
+            value: successRate !== null ? `${successRate}%` : EMPTY_VALUE,
             color:
               successRate === null ? "var(--text-tertiary)" : successRate >= 90 ? "var(--st-current)" : successRate >= 70 ? "var(--st-outdated)" : "var(--st-lagging)",
           },
@@ -672,7 +673,7 @@ function PatchesPageInner() {
           },
           {
             label: "Last Patch",
-            value: lastJob ? formatDateTime(lastJob.startedAt) : "—",
+            value: lastJob ? formatDateTime(lastJob.startedAt) : EMPTY_VALUE,
             color: "var(--text-secondary)",
           },
         ].map((stat) => (

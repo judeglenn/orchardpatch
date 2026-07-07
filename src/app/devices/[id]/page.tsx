@@ -4,6 +4,7 @@ import { use, useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { PatchStatusBadge, type PatchStatus } from "@/components/PatchStatusBadge";
+import { EmptyCell } from "@/components/EmptyCell";
 import { formatDate, formatRelativeDate, appInitials, appColorClass, macOSName, normalizeVersion } from "@/lib/utils";
 import {
   Table,
@@ -527,7 +528,7 @@ export default function DeviceDetailPage({ params }: Props) {
                             {normalizeVersion(app.latest_version)}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
+                          <EmptyCell />
                         )}
                       </TableCell>
 
@@ -549,11 +550,9 @@ export default function DeviceDetailPage({ params }: Props) {
                         )}
                       </TableCell>
 
-                      {/* Patch action — G8: removed rows show —, not patchable */}
+                      {/* Patch action — G8: removed rows show nothing (status cell already says Removed) */}
                       <TableCell style={{ textAlign: "right", overflow: "visible" }}>
-                        {isRemoved ? (
-                          <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
-                        ) : isOutdated ? (
+                        {isRemoved ? null : isOutdated ? (
                           <button
                             onClick={() => setPatchTarget({ bundleId: app.bundle_id, label: app.label, appName: app.name })}
                             style={{
@@ -636,13 +635,13 @@ export default function DeviceDetailPage({ params }: Props) {
                       <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-tertiary)" }}>{app.version}</span>
                     </TableCell>
                     <TableCell>
-                      <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
+                      <EmptyCell />
                     </TableCell>
                     <TableCell>
                       <PatchStatusBadge status="na" />
                     </TableCell>
                     <TableCell style={{ textAlign: "right" }}>
-                      <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>—</span>
+                      <EmptyCell />
                     </TableCell>
                   </TableRow>
                 ))}

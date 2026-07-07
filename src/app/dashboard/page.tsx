@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Topbar } from '@/components/Topbar';
+import { EmptyCell } from '@/components/EmptyCell';
 
 interface AppStatus {
   id: string;
@@ -15,6 +16,7 @@ interface AppStatus {
   latest_version: string | null;
   patch_status: 'outdated' | 'current' | 'unknown' | 'na' | 'store';
   label?: string;
+  removal_state?: string; // call-site guard; full migration in Part 5
 }
 
 interface Device {
@@ -51,7 +53,7 @@ function LegendRow({ color, label, value, href }: { color: string; label: string
       <span style={{ width: 9, height: 9, borderRadius: 3, background: color, flexShrink: 0, display: "inline-block" }} />
       <span style={{ color: "var(--text-secondary)" }}>{label}</span>
       <span style={{ marginLeft: "auto", fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--text-primary)" }}>
-        {value === null ? "—" : value}
+        {value === null ? <EmptyCell /> : value}
       </span>
     </Link>
   );
@@ -132,7 +134,7 @@ export default function DashboardPage() {
   // Top outdated apps aggregated by label (uses raw per-device rows for device counting)
   const outdatedByLabel = new Map<string, { label: string; name: string; bundleId: string | null; devices: Set<string>; version: string; latest: string | null }>();
   allAppsStatus
-    .filter(a => a.patch_status === 'outdated')
+    .filter(a => a.patch_status === 'outdated' && a.removal_state !== 'removed')
     .forEach(app => {
       const key = app.label || app.name;
       if (!outdatedByLabel.has(key)) {
@@ -245,7 +247,7 @@ export default function DashboardPage() {
                 {m.label}
               </div>
               <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: "-0.03em", marginTop: 11, lineHeight: 1, color: m.numColor }}>
-                {loading ? "—" : m.value}
+                {loading ? <EmptyCell /> : m.value}
               </div>
               <div style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 7 }}>{m.foot}</div>
             </Link>
@@ -272,7 +274,7 @@ export default function DashboardPage() {
                 }} />
                 <div style={{ position: "absolute", inset: 0, display: "grid", placeContent: "center", textAlign: "center" }}>
                   <div style={{ fontSize: 38, fontWeight: 600, letterSpacing: "-0.03em", color: "var(--st-outdated-text)", lineHeight: 1 }}>
-                    {loading ? "—" : counts.outdated}
+                    {loading ? <EmptyCell /> : counts.outdated}
                   </div>
                   <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 4 }}>outdated</div>
                 </div>

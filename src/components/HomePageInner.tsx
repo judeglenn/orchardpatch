@@ -77,6 +77,7 @@ export default function HomePageInner() {
   // patch status keyed by bundle_id (deduplicated - if any row is outdated, whole app is outdated)
   const [patchStatusMap, setPatchStatusMap] = useState<Record<string, { status: PatchStatus; latestVersion: string | null }>>({}); 
   const [allRemovedMap, setAllRemovedMap] = useState<Record<string, boolean>>({});
+  const [showRemoved, setShowRemoved] = useState(false); // default: removed apps hidden from listing
   const [statusSummary, setStatusSummary] = useState<{ outdated: number; current: number; unknown: number; na: number; mas: number } | null>(null);
 
   useEffect(() => {
@@ -239,8 +240,28 @@ export default function HomePageInner() {
     return [CATEGORY_ALL, ...cats];
   }, []);
 
+  // Denominator for "X of Y" display: total non-removed apps (reads allRemovedMap,
+  // which is populated from the server-sent removal_state field — no client re-derivation).
+  const nonRemovedCount = useMemo(
+    () => apps.filter((a) => !(allRemovedMap[(a.bundleId || "").toLowerCase()] ?? false)).length,
+    [apps, allRemovedMap]
+  );
+  // When showRemoved is true (future toggle) the denominator expands to the full set.
+  const effectiveTotal = showRemoved ? apps.length : nonRemovedCount;
+
   const filtered = useMemo(() => {
     let result = apps;
+
+    // Default-hide removed apps. allRemovedMap is derived from the server-sent removal_state
+    // field — no client-side re-derivation of the removal predicate here.
+    // showRemoved is false by default; the "show removed" toggle (tech-debt.md backlog item 0)
+    // will flip this flag to reveal removed rows with their existing muted treatment.
+    if (!showRemoved) {
+      result = result.filter((a) => {
+        const bid = (a.bundleId || "").toLowerCase();
+        return !(allRemovedMap[bid] ?? false);
+      });
+    }
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -279,7 +300,7 @@ export default function HomePageInner() {
     }
 
     return result;
-  }, [search, sortBy, conflictsOnly, patchStatusFilter, patchStatusMap, selectedCategory, apps]);
+  }, [search, sortBy, conflictsOnly, patchStatusFilter, patchStatusMap, selectedCategory, apps, showRemoved, allRemovedMap]);
 
   const allFilteredSelected =
     filtered.length > 0 && filtered.every((a) => selectedIds.has(a.id));
@@ -510,14 +531,14 @@ export default function HomePageInner() {
           </button>
           <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)" }}>
             Applications
-            {filtered.length !== apps.length && (
+            {filtered.length !== effectiveTotal && (
               <span style={{ marginLeft: 8, textTransform: "none", letterSpacing: "normal", fontWeight: 400 }}>
-                - {filtered.length} of {apps.length}
+                - {filtered.length} of {effectiveTotal}
               </span>
             )}
-            {filtered.length === apps.length && (
+            {filtered.length === effectiveTotal && (
               <span style={{ marginLeft: 8, textTransform: "none", letterSpacing: "normal", fontWeight: 400 }}>
-                - {apps.length}
+                - {effectiveTotal}
               </span>
             )}
           </span>
