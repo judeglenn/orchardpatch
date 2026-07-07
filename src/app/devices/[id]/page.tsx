@@ -203,8 +203,8 @@ export default function DeviceDetailPage({ params }: Props) {
   // ─── Derived state ──────────────────────────────────────────────────────────
 
   const filteredApps = useMemo(() => {
-    // System + store apps are shown in their own collapsible; removed apps stay here (G8 muted rendering)
-    let result = apps.filter((a) => a.status !== "system" && a.status !== "store");
+    // System + store apps are shown in their own collapsible; removed apps in their own collapsible too
+    let result = apps.filter((a) => a.status !== "system" && a.status !== "store" && a.removal_state !== "removed");
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter((a) => a.name.toLowerCase().includes(q) || a.version.toLowerCase().includes(q));
@@ -216,6 +216,10 @@ export default function DeviceDetailPage({ params }: Props) {
 
   const systemApps = useMemo(
     () => apps.filter((a) => a.status === "system" || a.status === "store").sort((a, b) => a.name.localeCompare(b.name)),
+    [apps]
+  );
+  const removedApps = useMemo(
+    () => apps.filter((a) => a.removal_state === "removed" && a.status !== "system" && a.status !== "store").sort((a, b) => a.name.localeCompare(b.name)),
     [apps]
   );
   const naCount = systemApps.length;
@@ -335,7 +339,7 @@ export default function DeviceDetailPage({ params }: Props) {
             )}
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <Package className="h-3.5 w-3.5" />
-              <strong style={{ color: "var(--text-primary)" }}>{apps.length - naCount}</strong>&nbsp;Apps Installed
+              <strong style={{ color: "var(--text-primary)" }}>{apps.length - naCount - removedApps.length}</strong>&nbsp;Apps Installed
               {naCount > 0 && <span style={{ color: "var(--text-tertiary)" }}>&nbsp;· {naCount} System</span>}
             </span>
             {outdatedCount > 0 && (
@@ -412,9 +416,9 @@ export default function DeviceDetailPage({ params }: Props) {
               Apps Detected
             </p>
             <p style={{ fontSize: 12, marginTop: 2, color: "var(--text-tertiary)" }}>
-              {filteredApps.length === apps.length - naCount
-                ? `${apps.length - naCount} installed`
-                : `${filteredApps.length} of ${apps.length - naCount} installed`}
+              {filteredApps.length === apps.length - naCount - removedApps.length
+                ? `${apps.length - naCount - removedApps.length} installed`
+                : `${filteredApps.length} of ${apps.length - naCount - removedApps.length} installed`}
               {outdatedCount > 0 && (
                 <button
                   onClick={() => setStatusFilter((f) => f === "outdated" ? null : "outdated")}
@@ -639,6 +643,68 @@ export default function DeviceDetailPage({ params }: Props) {
                     </TableCell>
                     <TableCell>
                       <PatchStatusBadge status="na" />
+                    </TableCell>
+                    <TableCell style={{ textAlign: "right" }}>
+                      <EmptyCell />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </details>
+      )}
+
+      {/* Removed Apps collapsible */}
+      {removedApps.length > 0 && (
+        <details style={{ marginTop: 16, borderRadius: "var(--r-xl)", overflow: "hidden", background: "var(--surface-glass)", border: "1px solid var(--border-hairline)" }}>
+          <summary style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 20px", cursor: "pointer", fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.1em", color: "var(--text-tertiary)", listStyle: "none" }}>
+            <X className="h-3 w-3" />
+            Removed ({removedApps.length})
+          </summary>
+          <div style={{ borderTop: "1px solid var(--border-hairline)" }}>
+            <Table>
+              <TableBody>
+                {removedApps.map((app, idx) => (
+                  <TableRow
+                    key={app.id}
+                    style={{
+                      background: idx % 2 === 1 ? "var(--surface-raised)" : "transparent",
+                      borderColor: "var(--border-hairline)",
+                    }}
+                  >
+                    <TableCell>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div
+                          className={appColorClass(app.name)}
+                          style={{ width: 28, height: 28, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 10, fontWeight: 700 }}
+                        >
+                          {appInitials(app.name)}
+                        </div>
+                        <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-tertiary)" }}>{app.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-tertiary)" }}>{app.version}</span>
+                    </TableCell>
+                    <TableCell>
+                      {app.latest_version ? (
+                        <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-tertiary)" }}>{app.latest_version}</span>
+                      ) : (
+                        <EmptyCell />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        borderRadius: 9999, padding: "2px 8px",
+                        fontSize: 10, fontWeight: 600,
+                        background: "var(--surface-raised)",
+                        border: "1px solid var(--border-hairline)",
+                        color: "var(--text-tertiary)",
+                      }}>
+                        Removed
+                      </span>
                     </TableCell>
                     <TableCell style={{ textAlign: "right" }}>
                       <EmptyCell />

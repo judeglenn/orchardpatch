@@ -936,7 +936,7 @@ export default function AppDetailPage({ params }: Props) {
           }}>
             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border-hairline)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Patch all outdated — {app.name}</h2>
+                <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Patch all outdated · {app.name}</h2>
                 <p style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>
                   {outdatedDevices.length} outdated device{outdatedDevices.length !== 1 ? "s" : ""}
                 </p>
