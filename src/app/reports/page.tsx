@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { BarChart3, ShieldCheck, AlertTriangle, CheckCircle2, Loader2, WifiOff } from "lucide-react";
 import { getAgentStore } from "@/lib/agentStore";
 import { appInitials, appColorClass } from "@/lib/utils";
+import { EmptyCell } from "@/components/EmptyCell";
 
 type PatchJob = {
   jobId: string;
@@ -172,7 +173,7 @@ export default function ReportsPage() {
                     <p
                       style={{ fontSize: 24, fontWeight: 700, color: successRate === null ? "var(--text-tertiary)" : successRate >= 90 ? "var(--st-current)" : successRate >= 70 ? "var(--st-outdated)" : "var(--st-lagging)" }}
                     >
-                      {successRate !== null ? `${successRate}%` : "—"}
+                      {successRate !== null ? `${successRate}%` : <EmptyCell />}
                     </p>
                   </div>
                 </div>
@@ -227,7 +228,7 @@ export default function ReportsPage() {
                       Apps up to date
                     </span>
                     <span style={{ fontSize: 14, fontWeight: 700, color: "var(--st-current)" }}>
-                      {pctUpToDate !== null ? `${pctUpToDate}%` : "—"}
+                      {pctUpToDate !== null ? `${pctUpToDate}%` : <EmptyCell />}
                     </span>
                   </div>
                   <div
@@ -367,7 +368,7 @@ export default function ReportsPage() {
               </p>
               <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--text-secondary)" }}>
                 <span style={{ color: "var(--st-current)", fontWeight: 600 }}>
-                  {apps.length > 0 ? apps.length : "—"}
+                  {apps.length > 0 ? apps.length : <EmptyCell />}
                 </span>{" "}
                 of{" "}
                 <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>1,100+</span>{" "}

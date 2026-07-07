@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Monitor, AlertTriangle, CheckCircle2, RefreshCw, Wifi } from "lucide-react";
 import { appInitials, appColorClass, formatRelativeDate } from "@/lib/utils";
+import { EmptyCell } from "@/components/EmptyCell";
 import { devices as mockDevices } from "@/lib/mockData";
 
 interface FleetDevice {
@@ -166,7 +167,7 @@ export default function FleetPage() {
                 {/* Last seen */}
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
                   <p style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
-                    {device.last_seen ? formatRelativeDate(device.last_seen) : "—"}
+                    {device.last_seen ? formatRelativeDate(device.last_seen) : <EmptyCell />}
                   </p>
                   <p style={{ fontSize: 10, marginTop: 2, color: "var(--text-tertiary)" }}>
                     agent {device.agent_version || "unknown"}

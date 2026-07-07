@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getAppById, getAppInstallations } from "@/lib/mockData";
 import { getAgentApp, getAgentStore } from "@/lib/agentStore";
 import { formatDateTime, normalizeVersion } from "@/lib/utils";
+import { EmptyCell, EMPTY_VALUE } from "@/components/EmptyCell";
 import { Topbar } from "@/components/Topbar";
 import { X } from "lucide-react";
 
@@ -383,7 +384,7 @@ export default function AppDetailPage({ params }: Props) {
     ? uniqueVersionsRaw[0]
     : uniqueVersionsRaw.length > 1
       ? `${uniqueVersionsRaw[0]}–${uniqueVersionsRaw[uniqueVersionsRaw.length - 1]}`
-      : "—";
+      : EMPTY_VALUE;
   const uniqueVersionsNorm = [...new Set(
     installations.map((i: any) => normalizeVersion(i.version)).filter(Boolean) as string[]
   )].sort();
@@ -620,7 +621,7 @@ export default function AppDetailPage({ params }: Props) {
               <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
                 <VersionCol label="Installed" version={installedDisplay} />
                 <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
-                <VersionCol label="Patchable" version={patchableVersionRaw ?? "—"} color="var(--st-outdated-text)" />
+                <VersionCol label="Patchable" version={patchableVersionRaw ?? EMPTY_VALUE} color="var(--st-outdated-text)" />
               </div>
               {installations.length > 1 && (
                 <p style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>across {installations.length} devices</p>
@@ -657,9 +658,9 @@ export default function AppDetailPage({ params }: Props) {
               <div style={{ display: "flex", alignItems: "flex-end", gap: 22, flexWrap: "wrap" as const }}>
                 <VersionCol label="Installed" version={installedDisplay} />
                 <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
-                <VersionCol label="Patchable" version={patchableVersionRaw ?? "—"} color="var(--st-outdated-text)" />
+                <VersionCol label="Patchable" version={patchableVersionRaw ?? EMPTY_VALUE} color="var(--st-outdated-text)" />
                 <span style={{ fontSize: 22, color: "var(--text-tertiary)", paddingBottom: 6 }}>→</span>
-                <VersionCol label="Vendor latest" version={availableVersionRaw ?? "—"} color="var(--st-lagging-text)" />
+                <VersionCol label="Vendor latest" version={availableVersionRaw ?? EMPTY_VALUE} color="var(--st-lagging-text)" />
               </div>
               {installations.length > 1 && (
                 <p style={{ fontSize: 11.5, color: "var(--text-tertiary)", marginTop: 6 }}>across {installations.length} devices</p>
@@ -765,7 +766,7 @@ export default function AppDetailPage({ params }: Props) {
 
               {/* Version */}
               <div style={{ fontFamily: "var(--mono)", fontSize: 13.5, fontWeight: 500, fontVariantNumeric: "tabular-nums", minWidth: 64, color: "var(--text-primary)" }}>
-                {inst.version ?? "—"}
+                {inst.version ?? <EmptyCell />}
               </div>
 
               {/* Status pill */}
