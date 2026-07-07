@@ -426,6 +426,29 @@ export default function HomePageInner() {
         </div>
       </div>
 
+      {/* Stats bar */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 16 }}>
+        <StatCard
+          icon={<Package className="h-5 w-5" style={{ color: "var(--accent)" }} />}
+          label="Total Apps"
+          value={stats.totalApps.toLocaleString()}
+          iconBg="var(--accent-tint)"
+        />
+        <StatCard
+          icon={<Monitor className="h-5 w-5" style={{ color: "var(--st-current)" }} />}
+          label="Total Devices"
+          value={stats.totalDevices.toLocaleString()}
+          iconBg="color-mix(in srgb, var(--st-current) 12%, transparent)"
+        />
+        <StatCard
+          icon={<RefreshCw className="h-5 w-5" style={{ color: "var(--text-secondary)" }} />}
+          label="Last Synced"
+          value={formatRelativeDate(agentSyncTime ?? lastSynced)}
+          iconBg="var(--surface-raised)"
+          isText
+        />
+      </div>
+
       {/* Patch status summary bar - clickable pills filter the app list */}
       {statusSummary && (() => {
         type Pill = { status: PatchStatus; dot: string; label: string; count: number; activeColor: string; activeBg: string; activeBorder: string };
@@ -438,7 +461,7 @@ export default function HomePageInner() {
         ];
         return (
           <div
-            style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "8px 16px", marginBottom: 16, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)" }}
+            style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 12, padding: "8px 16px", marginBottom: 24, background: "var(--surface-raised)", border: "1px solid var(--border-hairline)" }}
           >
             <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginRight: 4, color: "var(--text-tertiary)" }}>Patch Status</span>
             {pills.map((pill, i) => {
@@ -474,29 +497,6 @@ export default function HomePageInner() {
           </div>
         );
       })()}
-
-      {/* Stats bar */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
-        <StatCard
-          icon={<Package className="h-5 w-5" style={{ color: "var(--accent)" }} />}
-          label="Total Apps"
-          value={stats.totalApps.toLocaleString()}
-          iconBg="var(--accent-tint)"
-        />
-        <StatCard
-          icon={<Monitor className="h-5 w-5" style={{ color: "var(--st-current)" }} />}
-          label="Total Devices"
-          value={stats.totalDevices.toLocaleString()}
-          iconBg="color-mix(in srgb, var(--st-current) 12%, transparent)"
-        />
-        <StatCard
-          icon={<RefreshCw className="h-5 w-5" style={{ color: "var(--text-secondary)" }} />}
-          label="Last Synced"
-          value={formatRelativeDate(agentSyncTime ?? lastSynced)}
-          iconBg="var(--surface-raised)"
-          isText
-        />
-      </div>
 
       {/* Section label + result count + select all */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>

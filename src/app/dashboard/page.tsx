@@ -305,7 +305,7 @@ export default function DashboardPage() {
                 </svg>
               </Link>
             </div>
-            <div style={{ maxHeight: 240, overflowY: "auto", overflowX: "hidden" }}>
+            <div>
             {loading ? (
               <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>Loading…</div>
             ) : topOutdated.length === 0 ? (
@@ -482,7 +482,7 @@ export default function DashboardPage() {
             {/* Summary */}
             <div style={{ padding: "12px 24px", borderTop: "1px solid var(--border-hairline)", fontSize: 13, color: "var(--text-secondary)", background: "var(--surface-sunken)" }}>
               <strong style={{ color: "var(--text-primary)" }}>{topOutdated.length} apps</strong> across{" "}
-              <strong style={{ color: "var(--text-primary)" }}>{devices.length} devices</strong> —{" "}
+              <strong style={{ color: "var(--text-primary)" }}>{devices.length} devices</strong> ·{" "}
               <strong style={{ color: "var(--text-primary)" }}>{counts.outdated} total patch jobs</strong>
             </div>
 
