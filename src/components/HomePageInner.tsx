@@ -476,7 +476,7 @@ export default function HomePageInner() {
       })()}
 
       {/* Stats bar */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
         <StatCard
           icon={<Package className="h-5 w-5" style={{ color: "var(--accent)" }} />}
           label="Total Apps"
@@ -488,15 +488,6 @@ export default function HomePageInner() {
           label="Total Devices"
           value={stats.totalDevices.toLocaleString()}
           iconBg="color-mix(in srgb, var(--st-current) 12%, transparent)"
-        />
-        <StatCard
-          icon={<AlertTriangle className="h-5 w-5" style={{ color: "var(--st-outdated)" }} />}
-          label="Version Conflicts"
-          value={stats.appsWithVersionConflicts.toLocaleString()}
-          iconBg="color-mix(in srgb, var(--st-outdated) 12%, transparent)"
-          onClick={() => setConflictsOnly((v) => !v)}
-          active={conflictsOnly}
-          activeColor="var(--st-outdated)"
         />
         <StatCard
           icon={<RefreshCw className="h-5 w-5" style={{ color: "var(--text-secondary)" }} />}
