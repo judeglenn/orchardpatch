@@ -13,8 +13,6 @@
 
 import {
   devices,
-  getAppById,
-  getAppInstallations,
   getDeviceById,
   stats,
   type App,
@@ -27,11 +25,6 @@ const USE_MOCK = process.env.USE_MOCK_DATA !== "false";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type { App, AppInstallation, Device };
-
-export interface AppDetailResult {
-  app: App;
-  installations: AppInstallation[];
-}
 
 export interface DeviceDetailResult {
   device: Device;
@@ -57,25 +50,6 @@ async function getJamfToken(): Promise<string> {
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
-
-export async function getApp(id: string): Promise<AppDetailResult | null> {
-  if (USE_MOCK) {
-    const app = getAppById(id);
-    if (!app) return null;
-    const installations = getAppInstallations(id);
-    return { app, installations };
-  }
-
-  const token = await getJamfToken();
-  const res = await fetch(`${process.env.JAMF_PRO_URL}/api/v1/apps/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Jamf API error: ${res.status}`);
-  const data = await res.json();
-  return { app: data, installations: data.installations ?? [] };
-}
 
 export async function getDevice(id: string): Promise<DeviceDetailResult | null> {
   if (USE_MOCK) {
