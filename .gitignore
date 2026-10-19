@@ -2,3 +2,7 @@ node_modules/
 .next/
 .env.local
 *.tsbuildinfo
+
+# Session handoff files — kept in ~/orchardpatch-notes/, not in repo
+CONTEXT.md
+session-*.md
